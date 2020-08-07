@@ -9,7 +9,7 @@ source:
 
 requirements:
   build:
-    - python>=3.6
+    - python {{ python }}
     - setuptools
     - pytorch==1.5.0
     - torchvision==0.6.0
@@ -17,7 +17,7 @@ requirements:
     - pip
 
   run:
-    - python>=3.6
+    - python {{ python }}
     - pytorch==1.5.0
     - torchvision==0.6.0
     - cudatoolkit=10.1
