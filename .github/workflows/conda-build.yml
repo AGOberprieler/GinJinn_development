@@ -1,4 +1,4 @@
-name: Test and build conda package
+name: Nightly Build
 
 on: 
   workflow_dispatch:
