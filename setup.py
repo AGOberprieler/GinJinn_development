@@ -1,18 +1,19 @@
-#!/usr/bin/env python
+''' Setup script for GinJinn
+'''
 
-from setuptools import setup, find_packages
 import re
+from setuptools import setup, find_packages
 
-# get version from init file
-#with open('ginjinn/__init__.py', 'r') as f:
-#    VERSION=re.search(
-#        r"^__version__ = ['\"]([^'\"]*)['\"]",
-#        f.read(),
-#        re.M
-#    ).group(1)
 
-VERSION='0.0.0'
-DESCRIPTION='Object detection pipeline for the extraction of structures from herbarium specimens'
+# get version from __init__.py file
+with open('ginjinn/__init__.py', 'r') as f:
+    VERSION = re.search(
+        r"^__version__ = ['\"]([^'\"]*)['\"]",
+        f.read(),
+        re.M
+    ).group(1)
+
+DESCRIPTION = 'Object detection pipeline for the extraction of structures from herbarium specimens'
 
 def install_requires():
     '''Get requirements from requirements.txt'''
