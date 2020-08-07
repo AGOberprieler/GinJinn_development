@@ -1,0 +1,1 @@
+ python -m pip remove detectron2 || 0
