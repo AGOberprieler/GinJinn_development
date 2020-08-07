@@ -1,5 +1,5 @@
 package:
-  name: ginjinn-gpu
+  name: ginjinn-gpu_development
 #  version: {{ GIT_DESCRIBE_TAG }}_pt15_cu101
   version: test_pt15_cu101
 
