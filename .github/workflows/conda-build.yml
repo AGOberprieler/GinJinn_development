@@ -10,9 +10,9 @@ on:
       tags:
         description: 'Build conda package'
   push:
-    branches: [ master ]
+    branches: [ master, development ]
   pull_request:
-    branches: [ master ]
+    branches: [ master, development ]
 
 jobs:
   build:
