@@ -2,6 +2,7 @@
 '''
 
 import re
+import glob
 from setuptools import setup, find_packages
 
 
@@ -13,7 +14,9 @@ with open('ginjinn/__init__.py', 'r') as f:
         re.M
     ).group(1)
 
-DESCRIPTION = 'Object detection pipeline for the extraction of structures from herbarium specimens'
+DESCRIPTION = 'An object detection pipeline for the extraction of structures from herbarium specimens.'
+AUTHOR = 'Tankred Ott, Ulrich Lautenschlager'
+AUTHOR_EMAIL = 'tankred.ott@ur.de, ulrich.lautenschlager@ur.de'
 
 def install_requires():
     '''Get requirements from requirements.txt'''
@@ -25,8 +28,8 @@ setup(
     name='ginjinn',
     version=VERSION,
     url='https://github.com/AGOberprieler/ginjinn',
-    author='Tankred Ott',
-    author_email='tankred.ott@ur.de',
+    author=AUTHOR,
+    author_email=AUTHOR_EMAIL,
     description=DESCRIPTION,
     packages=find_packages(),
     install_requires=install_requires(),
@@ -35,12 +38,9 @@ setup(
 #            'ginjinn = ginjinn.__main__:main',
 #        ]
 #    },
-#    package_data={
-#        'ginjinn': [
-#            'data_files/*.yaml',
-#            'data_files/tf_config_templates/*.config',
-#            'data_files/tf_script_templates/*',
-#            'data_files/*',
-#        ],
-#    }
+   package_data={
+       'ginjinn': [
+           'data/example_data.txt',
+       ],
+   }
 )
