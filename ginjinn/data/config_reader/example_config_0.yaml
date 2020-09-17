@@ -5,8 +5,8 @@ task: "bb-detection"
 input:
   type: "PascalVOC"
   train:
-    annotation_dir: "example_project_0/data/annotations"
-    image_dir: "example_project_0/data/images"
+    annotation_path: "example_project_0/data/annotations"
+    image_path: "example_project_0/data/images"
   split:
     test: 0.20
     validation: 0.20
