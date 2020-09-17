@@ -1,3 +1,6 @@
+''' A simple test
+'''
+
 def test_pytest():
     '''test_pytest
 
@@ -5,4 +8,4 @@ def test_pytest():
     -------
     Dummy test function.
     '''
-    assert(True)
+    assert True

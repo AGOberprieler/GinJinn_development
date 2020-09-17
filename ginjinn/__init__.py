@@ -1,5 +1,3 @@
-import pkg_resources
-
 ''' GinJinn
 
 Summary
@@ -18,6 +16,8 @@ pipeline for automated feature extraction from herbarium specimens.
 Applications in Plant Sciences 2020 8(6).
 '''
 __version__ = '0.0.1'
+
+import pkg_resources
 
 # an example for loading package data
 example_data_path = pkg_resources.resource_filename('ginjinn', 'data/example_data.txt')
