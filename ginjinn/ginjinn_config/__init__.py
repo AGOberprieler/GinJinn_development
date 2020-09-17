@@ -5,14 +5,14 @@ A module for managing the representation of GinJinn configurations.
 import copy
 from os import path
 from typing import Optional
-from .config_error import InvalidInputDescriptionError
+from .config_error import InvalidInputConfigurationError
 
 ANNOTATION_TYPES = [
     'PascalVOC',
     'COCO'
 ]
-class GinjinnInputDescription: #pylint: disable=too-few-public-methods
-    '''GinJinn input description class.
+class GinjinnInputConfiguration: #pylint: disable=too-few-public-methods
+    '''GinJinn input configuration class.
 
     A class representing the configuration of the input(s)
     for a GinJinn project. This includes the configuration
@@ -53,7 +53,7 @@ class GinjinnInputDescription: #pylint: disable=too-few-public-methods
 
     Raises
     ------
-    InvalidInputDescriptionError
+    InvalidInputConfigurationError
         If the input configuration is contradictionary or malformed.
     '''
 
@@ -81,14 +81,14 @@ class GinjinnInputDescription: #pylint: disable=too-few-public-methods
 
         # type
         if not self.type in ANNOTATION_TYPES:
-            raise InvalidInputDescriptionError(
+            raise InvalidInputConfigurationError(
                 '"ann_type" must be one of {}.'.format(ANNOTATION_TYPES)
             )
 
         # test
         if (not test_ann_path is None) or (not test_img_path is None):
             if (test_ann_path is None) or (test_img_path is None):
-                raise InvalidInputDescriptionError(
+                raise InvalidInputConfigurationError(
                     'If any of "test_ann_path" and "test_img_path" is passed, \
                     the other must be passed too.'
                 )
@@ -100,7 +100,7 @@ class GinjinnInputDescription: #pylint: disable=too-few-public-methods
         # test
         if (not val_ann_path is None) or (not val_img_path is None):
             if (val_ann_path is None) or (val_img_path is None):
-                raise InvalidInputDescriptionError(
+                raise InvalidInputConfigurationError(
                     'If any of "val_ann_path" and "val_img_path" is passed, \
                     the other must be passed too.'
                 )
@@ -121,7 +121,7 @@ class GinjinnInputDescription: #pylint: disable=too-few-public-methods
         is_custom = (not self.test is None) or (not self.validation is None)
         is_automatic = not self.split is None
         if is_custom and is_automatic:
-            raise InvalidInputDescriptionError(
+            raise InvalidInputConfigurationError(
                 'Specifying "test_*/val_*" and "split_*" arguments at the same time is not \
                 allowed. Either pass "test_*/val_*" arguments for a custom train-validation-test \
                 split or specify options for automatic split via "split_*" arguments.'
@@ -129,7 +129,7 @@ class GinjinnInputDescription: #pylint: disable=too-few-public-methods
 
     @classmethod
     def from_dictionary(cls, config: dict):
-        '''Build GinjinnInputDescription from a dictionary object.
+        '''Build GinjinnInputConfiguration from a dictionary object.
 
         Parameters
         ----------
@@ -138,8 +138,8 @@ class GinjinnInputDescription: #pylint: disable=too-few-public-methods
 
         Returns
         -------
-        GinjinnInputDescription
-            GinjinnInputDescription constructed with the configuration
+        GinjinnInputConfiguration
+            GinjinnInputConfiguration constructed with the configuration
             given in config.
         '''
 
@@ -174,13 +174,13 @@ class GinjinnInputDescription: #pylint: disable=too-few-public-methods
             split_val = config['split']['validation'],
         )
 
-class GinjinnModelDescription: #pylint: disable=too-few-public-methods
+class GinjinnModelConfiguration: #pylint: disable=too-few-public-methods
     '''A class representing GinJinn model configurations.
     '''
 
     @classmethod
     def from_dictionary(cls, config: dict):
-        '''Build GinjinnModelDescription from a dictionary object.
+        '''Build GinjinnModelConfiguration from a dictionary object.
 
         Parameters
         ----------
@@ -189,20 +189,18 @@ class GinjinnModelDescription: #pylint: disable=too-few-public-methods
 
         Returns
         -------
-        GinjinnModelDescription
-            GinjinnModelDescription constructed with the configuration
+        GinjinnModelConfiguration
+            GinjinnModelConfiguration constructed with the configuration
             given in config.
         '''
 
-
-
-class GinjinnAugmentationDescription: #pylint: disable=too-few-public-methods
+class GinjinnAugmentationConfiguration: #pylint: disable=too-few-public-methods
     '''A class representin GinJinn augmentation configurations.
     '''
 
     @classmethod
     def from_dictionary(cls, config: dict):
-        '''Build GinjinnAugmentationDescription from a dictionary object.
+        '''Build GinjinnAugmentationConfiguration from a dictionary object.
 
         Parameters
         ----------
@@ -211,8 +209,8 @@ class GinjinnAugmentationDescription: #pylint: disable=too-few-public-methods
 
         Returns
         -------
-        GinjinnAugmentationDescription
-            GinjinnAugmentationDescription constructed with the configuration
+        GinjinnAugmentationConfiguration
+            GinjinnAugmentationConfiguration constructed with the configuration
             given in config.
         '''
 
@@ -226,9 +224,9 @@ class GinjinnConfig: #pylint: disable=too-many-arguments
         project_name: str,
         project_dir: str,
         task: str,
-        input_description: GinjinnInputDescription,
-        model_description: GinjinnModelDescription,
-        augmentation_description: GinjinnAugmentationDescription,
+        input_configuration: GinjinnInputConfiguration,
+        model_configuration: GinjinnModelConfiguration,
+        augmentation_configuration: GinjinnAugmentationConfiguration,
     ):
         '''GinJinn configuration class.
 
@@ -242,19 +240,19 @@ class GinjinnConfig: #pylint: disable=too-many-arguments
             Project directory. All outputs will be written to this directory.
         task : str
             Object detection task type.
-        input_description : GinjinnInputDescription
+        input_configuration : GinjinnInputConfiguration
             Object describing the input type.
-        model_description : GinjinnModelDescription
+        model_configuration : GinjinnModelConfiguration
             Object describing the model.
-        augmentation_description : GinjinnAugmentationDescription
+        augmentation_configuration : GinjinnAugmentationConfiguration
             Object describing the augmentation.
         '''
         self.project_name = project_name
         self.project_dir = project_dir
         self.task = task
-        self.input = input_description
-        self.model = model_description
-        self.augmentation = augmentation_description
+        self.input = input_configuration
+        self.model = model_configuration
+        self.augmentation = augmentation_configuration
 
     # TODO: implement
     def check_configuration(self):
