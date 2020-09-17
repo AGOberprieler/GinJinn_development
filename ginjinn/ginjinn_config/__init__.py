@@ -302,7 +302,7 @@ class GinjinnConfiguration: #pylint: disable=too-many-arguments
         model_configuration = GinjinnModelConfiguration.from_dictionary(
             config['model']
         )
-        augmentation_configuration = GinjinnModelConfiguration.from_dictionary(
+        augmentation_configuration = GinjinnAugmentationConfiguration.from_dictionary(
             config['augmentation']
         )
 
