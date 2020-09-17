@@ -1,6 +1,6 @@
 project_name: "example_project_0"
 project_dir: "example_project_0"
-task: "bb-detection"
+task: "bbox-detection"
 # Input data options
 input:
   type: "PascalVOC"

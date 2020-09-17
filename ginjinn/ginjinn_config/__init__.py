@@ -5,12 +5,20 @@ A module for managing the representation of GinJinn configurations.
 import copy
 from os import path
 from typing import Optional
-from .config_error import InvalidInputConfigurationError
+import yaml
+from .config_error import InvalidInputConfigurationError, InvalidGinjinnConfigurationError
 
 ANNOTATION_TYPES = [
     'PascalVOC',
     'COCO'
 ]
+
+TASKS = [
+    'bbox-detection',
+    'semantic-segmentation',
+    'instance-segmentation',
+]
+
 class GinjinnInputConfiguration: #pylint: disable=too-few-public-methods
     '''GinJinn input configuration class.
 
@@ -194,6 +202,9 @@ class GinjinnModelConfiguration: #pylint: disable=too-few-public-methods
             given in config.
         '''
 
+        # TODO: implement
+        return cls()
+
 class GinjinnAugmentationConfiguration: #pylint: disable=too-few-public-methods
     '''A class representin GinJinn augmentation configurations.
     '''
@@ -214,8 +225,11 @@ class GinjinnAugmentationConfiguration: #pylint: disable=too-few-public-methods
             given in config.
         '''
 
-class GinjinnConfig: #pylint: disable=too-many-arguments
-    '''GinjinnConfig
+        # TODO: implement
+        return cls()
+
+class GinjinnConfiguration: #pylint: disable=too-many-arguments
+    '''GinjinnConfiguration
 
     A class representing the configuration of a GinJinn project.
     '''
@@ -241,11 +255,16 @@ class GinjinnConfig: #pylint: disable=too-many-arguments
         task : str
             Object detection task type.
         input_configuration : GinjinnInputConfiguration
-            Object describing the input type.
+            Object describing the input.
         model_configuration : GinjinnModelConfiguration
             Object describing the model.
         augmentation_configuration : GinjinnAugmentationConfiguration
             Object describing the augmentation.
+
+        Raises
+        ------
+        InvalidGinjinnConfigurationError
+            If any of the general configuration is contradictionary or malformed.
         '''
         self.project_name = project_name
         self.project_dir = project_dir
@@ -254,18 +273,65 @@ class GinjinnConfig: #pylint: disable=too-many-arguments
         self.model = model_configuration
         self.augmentation = augmentation_configuration
 
-    # TODO: implement
-    def check_configuration(self):
-        '''Check configuration for validity.
-        '''
+        # task
+        if not self.task in TASKS:
+            raise InvalidGinjinnConfigurationError(
+                '"task" must be one of {}'.format(TASKS)
+            )
 
     # TODO: implement
     @classmethod
     def from_dictionary(cls, config: dict):
-        '''Build GinjinnConfig from dictionary.
+        '''Build GinjinnConfiguration from dictionary.
 
         Parameters
         ----------
         config : dict
             Dictionary object describing the GinJinn configuration.
+
+        Returns
+        -------
+        GinjinnConfiguration
+            GinjinnConfiguration constructed with the configuration
+            given in config.
         '''
+
+        input_configuration = GinjinnInputConfiguration.from_dictionary(
+            config['input']
+        )
+        model_configuration = GinjinnModelConfiguration.from_dictionary(
+            config['model']
+        )
+        augmentation_configuration = GinjinnModelConfiguration.from_dictionary(
+            config['augmentation']
+        )
+
+        return cls(
+            project_name=config['project_name'],
+            project_dir=config['project_dir'],
+            task=config['task'],
+            input_configuration=input_configuration,
+            model_configuration=model_configuration,
+            augmentation_configuration=augmentation_configuration,
+        )
+
+    @classmethod
+    def from_config_file(cls, file_path: str):
+        '''Build GinjinnConfiguration from YAML configuration file.
+
+        Parameters
+        ----------
+        file_path : str
+            Path to GinJinn YAML configuration file.
+
+        Returns
+        -------
+        GinjinnConfiguration
+            GinjinnConfiguration constructed with the configuration
+            given in the config file.
+        '''
+
+        with open(file_path) as config_file:
+            config = yaml.safe_load(config_file)
+
+        return cls.from_dictionary(config)
