@@ -6,5 +6,5 @@ class InvalidInputConfigurationError(Exception):
     '''
 
 class InvalidGinjinnConfigurationError(Exception):
-    '''Error representing invalid input configuration.
+    '''Error representing invalid GinJinn configuration.
     '''
