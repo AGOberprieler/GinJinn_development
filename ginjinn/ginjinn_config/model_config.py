@@ -7,6 +7,15 @@ from typing import Optional
 
 class GinjinnModelConfiguration: #pylint: disable=too-few-public-methods
     '''A class representing GinJinn model configurations.
+
+    Parameters
+    ----------
+    name : str
+        model name/identifier.
+    learning_rate : float
+        learning rate for model training.
+    batch_size : int
+        batch size for model training and evaluation.
     '''
     def __init__( #pylint: disable=too-many-arguments
         self,

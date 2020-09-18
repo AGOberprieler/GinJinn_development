@@ -68,7 +68,9 @@ def test_from_dictionary_simple(config_dicts):
         ginjinn_config_0.project_dir == simple_config_dict['project_dir'] and\
         ginjinn_config_0.project_name == simple_config_dict['project_name'],\
         'simple base configuration not set.'
-    # TODO implement model an augmentation assertions!
+    # TODO implement model and augmentation assertions!
+    assert ginjinn_config_0.model.name == simple_config_dict['model']['name']
+    assert ginjinn_config_0.model.learning_rate == simple_config_dict['model']['learning_rate']
     assert ginjinn_config_0.input.type == simple_config_dict['input']['type']
 
 def test_from_config_file_simple(config_file_examples):
@@ -76,11 +78,14 @@ def test_from_config_file_simple(config_file_examples):
     simple_config_dict_0 = read_config_file(simple_config_file_0)
 
     simple_config_0 = GinjinnConfiguration.from_config_file(simple_config_file_0)
-    # TODO implement model an augmentation assertions!
+    # TODO implement model and augmentation assertions!
     assert simple_config_0.task == simple_config_dict_0['task'] and\
         simple_config_0.project_name == simple_config_dict_0['project_name'] and\
         simple_config_0.project_dir == simple_config_dict_0['project_dir'] and\
-        simple_config_0.input.train['annotation_path'] == simple_config_dict_0['input']['train']['annotation_path'] and\
-        simple_config_0.input.train['image_path'] == simple_config_dict_0['input']['train']['image_path'] and\
-        simple_config_0.input.split['test'] == simple_config_dict_0['input']['split']['test'],\
+        simple_config_0.input.train.annotation_path == simple_config_dict_0['input']['train']['annotation_path'] and\
+        simple_config_0.input.train.image_path == simple_config_dict_0['input']['train']['image_path'] and\
+        simple_config_0.input.split.test == simple_config_dict_0['input']['split']['test'],\
         'GinjinnConfig was not successfully constructed from simple configuration file.'
+    
+    assert simple_config_0.model.name == simple_config_dict_0['model']['name']
+    assert simple_config_0.model.learning_rate == simple_config_dict_0['model']['learning_rate']

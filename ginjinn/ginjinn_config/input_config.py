@@ -11,6 +11,42 @@ ANNOTATION_TYPES = [
     'COCO'
 ]
 
+class InputPaths: #pylint: disable=too-few-public-methods
+    '''Class representing annotation and corresponding image paths.
+
+    Parameters
+    ----------
+    ann_path : str
+        Path to annotations. I.e. either a file or a folder path.
+    img_path : str
+        Path to the folder containing images.
+        '''
+    def __init__(
+        self,
+        ann_path: str,
+        img_path: str,
+    ):
+        self.annotation_path = ann_path
+        self.image_path = img_path
+
+class SplitConfig: #pylint: disable=too-few-public-methods
+    '''Class representing test and validation split options.
+
+    Parameters
+    ----------
+    test_split : float
+        Fraction of data set to use for testing.
+    validation_split : float
+        Fraction of data set to use for validation.
+    '''
+    def __init__(
+        self,
+        test_split: Optional[float] = None,
+        validation_split: Optional[float] = None,
+    ):
+        self.test = test_split
+        self.validation = validation_split
+
 class GinjinnInputConfiguration: #pylint: disable=too-few-public-methods
     '''GinJinn input configuration class.
 
@@ -70,10 +106,11 @@ class GinjinnInputConfiguration: #pylint: disable=too-few-public-methods
         split_val: Optional[float] = None,
     ):
         self.type = ann_type
-        self.train = {
-            'annotation_path': train_ann_path,
-            'image_path': train_img_path,
-        }
+        # self.train = {
+        #     'annotation_path': train_ann_path,
+        #     'image_path': train_img_path,
+        # }
+        self.train = InputPaths(train_ann_path, train_img_path)
 
         self.test = None
         self.validation = None
@@ -92,10 +129,11 @@ class GinjinnInputConfiguration: #pylint: disable=too-few-public-methods
                     'If any of "test_ann_path" and "test_img_path" is passed, \
                     the other must be passed too.'
                 )
-            self.test = {
-                'annotation_path': test_ann_path,
-                'image_path': test_img_path,
-            }
+            # self.test = {
+            #     'annotation_path': test_ann_path,
+            #     'image_path': test_img_path,
+            # }
+            self.test = InputPaths(test_ann_path, test_img_path)
 
         # test
         if (not val_ann_path is None) or (not val_img_path is None):
@@ -104,18 +142,22 @@ class GinjinnInputConfiguration: #pylint: disable=too-few-public-methods
                     'If any of "val_ann_path" and "val_img_path" is passed, \
                     the other must be passed too.'
                 )
-            self.validation = {
-                'annotation_path': val_ann_path,
-                'image_path': val_img_path,
-            }
+            # self.validation = {
+            #     'annotation_path': val_ann_path,
+            #     'image_path': val_img_path,
+            # }
+            self.validation = InputPaths(val_ann_path, val_img_path)
 
         # split
         if (not split_test is None) or (not split_val is None):
-            self.split = {}
+            # self.split = {}
+            self.split = SplitConfig()
             if not split_test is None:
-                self.split['test'] = split_test
+                # self.split['test'] = split_test
+                self.split.test = split_test
             if not split_val is None:
-                self.split['validation'] = split_val
+                # self.split['validation'] = split_val
+                self.split.validation = split_val
 
         # check whether contradicting parameters were passed
         is_custom = (not self.test is None) or (not self.validation is None)
