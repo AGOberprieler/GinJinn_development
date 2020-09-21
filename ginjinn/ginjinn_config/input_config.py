@@ -106,10 +106,6 @@ class GinjinnInputConfiguration: #pylint: disable=too-few-public-methods
         split_val: Optional[float] = None,
     ):
         self.type = ann_type
-        # self.train = {
-        #     'annotation_path': train_ann_path,
-        #     'image_path': train_img_path,
-        # }
         self.train = InputPaths(train_ann_path, train_img_path)
 
         self.test = None
@@ -129,34 +125,23 @@ class GinjinnInputConfiguration: #pylint: disable=too-few-public-methods
                     'If any of "test_ann_path" and "test_img_path" is passed, \
                     the other must be passed too.'
                 )
-            # self.test = {
-            #     'annotation_path': test_ann_path,
-            #     'image_path': test_img_path,
-            # }
             self.test = InputPaths(test_ann_path, test_img_path)
 
-        # test
+        # validation
         if (not val_ann_path is None) or (not val_img_path is None):
             if (val_ann_path is None) or (val_img_path is None):
                 raise InvalidInputConfigurationError(
                     'If any of "val_ann_path" and "val_img_path" is passed, \
                     the other must be passed too.'
                 )
-            # self.validation = {
-            #     'annotation_path': val_ann_path,
-            #     'image_path': val_img_path,
-            # }
             self.validation = InputPaths(val_ann_path, val_img_path)
 
         # split
         if (not split_test is None) or (not split_val is None):
-            # self.split = {}
             self.split = SplitConfig()
             if not split_test is None:
-                # self.split['test'] = split_test
                 self.split.test = split_test
             if not split_val is None:
-                # self.split['validation'] = split_val
                 self.split.validation = split_val
 
         # check whether contradicting parameters were passed
