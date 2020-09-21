@@ -2,8 +2,8 @@
 GinJinn augmentation configuration module
 '''
 
-import copy
-from typing import Optional
+# import copy
+# from typing import Optional
 
 class GinjinnAugmentationConfiguration: #pylint: disable=too-few-public-methods
     '''A class representin GinJinn augmentation configurations.

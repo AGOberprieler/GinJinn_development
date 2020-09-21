@@ -3,7 +3,7 @@ GinJinn model configuration module
 '''
 
 import copy
-from typing import Optional
+# from typing import Optional
 
 class GinjinnModelConfiguration: #pylint: disable=too-few-public-methods
     '''A class representing GinJinn model configurations.
