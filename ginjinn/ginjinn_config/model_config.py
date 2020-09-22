@@ -4,6 +4,31 @@ GinJinn model configuration module
 
 import copy
 # from typing import Optional
+from .config_error import InvalidModelConfigurationError
+
+# see all models: detectron2.model_zoo.model_zoo._ModelZooUrls.CONFIG_PATH_TO_URL_SUFFIX
+MODEL_NAMES = [
+    'faster_rcnn_R_50_C4_1x',
+    'faster_rcnn_R_50_DC5_1x',
+    'faster_rcnn_R_50_FPN_1x',
+    'faster_rcnn_R_50_C4_3x',
+    'faster_rcnn_R_50_DC5_3x',
+    'faster_rcnn_R_50_FPN_3x',
+    'faster_rcnn_R_101_C4_3x',
+    'faster_rcnn_R_101_DC5_3x',
+    'faster_rcnn_R_101_FPN_3x',
+    'faster_rcnn_X_101_32x8d_FPN_3x',
+    'mask_rcnn_R_50_C4_1x',
+    'mask_rcnn_R_50_DC5_1x',
+    'mask_rcnn_R_50_FPN_1x',
+    'mask_rcnn_R_50_C4_3x',
+    'mask_rcnn_R_50_DC5_3x',
+    'mask_rcnn_R_50_FPN_3x',
+    'mask_rcnn_R_101_C4_3x',
+    'mask_rcnn_R_101_DC5_3x',
+    'mask_rcnn_R_101_FPN_3x',
+    'mask_rcnn_X_101_32x8d_FPN_3x'
+]
 
 class GinjinnModelConfiguration: #pylint: disable=too-few-public-methods
     '''A class representing GinJinn model configurations.
@@ -26,6 +51,9 @@ class GinjinnModelConfiguration: #pylint: disable=too-few-public-methods
         self.name = name
         self.learning_rate = learning_rate
         self.batch_size = batch_size
+
+        if not self.name in MODEL_NAMES:
+            raise InvalidModelConfigurationError('Invalid model name.')
 
     @classmethod
     def from_dictionary(cls, config: dict):

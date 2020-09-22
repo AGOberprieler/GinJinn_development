@@ -4,6 +4,7 @@
 import pkg_resources
 import pytest
 import yaml
+import copy
 
 from ginjinn.ginjinn_config import GinjinnConfiguration, InvalidGinjinnConfigurationError
 
@@ -89,3 +90,10 @@ def test_from_config_file_simple(config_file_examples):
     
     assert simple_config_0.model.name == simple_config_dict_0['model']['name']
     assert simple_config_0.model.learning_rate == simple_config_dict_0['model']['learning_rate']
+
+def test_invalid_task(config_dicts):
+    simple_config_dict = copy.deepcopy(config_dicts[0])
+    simple_config_dict['task'] = 'foobar'
+
+    with pytest.raises(InvalidGinjinnConfigurationError):
+        GinjinnConfiguration.from_dictionary(simple_config_dict)
