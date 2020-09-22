@@ -47,10 +47,13 @@ class GinjinnModelConfiguration: #pylint: disable=too-few-public-methods
         name: str,
         learning_rate: float,
         batch_size: int,
+        max_iter: int,
     ):
         self.name = name
         self.learning_rate = learning_rate
         self.batch_size = batch_size
+        self.max_iter = max_iter
+
 
         if not self.name in MODEL_NAMES:
             raise InvalidModelConfigurationError('Invalid model name.')
@@ -74,6 +77,7 @@ class GinjinnModelConfiguration: #pylint: disable=too-few-public-methods
         default_config = {
             'learning_rate': 0.002,
             'batch_size': 1,
+            'max_iter': 40000,
         }
 
         # Maybe implement this more elegantly...
@@ -84,4 +88,5 @@ class GinjinnModelConfiguration: #pylint: disable=too-few-public-methods
             name=config['name'],
             learning_rate=config['learning_rate'],
             batch_size=config['batch_size'],
+            max_iter=config['max_iter']
         )
