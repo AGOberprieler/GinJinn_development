@@ -66,8 +66,7 @@ def test_from_dictionary_simple(config_dicts):
 
     ginjinn_config_0 = GinjinnConfiguration.from_dictionary(simple_config_dict)
     assert ginjinn_config_0.task == simple_config_dict['task'] and\
-        ginjinn_config_0.project_dir == simple_config_dict['project_dir'] and\
-        ginjinn_config_0.project_name == simple_config_dict['project_name'],\
+        ginjinn_config_0.project_dir == simple_config_dict['project_dir'],\
         'simple base configuration not set.'
     # TODO implement model and augmentation assertions!
     assert ginjinn_config_0.model.name == simple_config_dict['model']['name']
@@ -81,7 +80,6 @@ def test_from_config_file_simple(config_file_examples):
     simple_config_0 = GinjinnConfiguration.from_config_file(simple_config_file_0)
     # TODO implement model and augmentation assertions!
     assert simple_config_0.task == simple_config_dict_0['task'] and\
-        simple_config_0.project_name == simple_config_dict_0['project_name'] and\
         simple_config_0.project_dir == simple_config_dict_0['project_dir'] and\
         simple_config_0.input.train.annotation_path == simple_config_dict_0['input']['train']['annotation_path'] and\
         simple_config_0.input.train.image_path == simple_config_dict_0['input']['train']['image_path'] and\

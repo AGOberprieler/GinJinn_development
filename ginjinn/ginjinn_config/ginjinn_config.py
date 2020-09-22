@@ -13,7 +13,7 @@ from .augmentation_config import GinjinnAugmentationConfiguration
 
 TASKS = [
     'bbox-detection',
-    'semantic-segmentation',
+    # 'semantic-segmentation',
     'instance-segmentation',
 ]
 
@@ -24,8 +24,6 @@ class GinjinnConfiguration: #pylint: disable=too-many-arguments
 
     Parameters
     ----------
-    project_name : str
-        Name of the project.
     project_dir : str
         Project directory. All outputs will be written to this directory.
     task : str
@@ -44,14 +42,12 @@ class GinjinnConfiguration: #pylint: disable=too-many-arguments
     '''
     def __init__(
         self,
-        project_name: str,
         project_dir: str,
         task: str,
         input_configuration: GinjinnInputConfiguration,
         model_configuration: GinjinnModelConfiguration,
         augmentation_configuration: GinjinnAugmentationConfiguration,
     ):
-        self.project_name = project_name
         self.project_dir = project_dir
         self.task = task
         self.input = input_configuration
@@ -92,7 +88,6 @@ class GinjinnConfiguration: #pylint: disable=too-many-arguments
         )
 
         return cls(
-            project_name=config['project_name'],
             project_dir=config['project_dir'],
             task=config['task'],
             input_configuration=input_configuration,
