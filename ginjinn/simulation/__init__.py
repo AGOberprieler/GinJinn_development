@@ -1,4 +1,4 @@
 '''Module for simulating simple data sets
 '''
 
-from .simulation import *
+from .simulation import generate_simple_shapes_coco
