@@ -44,7 +44,7 @@ jobs:
           conda config --set anaconda_upload yes
           conda-build conda.recipe/${{ matrix.ginjinn-distribution }} --token ${{ secrets.ANACONDA_TOKEN }} --user AGOberprieler --variants "{'python': ['${{ matrix.python-version }}']}" --label nightly
       - name: Install GinJinn from Anaconda cloud
-        run: conda install -c agoberprieler/label/nightly ginjinn-gpu_development
+        run: conda install -c conda-forge -c pytorch -c agoberprieler/label/nightly ginjinn-gpu_development
       - name: Test with pytest
         run: |
           pytest --cov=./ginjinn/ --cov-report=xml
