@@ -10,6 +10,7 @@ from .config_error import InvalidGinjinnConfigurationError
 from .input_config import GinjinnInputConfiguration
 from .model_config import GinjinnModelConfiguration
 from .augmentation_config import GinjinnAugmentationConfiguration
+from .detectron_config import GinjinnDetectronConfiguration
 
 TASKS = [
     'bbox-detection',
@@ -34,6 +35,9 @@ class GinjinnConfiguration: #pylint: disable=too-many-arguments
         Object describing the model.
     augmentation_configuration : GinjinnAugmentationConfiguration
         Object describing the augmentation.
+    detectron_configuration : GinjinnDetectronConfiguration
+        Object describing additional detectron2 configurations.
+        Only use this option if you know what you are doing
 
     Raises
     ------
@@ -47,6 +51,7 @@ class GinjinnConfiguration: #pylint: disable=too-many-arguments
         input_configuration: GinjinnInputConfiguration,
         model_configuration: GinjinnModelConfiguration,
         augmentation_configuration: GinjinnAugmentationConfiguration,
+        detectron_configuration: GinjinnDetectronConfiguration = GinjinnDetectronConfiguration(),
     ):
         self.project_dir = project_dir
         self.task = task

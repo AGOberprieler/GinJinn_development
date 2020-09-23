@@ -1,12 +1,12 @@
 '''
-GinJinn augmentation configuration module
+Detectron2 configuration module
 '''
 
 # import copy
 # from typing import Optional
 
-class GinjinnAugmentationConfiguration: #pylint: disable=too-few-public-methods
-    '''A class representing GinJinn augmentation configurations.
+class GinjinnDetectronConfiguration: #pylint: disable=too-few-public-methods
+    '''A class representing additional Detectron2 configurations
     '''
 
     @classmethod
@@ -20,8 +20,8 @@ class GinjinnAugmentationConfiguration: #pylint: disable=too-few-public-methods
 
         Returns
         -------
-        GinjinnAugmentationConfiguration
-            GinjinnAugmentationConfiguration constructed with the configuration
+        GinjinnDetectronConfiguration
+            GinjinnDetectronConfiguration constructed with the configuration
             given in config.
         '''
 
