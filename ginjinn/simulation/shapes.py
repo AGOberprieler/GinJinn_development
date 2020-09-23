@@ -8,6 +8,12 @@ import skimage.draw
 import skimage.measure
 import skimage.filters
 
+try:
+    draw_circle = skimage.draw.disk
+except:
+    def draw_circle(center, radius, shape=None):
+        return skimage.draw.circle(center[0], center[1], radius, shape)
+
 # Should probably find/clip contours using
 # https://en.wikipedia.org/wiki/Sutherland%E2%80%93Hodgman_algorithm
 # instead of using skimage.
@@ -38,10 +44,11 @@ def add_circle(
     Tuple
         Tuple of circle data: (contour, center_xy, radius)
     '''
-    try:
-        circle_coords = skimage.draw.disk(c_xy[[1,0]], radius=r, shape=img.shape)
-    except AttributeError:
-        circle_coords = skimage.draw.circle(c_xy[1], c_xy[0], radiusr, shape=img.shape)
+
+    # circle_coords = skimage.draw.disk(c_xy[[1,0]], radius=r, shape=img.shape)
+    circle_coords = draw_circle(c_xy[[1,0]], radius=r, shape=img.shape)
+
+
     img[circle_coords] = col
 
     # need to add border for find_contours to work at the corners of the image
