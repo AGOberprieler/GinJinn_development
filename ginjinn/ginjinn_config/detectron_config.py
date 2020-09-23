@@ -7,7 +7,15 @@ Detectron2 configuration module
 
 class GinjinnDetectronConfiguration: #pylint: disable=too-few-public-methods
     '''A class representing additional Detectron2 configurations
+
+    Parameters
+    ----------
+    config : dict, optional
+        A dictionary describing additional Detectron2 configurations, by default {}
     '''
+
+    def __init__(self, config: dict = {}): #pylint: disable=dangerous-default-value
+        self.config = config
 
     @classmethod
     def from_dictionary(cls, config: dict):
@@ -25,5 +33,4 @@ class GinjinnDetectronConfiguration: #pylint: disable=too-few-public-methods
             given in config.
         '''
 
-        # TODO: implement
-        return cls()
+        return cls(config)

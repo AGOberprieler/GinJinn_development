@@ -58,6 +58,7 @@ class GinjinnConfiguration: #pylint: disable=too-many-arguments
         self.input = input_configuration
         self.model = model_configuration
         self.augmentation = augmentation_configuration
+        self.detectron_config = detectron_configuration
 
         # task
         if not self.task in TASKS:
@@ -91,6 +92,9 @@ class GinjinnConfiguration: #pylint: disable=too-many-arguments
         augmentation_configuration = GinjinnAugmentationConfiguration.from_dictionary(
             config['augmentation']
         )
+        detectron_configuration = GinjinnDetectronConfiguration.from_dictionary(
+            config.get('detectron', {})
+        )
 
         return cls(
             project_dir=config['project_dir'],
@@ -98,6 +102,7 @@ class GinjinnConfiguration: #pylint: disable=too-many-arguments
             input_configuration=input_configuration,
             model_configuration=model_configuration,
             augmentation_configuration=augmentation_configuration,
+            detectron_configuration=detectron_configuration,
         )
 
     @classmethod
