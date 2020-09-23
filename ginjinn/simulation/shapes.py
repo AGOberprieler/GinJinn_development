@@ -38,7 +38,10 @@ def add_circle(
     Tuple
         Tuple of circle data: (contour, center_xy, radius)
     '''
-    circle_coords = skimage.draw.disk(c_xy[[1,0]], radius=r, shape=img.shape)
+    try:
+        circle_coords = skimage.draw.disk(c_xy[[1,0]], radius=r, shape=img.shape)
+    except AttributeError:
+        circle_coords = skimage.draw.circle(c_xy[1], c_xy[0], radiusr, shape=img.shape)
     img[circle_coords] = col
 
     # need to add border for find_contours to work at the corners of the image
