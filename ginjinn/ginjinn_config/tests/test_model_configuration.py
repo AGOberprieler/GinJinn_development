@@ -3,7 +3,7 @@
 
 import pytest
 from ginjinn.ginjinn_config.model_config import GinjinnModelConfiguration, MODEL_NAMES
-from ginjinn.ginjinn_config.config_error import InvalidGinjinnConfigurationError
+from ginjinn.ginjinn_config.config_error import InvalidModelConfigurationError
 
 def test_simple_model():
     name = MODEL_NAMES[0]
@@ -29,7 +29,7 @@ def test_invalid_model():
     batch_size = 1
     max_iter = 10000
 
-    with pytest.raises(InvalidGinjinnConfigurationError):
+    with pytest.raises(InvalidModelConfigurationError):
         model = GinjinnModelConfiguration(
             name=name,
             learning_rate=learning_rate,
