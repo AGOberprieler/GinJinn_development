@@ -41,6 +41,8 @@ class GinjinnModelConfiguration: #pylint: disable=too-few-public-methods
         learning rate for model training.
     batch_size : int
         batch size for model training and evaluation.
+    max_iter: int
+        maximum number of training iterations.
     '''
     def __init__( #pylint: disable=too-many-arguments
         self,
