@@ -97,7 +97,7 @@ def generate_simple_shapes_coco( #pylint: disable=too-many-arguments,too-many-lo
         img_id = i + 1
         file_name = os.path.join(img_dir, f'img_{img_id}.jpg')
         images.append(build_coco_image(
-            img_id, file_name, w, h
+            img_id, os.path.basename(file_name), w, h
         ))
 
         for _ in range(np.random.randint(min_n_shapes, max_n_shapes)):
