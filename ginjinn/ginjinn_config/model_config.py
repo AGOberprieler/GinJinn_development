@@ -92,3 +92,15 @@ class GinjinnModelConfiguration: #pylint: disable=too-few-public-methods
             batch_size=config['batch_size'],
             max_iter=config['max_iter']
         )
+
+    # TODO: implement
+    def _check_learning_rate(self):
+        pass
+
+    # TODO: implement
+    def _check_batch_size(self):
+        pass
+
+    # TODO: implement
+    def _check_max_iter(self):
+        pass

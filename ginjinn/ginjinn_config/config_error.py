@@ -16,3 +16,7 @@ class InvalidAugmentationConfigurationError(Exception):
 class InvalidGinjinnConfigurationError(Exception):
     '''Error representing invalid general GinJinn configuration.
     '''
+
+class InvalidGinjinnOptionsError(Exception):
+    '''Error representing invalid general GinJinn configuration.
+    '''
