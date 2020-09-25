@@ -2,24 +2,69 @@
 '''
 
 import pytest
+import tempfile
+import os
 import copy
 from ginjinn.ginjinn_config import GinjinnInputConfiguration, InvalidInputConfigurationError
 
+@pytest.fixture(scope='module', autouse=True)
+def tmp_input_paths():
+    tmpdir = tempfile.TemporaryDirectory()
+
+    img_path_train = os.path.join(tmpdir.name, 'images_train')
+    os.mkdir(img_path_train)
+    img_path_test = os.path.join(tmpdir.name, 'images_test')
+    os.mkdir(img_path_test)
+    img_path_validation = os.path.join(tmpdir.name, 'images_validation')
+    os.mkdir(img_path_validation)
+
+    pvoc_ann_path_train = os.path.join(tmpdir.name, 'annotations_train')
+    os.mkdir(pvoc_ann_path_train)
+    pvoc_ann_path_test = os.path.join(tmpdir.name, 'annotations_test')
+    os.mkdir(pvoc_ann_path_test)
+    pvoc_ann_path_validation = os.path.join(tmpdir.name, 'annotations_validation')
+    os.mkdir(pvoc_ann_path_validation)
+
+    coco_ann_path_train = os.path.join(tmpdir.name, 'annotations_train.json')
+    with open(coco_ann_path_train, 'w') as ann_f:
+        ann_f.write('')
+    coco_ann_path_test = os.path.join(tmpdir.name, 'annotations_test.json')
+    with open(coco_ann_path_test, 'w') as ann_f:
+        ann_f.write('')
+    coco_ann_path_validation = os.path.join(tmpdir.name, 'annotations_valiation.json')
+    with open(coco_ann_path_validation, 'w') as ann_f:
+        ann_f.write('')
+
+    yield {
+        'coco_ann_path_train': coco_ann_path_train,
+        'coco_ann_path_test': coco_ann_path_test,
+        'coco_ann_path_validation': coco_ann_path_validation,
+        'pvoc_ann_path_train': pvoc_ann_path_train,
+        'pvoc_ann_path_test': pvoc_ann_path_test,
+        'pvoc_ann_path_validation': pvoc_ann_path_validation,
+        'img_path_train': img_path_train,
+        'img_path_test': img_path_test,
+        'img_path_validation': img_path_validation,
+    }
+
+    tmpdir.cleanup()
+
+
 @pytest.fixture
-def basic_inputs():
+def basic_inputs(tmp_input_paths):
     return [
         'PVOC',
-        '/test/dir/annotations',
-        '/test/dir/images'
+        tmp_input_paths['pvoc_ann_path_train'],
+        tmp_input_paths['img_path_train']
     ]
 
 @pytest.fixture
-def custom_split_inputs():
+def custom_split_inputs_pvoc(tmp_input_paths):
     return [
-        'test/dir/annotations_test',
-        'test/dir/images_test',
-        'test/dir/annotations_val',
-        'test/dir/images_val'
+        tmp_input_paths['pvoc_ann_path_test'],
+        tmp_input_paths['img_path_test'],
+        tmp_input_paths['pvoc_ann_path_validation'],
+        tmp_input_paths['img_path_validation'],
     ]
 
 @pytest.fixture
@@ -30,24 +75,24 @@ def automatic_split_inputs():
     ]
 
 @pytest.fixture
-def config_dicts():
+def config_dicts(tmp_input_paths):
     simple_config = {
         'type': 'PVOC',
         'train': {
-            'annotation_path': 'example_project_0/data/annotations',
-            'image_path': 'example_project_0/data/images',
+            'annotation_path': tmp_input_paths['pvoc_ann_path_train'],
+            'image_path': tmp_input_paths['img_path_train'],
         },
     }
     test_custom_0 = {
         'test': {
-            'annotation_path': 'test/dir/annotations_test',
-            'image_path': 'test/dir/images_test',
+            'annotation_path': tmp_input_paths['pvoc_ann_path_test'],
+            'image_path': tmp_input_paths['img_path_test'],
         }
     }
     val_custom_0 = {
         'validation': {
-            'annotation_path': 'test/dir/annotations_validation',
-            'image_path': 'test/dir/images_validation',
+            'annotation_path': tmp_input_paths['pvoc_ann_path_validation'],
+            'image_path': tmp_input_paths['img_path_validation'],
         }
     }
     test_automatic_0 = {
@@ -104,7 +149,7 @@ def test_constructor_simple(basic_inputs):
     assert input_configuration.train.image_path == train_img_path,\
         'train image path not set correctly'
     
-def test_constructor_custom_split(basic_inputs, custom_split_inputs):
+def test_constructor_custom_split(basic_inputs, custom_split_inputs_pvoc):
     '''Test constructor with custom split.
     '''
 
@@ -112,10 +157,10 @@ def test_constructor_custom_split(basic_inputs, custom_split_inputs):
     train_ann_path = basic_inputs[1]
     train_img_path = basic_inputs[2]
 
-    test_ann_path = custom_split_inputs[0]
-    test_img_path = custom_split_inputs[1]
-    val_ann_path = custom_split_inputs[2]
-    val_img_path = custom_split_inputs[3]
+    test_ann_path = custom_split_inputs_pvoc[0]
+    test_img_path = custom_split_inputs_pvoc[1]
+    val_ann_path = custom_split_inputs_pvoc[2]
+    val_img_path = custom_split_inputs_pvoc[3]
 
     # test split
     input_configuration_0 = GinjinnInputConfiguration(
@@ -203,15 +248,15 @@ def test_invalid_annotation_type(basic_inputs):
             ann_type, train_ann_path, train_img_path
         )
 
-def test_missing_test_val_paths(basic_inputs, custom_split_inputs):
+def test_missing_test_val_paths(basic_inputs, custom_split_inputs_pvoc):
     ann_type = basic_inputs[0]
     train_ann_path = basic_inputs[1]
     train_img_path = basic_inputs[2]
 
-    test_ann_path = custom_split_inputs[0]
-    test_img_path = custom_split_inputs[1]
-    val_ann_path = custom_split_inputs[2]
-    val_img_path = custom_split_inputs[3]
+    test_ann_path = custom_split_inputs_pvoc[0]
+    test_img_path = custom_split_inputs_pvoc[1]
+    val_ann_path = custom_split_inputs_pvoc[2]
+    val_img_path = custom_split_inputs_pvoc[3]
 
     with pytest.raises(InvalidInputConfigurationError):
         GinjinnInputConfiguration(
@@ -237,15 +282,17 @@ def test_missing_test_val_paths(basic_inputs, custom_split_inputs):
             val_img_path=val_img_path,
         )
 
-def test_contradictionary_inputs(basic_inputs, custom_split_inputs, automatic_split_inputs):
+def test_contradictionary_inputs(
+    basic_inputs, custom_split_inputs_pvoc, automatic_split_inputs
+):
     ann_type = basic_inputs[0]
     train_ann_path = basic_inputs[1]
     train_img_path = basic_inputs[2]
 
-    test_ann_path = custom_split_inputs[0]
-    test_img_path = custom_split_inputs[1]
-    val_ann_path = custom_split_inputs[2]
-    val_img_path = custom_split_inputs[3]
+    test_ann_path = custom_split_inputs_pvoc[0]
+    test_img_path = custom_split_inputs_pvoc[1]
+    val_ann_path = custom_split_inputs_pvoc[2]
+    val_img_path = custom_split_inputs_pvoc[3]
 
     split_test=automatic_split_inputs[0]
     split_val=automatic_split_inputs[1]

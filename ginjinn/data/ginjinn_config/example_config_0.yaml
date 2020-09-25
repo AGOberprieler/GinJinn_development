@@ -4,8 +4,8 @@ task: "bbox-detection"
 input:
   type: "PVOC"
   train:
-    annotation_path: "example_project_0/data/annotations"
-    image_path: "example_project_0/data/images"
+    annotation_path: "annotations_xyz"
+    image_path: "images_xyz"
   split:
     test: 0.20
     validation: 0.20

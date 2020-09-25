@@ -138,7 +138,9 @@ class GinjinnInputConfiguration: #pylint: disable=too-few-public-methods
             self.validation = InputPaths(val_ann_path, val_img_path)
 
         # check for file path validity
-        # self._check_filepaths()
+        # TODO: think about whether this should be checked here or later
+        #       in the data reader.
+        self._check_filepaths()
 
         # split
         if (not split_test is None) or (not split_val is None):
