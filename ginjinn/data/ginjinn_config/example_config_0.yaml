@@ -2,7 +2,7 @@ project_dir: "example_project_0"
 task: "bbox-detection"
 # Input data options
 input:
-  type: "PascalVOC"
+  type: "PVOC"
   train:
     annotation_path: "example_project_0/data/annotations"
     image_path: "example_project_0/data/images"
@@ -24,6 +24,7 @@ augmentation:
 # Additional options
 options:
   n_threads: 1
+  resume: False
 # Detectron options
 detectron:
   MODEL:

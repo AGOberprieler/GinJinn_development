@@ -3,11 +3,12 @@ GinJinn input configuration module
 '''
 
 import copy
+import os
 from typing import Optional
 from .config_error import InvalidInputConfigurationError
 
 ANNOTATION_TYPES = [
-    'PascalVOC',
+    'PVOC',
     'COCO'
 ]
 
@@ -136,6 +137,9 @@ class GinjinnInputConfiguration: #pylint: disable=too-few-public-methods
                 )
             self.validation = InputPaths(val_ann_path, val_img_path)
 
+        # check for file path validity
+        # self._check_filepaths()
+
         # split
         if (not split_test is None) or (not split_val is None):
             self.split = SplitConfig()
@@ -153,6 +157,92 @@ class GinjinnInputConfiguration: #pylint: disable=too-few-public-methods
                 allowed. Either pass "test_*/val_*" arguments for a custom train-validation-test \
                 split or specify options for automatic split via "split_*" arguments.'
             )
+
+    @staticmethod
+    def _check_pvoc_annotation_path(ann_path: str):
+        ''' Check for PVOC annotation path validity, else raise an exception
+
+        Parameters
+        ----------
+        ann_path : str
+            Path to a directory containing annotations.
+
+        Raises
+        ------
+        InvalidInputConfigurationError
+            This exception is raised if the annotation path is not valid.
+        '''
+        if not os.path.isdir(ann_path):
+            raise InvalidInputConfigurationError(
+                '{} is not a valid annotation file path. The path might not exist \
+                or refer to a file instead of a directory.'.format(ann_path)
+            )
+
+    @staticmethod
+    def _check_coco_annotation_path(ann_path: str):
+        ''' Check for COCO annotation path validity, else raise an exception
+
+        Parameters
+        ----------
+        ann_path : str
+            Path to an annotation JSON file.
+
+        Raises
+        ------
+        InvalidInputConfigurationError
+            This exception is raised if the annotation path is not valid.
+        '''
+
+        if not os.path.isfile(ann_path):
+            raise InvalidInputConfigurationError(
+                '{} is not a valid annotation file path. The path might not exist \
+                or refer to a directory instead of a file.'.format(ann_path)
+            )
+
+    @staticmethod
+    def _check_image_path(image_path: str):
+        ''' Check for image path validity, else raise an exception
+
+        Parameters
+        ----------
+        image_path : str
+            Path to a directory containing images.
+
+        Raises
+        ------
+        InvalidInputConfigurationError
+            This exception is raised if the image path is not valid.
+        '''
+        if not os.path.isdir(image_path):
+            raise InvalidInputConfigurationError(
+                '{} is not a valid image directory path. The path might not exist \
+                or refer to a file.'.format(image_path)
+            )
+
+    def _check_filepaths(self):
+        '''Check, whether file path configuration is valid
+        '''
+
+        # check for correct annotation type, i.e. files or folders
+        if self.type == 'PVOC':
+            self._check_pvoc_annotation_path(self.train.annotation_path)
+            if not self.test is None:
+                self._check_pvoc_annotation_path(self.test.annotation_path)
+            if not self.validation is None:
+                self._check_pvoc_annotation_path(self.validation.annotation_path)
+        elif self.type == 'COCO':
+            self._check_coco_annotation_path(self.train.annotation_path)
+            if not self.test is None:
+                self._check_coco_annotation_path(self.test.annotation_path)
+            if not self.validation is None:
+                self._check_coco_annotation_path(self.validation.annotation_path)
+
+        # check if image directory exists
+        self._check_image_path(self.train.image_path)
+        if not self.test is None:
+            self._check_image_path(self.test.image_path)
+        if not self.validation is None:
+            self._check_image_path(self.validation.image_path)
 
     @classmethod
     def from_dictionary(cls, config: dict):

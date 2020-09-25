@@ -8,7 +8,7 @@ from ginjinn.ginjinn_config import GinjinnInputConfiguration, InvalidInputConfig
 @pytest.fixture
 def basic_inputs():
     return [
-        'PascalVOC',
+        'PVOC',
         '/test/dir/annotations',
         '/test/dir/images'
     ]
@@ -32,7 +32,7 @@ def automatic_split_inputs():
 @pytest.fixture
 def config_dicts():
     simple_config = {
-        'type': 'PascalVOC',
+        'type': 'PVOC',
         'train': {
             'annotation_path': 'example_project_0/data/annotations',
             'image_path': 'example_project_0/data/images',

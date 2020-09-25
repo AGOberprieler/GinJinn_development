@@ -15,7 +15,7 @@ def config_dicts():
         'project_dir': 'dir/to/example_project_0',
         'task': 'bbox-detection',
         'input': {
-            'type': 'PascalVOC',
+            'type': 'PVOC',
             'train': {
                 'annotation_path': 'example_project_0/data/annotations',
                 'image_path': 'example_project_0/data/images',
