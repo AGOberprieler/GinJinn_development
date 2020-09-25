@@ -52,3 +52,21 @@ class GinjinnOptionsConfiguration: #pylint: disable=too-few-public-methods
             resume=config['resume'],
             n_threads=config['n_threads'],
         )
+
+    def _check_n_threads(self):
+        ''' Check n_threads config
+
+        Raises
+        ------
+        InvalidGinjinnOptionsError
+            Raised if n_threads value is invalid.
+        '''
+        if self.n_threads < 0:
+            raise InvalidGinjinnOptionsError(
+                'n_threads must be a positive number.'
+            )
+
+    def _check_config(self):
+        ''' Check configuration values for validity.
+        '''
+        self._check_n_threads()

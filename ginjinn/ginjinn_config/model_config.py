@@ -93,14 +93,42 @@ class GinjinnModelConfiguration: #pylint: disable=too-few-public-methods
             max_iter=config['max_iter']
         )
 
-    # TODO: implement
     def _check_learning_rate(self):
-        pass
+        ''' Check learning rate config
 
-    # TODO: implement
+        Raises
+        ------
+        InvalidModelConfigurationError
+            Raised for invalid learning rate values.
+        '''
+        if self.learning_rate < 0:
+            raise InvalidModelConfigurationError('learning_rate must be greater than 0')
+
     def _check_batch_size(self):
-        pass
+        ''' Check batch size config
 
-    # TODO: implement
+        Raises
+        ------
+        InvalidModelConfigurationError
+            Raised for invalid batch size values.
+        '''
+        if self.batch_size < 1:
+            raise InvalidModelConfigurationError('batch_size must be greater than or equal to 1')
+
     def _check_max_iter(self):
-        pass
+        ''' Check max iter config
+
+        Raises
+        ------
+        InvalidModelConfigurationError
+            Raised for invalid max iter values.
+        '''
+        if self.max_iter < 1:
+            raise InvalidModelConfigurationError('max_iter must be greater than or equal to 1')
+
+    def _check_config(self):
+        ''' Check configs
+        '''
+        self._check_learning_rate()
+        self._check_batch_size()
+        self._check_max_iter()

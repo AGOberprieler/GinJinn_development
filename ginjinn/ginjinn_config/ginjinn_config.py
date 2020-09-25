@@ -11,6 +11,7 @@ from .input_config import GinjinnInputConfiguration
 from .model_config import GinjinnModelConfiguration
 from .augmentation_config import GinjinnAugmentationConfiguration
 from .detectron_config import GinjinnDetectronConfiguration
+from .options_config import GinjinnOptionsConfiguration
 
 TASKS = [
     'bbox-detection',
@@ -38,6 +39,8 @@ class GinjinnConfiguration: #pylint: disable=too-many-arguments
     detectron_configuration : GinjinnDetectronConfiguration
         Object describing additional detectron2 configurations.
         Only use this option if you know what you are doing
+    options_configuration: GinjinnOptionsConfiguration
+        Object describing additional GinJinn options.
 
     Raises
     ------
@@ -52,6 +55,8 @@ class GinjinnConfiguration: #pylint: disable=too-many-arguments
         model_configuration: GinjinnModelConfiguration,
         augmentation_configuration: GinjinnAugmentationConfiguration,
         detectron_configuration: GinjinnDetectronConfiguration = GinjinnDetectronConfiguration(),
+        options_configuration: GinjinnOptionsConfiguration =
+            GinjinnOptionsConfiguration.from_dictionary({}),
     ):
         self.project_dir = project_dir
         self.task = task
@@ -59,6 +64,7 @@ class GinjinnConfiguration: #pylint: disable=too-many-arguments
         self.model = model_configuration
         self.augmentation = augmentation_configuration
         self.detectron_config = detectron_configuration
+        self.options = options_configuration
 
         # task
         if not self.task in TASKS:
@@ -66,7 +72,7 @@ class GinjinnConfiguration: #pylint: disable=too-many-arguments
                 '"task" must be one of {}'.format(TASKS)
             )
 
-    # TODO: implement
+    # TODO: implement augmentation
     @classmethod
     def from_dictionary(cls, config: dict):
         '''Build GinjinnConfiguration from dictionary.
@@ -95,6 +101,9 @@ class GinjinnConfiguration: #pylint: disable=too-many-arguments
         detectron_configuration = GinjinnDetectronConfiguration.from_dictionary(
             config.get('detectron', {})
         )
+        options_configuration = GinjinnOptionsConfiguration.from_dictionary(
+            config.get('options', {})
+        )
 
         return cls(
             project_dir=config['project_dir'],
@@ -103,6 +112,7 @@ class GinjinnConfiguration: #pylint: disable=too-many-arguments
             model_configuration=model_configuration,
             augmentation_configuration=augmentation_configuration,
             detectron_configuration=detectron_configuration,
+            options_configuration=options_configuration,
         )
 
     @classmethod
