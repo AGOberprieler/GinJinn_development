@@ -6,5 +6,7 @@ from .ginjinn_config import GinjinnConfiguration
 from .input_config import GinjinnInputConfiguration
 from .model_config import GinjinnModelConfiguration
 from .augmentation_config import GinjinnAugmentationConfiguration
-from .config_error import InvalidGinjinnConfigurationError,\
-    InvalidInputConfigurationError
+from .config_error import \
+    InvalidGinjinnConfigurationError,\
+    InvalidInputConfigurationError, \
+    InvalidAugmentationConfigurationError

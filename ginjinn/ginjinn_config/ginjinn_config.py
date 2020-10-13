@@ -95,8 +95,8 @@ class GinjinnConfiguration: #pylint: disable=too-many-arguments
         model_configuration = GinjinnModelConfiguration.from_dictionary(
             config['model']
         )
-        augmentation_configuration = GinjinnAugmentationConfiguration.from_dictionary(
-            config['augmentation']
+        augmentation_configuration = GinjinnAugmentationConfiguration.from_dictionaries(
+            config.get('augmentation', [])
         )
         detectron_configuration = GinjinnDetectronConfiguration.from_dictionary(
             config.get('detectron', {})

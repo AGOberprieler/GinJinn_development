@@ -77,14 +77,18 @@ def config_dicts(tmp_input_paths):
                 },
             },
         },
-        'augmentation': {
-            'horizontal_flip': {
-                'probability': 0.25
+        'augmentation': [
+            {
+                'horizontal_flip': {
+                    'probability': 0.25
+                }
             },
-            'vertical_flip': {
-                'probability': 0.25
+            {
+                'vertical_flip': {
+                    'probability': 0.25
+                }
             },
-        },
+        ],
     }
 
     return [
@@ -122,8 +126,10 @@ def test_from_config_file_simple(config_file_examples):
     simple_config_file_0 = config_file_examples[0]
     simple_config_dict_0 = read_config_file(simple_config_file_0)
 
-    os.mkdir(simple_config_dict_0['input']['train']['annotation_path'])
-    os.mkdir(simple_config_dict_0['input']['train']['image_path'])
+    if not os.path.exists(simple_config_dict_0['input']['train']['annotation_path']):
+        os.mkdir(simple_config_dict_0['input']['train']['annotation_path'])
+    if not os.path.exists(simple_config_dict_0['input']['train']['image_path']):
+        os.mkdir(simple_config_dict_0['input']['train']['image_path'])
 
     simple_config_0 = GinjinnConfiguration.from_config_file(simple_config_file_0)
     # TODO implement model and augmentation assertions!
