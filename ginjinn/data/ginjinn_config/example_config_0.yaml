@@ -30,14 +30,13 @@ augmentation:
       angle_min: -45
       angle_max: 45
       expand: True
-  - rotation_selection:
-      angles:
-        - -20
-        - -10
-        - 10
-        - 20
-      expand: False
-  - rotation_
+  # - rotation_selection:
+  #     angles:
+  #       - -20
+  #       - -10
+  #       - 10
+  #       - 20
+  #     expand: False
 # Additional options
 options:
   n_threads: 1
