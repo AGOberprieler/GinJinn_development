@@ -176,7 +176,7 @@ class GinjinnInputConfiguration: #pylint: disable=too-few-public-methods
         '''
         if not os.path.isdir(ann_path):
             raise InvalidInputConfigurationError(
-                '{} is not a valid annotation file path. The path might not exist \
+                '{} is not a valid PVOC annotation file path. The path might not exist \
                 or refer to a file instead of a directory.'.format(ann_path)
             )
 

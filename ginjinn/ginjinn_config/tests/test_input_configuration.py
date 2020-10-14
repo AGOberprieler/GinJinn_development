@@ -329,7 +329,7 @@ def test_contradictionary_inputs(
             split_val=split_val,
         )
 
-def test_from_dictionary(config_dicts):
+def test_from_dictionary(config_dicts, tmp_input_paths):
     simple_config = config_dicts[0]
     test_custom_config_0 = config_dicts[1]
     val_custom_config_0 = config_dicts[2]
@@ -375,3 +375,55 @@ def test_from_dictionary(config_dicts):
         input_configuration_4.split.test == test_val_automatic_config_0['split']['test'] and\
         input_configuration_4.split.validation == test_val_automatic_config_0['split']['validation'],\
         'Automatic test-validation configuration from dictionary not successful.'
+
+    input_configuration_5 = GinjinnInputConfiguration.from_dictionary({
+        'type': 'COCO',
+            'train': {
+                'annotation_path': tmp_input_paths['coco_ann_path_train'],
+                'image_path': tmp_input_paths['img_path_train']
+            },
+            'test': {
+                'annotation_path': tmp_input_paths['coco_ann_path_test'],
+                'image_path': tmp_input_paths['img_path_test']
+            },
+            'validation': {
+                'annotation_path': tmp_input_paths['coco_ann_path_validation'],
+                'image_path': tmp_input_paths['img_path_validation']
+            },
+    })
+
+def test_invalid_paths(tmp_input_paths):
+    with pytest.raises(InvalidInputConfigurationError):
+        input_dict = {
+            'type': 'PVOC',
+            'train': {
+                'annotation_path': tmp_input_paths['coco_ann_path_train'],
+                'image_path': tmp_input_paths['img_path_train']
+            }
+        }
+
+        GinjinnInputConfiguration.from_dictionary(input_dict)
+    
+    with pytest.raises(InvalidInputConfigurationError):
+        input_dict = {
+            'type': 'COCO',
+            'train': {
+                'annotation_path': tmp_input_paths['pvoc_ann_path_train'],
+                'image_path': tmp_input_paths['img_path_train']
+            }
+        }
+
+        GinjinnInputConfiguration.from_dictionary(input_dict)
+
+    with pytest.raises(InvalidInputConfigurationError):
+        input_dict = {
+            'type': 'COCO',
+            'train': {
+                'annotation_path': tmp_input_paths['coco_ann_path_train'],
+                
+                # just using this here to have file instead of a directory
+                'image_path': tmp_input_paths['coco_ann_path_train']
+            }
+        }
+
+        GinjinnInputConfiguration.from_dictionary(input_dict)

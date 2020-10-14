@@ -14,14 +14,20 @@ class GinjinnOptionsConfiguration: #pylint: disable=too-few-public-methods
 
     Parameters
     ----------
+    resume : bool
+        Determines, whether a previous run should be resumed
+    n_threads : int
+        Number of CPU threads to use.
     '''
     def __init__( #pylint: disable=too-many-arguments
         self,
-        resume,
-        n_threads,
+        resume: bool,
+        n_threads: int,
     ):
         self.resume = resume
         self.n_threads = n_threads
+
+        self._check_config()
 
     @classmethod
     def from_dictionary(cls, config: dict):
@@ -61,7 +67,7 @@ class GinjinnOptionsConfiguration: #pylint: disable=too-few-public-methods
         InvalidOptionsConfigurationError
             Raised if n_threads value is invalid.
         '''
-        if self.n_threads < 0:
+        if self.n_threads < 1:
             raise InvalidOptionsConfigurationError(
                 'n_threads must be a positive number.'
             )
