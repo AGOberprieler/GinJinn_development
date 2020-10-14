@@ -39,6 +39,10 @@ augmentation:
         - 20
       expand: False
       probability: 0.2
+  - brightness:
+      brightness_min: 0.5
+      brightness_max: 1.5
+      probability: 0.9
 # Additional options
 options:
   n_threads: 1

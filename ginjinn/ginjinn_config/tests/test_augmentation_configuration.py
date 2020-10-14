@@ -7,7 +7,8 @@ from ginjinn.ginjinn_config import GinjinnAugmentationConfiguration, InvalidAugm
 from ginjinn.ginjinn_config.augmentation_config import HorizontalFlipAugmentationConfiguration, \
     VerticalFlipAugmentationConfiguration, \
     RotationRangeAugmentationConfiguration, \
-    RotationChoiceAugmentationConfiguration
+    RotationChoiceAugmentationConfiguration, \
+    BrightnessAugmentationConfiguration
 
 @pytest.fixture
 def simple_augmentation_list():
@@ -42,13 +43,21 @@ def simple_augmentation_list():
                     'expand': True,
                     'probability': 0.25
                 }
-            }
+            },
+            {
+                'brightness': {
+                    'brightness_min': 0.5,
+                    'brightness_max': 1.5,
+                    'probability': 0.75
+                }
+            },
         ],
         [
             HorizontalFlipAugmentationConfiguration,
             VerticalFlipAugmentationConfiguration,
             RotationRangeAugmentationConfiguration,
             RotationChoiceAugmentationConfiguration,
+            BrightnessAugmentationConfiguration,
         ]
     )
 
@@ -137,6 +146,57 @@ def test_invalid_rotation_range():
                 'probability': 0.25
             }
         )
+    
+    with pytest.raises(InvalidAugmentationConfigurationError):
+        RotationChoiceAugmentationConfiguration.from_dictionary(
+            {
+                'expand': True,
+                'probability': 0.25
+            }
+        )
+    
+    with pytest.raises(InvalidAugmentationConfigurationError):
+        BrightnessAugmentationConfiguration.from_dictionary(
+            {
+                'brightness_min': 0.1,
+                'probability': 0.25
+            }
+        )
+    
+    with pytest.raises(InvalidAugmentationConfigurationError):
+        BrightnessAugmentationConfiguration.from_dictionary(
+            {
+                'brightness_max': 0.1,
+                'probability': 0.25
+            }
+        )
+    
+    with pytest.raises(InvalidAugmentationConfigurationError):
+        BrightnessAugmentationConfiguration.from_dictionary(
+            {
+                'brightness_min': 0.2,
+                'brightness_max': 0.1,
+                'probability': 0.25
+            }
+        )
+    
+    with pytest.raises(InvalidAugmentationConfigurationError):
+        BrightnessAugmentationConfiguration.from_dictionary(
+            {
+                'brightness_min': -0.1,
+                'brightness_max': 0.1,
+                'probability': 0.25
+            }
+        )
+    
+    with pytest.raises(InvalidAugmentationConfigurationError):
+        BrightnessAugmentationConfiguration.from_dictionary(
+            {
+                'brightness_min': 0.1,
+                'brightness_max': -0.1,
+                'probability': 0.25
+            }
+        )
 
 def test_detectron2_conversion(simple_augmentation_list):
     aug = GinjinnAugmentationConfiguration.from_dictionaries(
@@ -167,5 +227,9 @@ def test_detectron2_conversion(simple_augmentation_list):
         simple_augmentation_list[0][3]['rotation_choice']['angles']
     ):
         assert a1 == a2
-    
+
     assert d_augs[3].transform.expand == simple_augmentation_list[0][3]['rotation_choice']['expand']
+
+    assert d_augs[4].prob == simple_augmentation_list[0][4]['brightness']['probability']
+    assert d_augs[4].transform.intensity_min == simple_augmentation_list[0][4]['brightness']['brightness_min']
+    assert d_augs[4].transform.intensity_max == simple_augmentation_list[0][4]['brightness']['brightness_max']

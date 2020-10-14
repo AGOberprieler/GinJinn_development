@@ -114,7 +114,108 @@ class VerticalFlipAugmentationConfiguration: #pylint: disable=too-few-public-met
             vertical=True
         )
 
-class RotationRangeAugmentationConfiguration():
+class BrightnessAugmentationConfiguration: #pylint: disable=too-few-public-methods
+    '''Random Brightness Augmentation Configuration
+
+    Parameters
+    ----------
+    brightness_min : float
+        Relative minimal brightness
+    brightness_max : float
+        Relative maximal brightness
+    probability : float, optional
+        Probability of applying the augmentation, by default 1.0 (always applied).
+    '''
+
+    def __init__(
+        self,
+        brightness_min: float,
+        brightness_max: float,
+        probability: float = 1.0
+    ):
+        _check_probability(probability)
+
+        self.probability = probability
+        self.brightness_min = brightness_min
+        self.brightness_max = brightness_max
+        self._check_brightness()
+
+    @classmethod
+    def from_dictionary(cls, config: dict):
+        '''Build BrightnessAugmentationConfiguration from dictionary
+
+        Parameters
+        ----------
+        config : dict
+            Dictionary containing brightness configurations.
+
+        Returns
+        -------
+        BrightnessAugmentationConfiguration
+            BrightnessAugmentationConfiguration object.
+
+        Raises
+        ------
+        InvalidAugmentationConfigurationError
+            Raised when an invalid config is passed.
+        '''
+        probability = config.get('probability', 1.0)
+        brightness_min = config.get('brightness_min', None)
+        brightness_max = config.get('brightness_max', None)
+        if brightness_min is None:
+            raise InvalidAugmentationConfigurationError(
+                '"brightness_min" required but not in config dictionary'
+            )
+        if brightness_max is None:
+            raise InvalidAugmentationConfigurationError(
+                '"brightness_max" required but not in config dictionary'
+            )
+
+        return cls(
+            brightness_min=brightness_min,
+            brightness_max=brightness_max,
+            probability = probability
+        )
+
+    def to_detectron2_augmentation(self):
+        '''Convert to Detectron2 augmentation
+
+        Returns
+        -------
+        Augmentation
+            Detectron2 augmentation
+        '''
+        return T.RandomApply(
+            T.RandomBrightness(
+                intensity_min=self.brightness_min,
+                intensity_max=self.brightness_max,
+            ),
+            prob=self.probability
+        )
+
+    def _check_brightness(self):
+        '''Check brightness values for validity
+
+        Raises
+        ------
+        InvalidAugmentationConfigurationError
+            Raised if brightness values not valid
+        '''
+        if self.brightness_min <= 0:
+            raise InvalidAugmentationConfigurationError(
+                'brightness_min must greather than 0.'
+            )
+        if self.brightness_max <= 0:
+            raise InvalidAugmentationConfigurationError(
+                'brightness_max must greather than 0.'
+            )
+
+        if self.brightness_min > self.brightness_max:
+            raise InvalidAugmentationConfigurationError(
+                'brightness_min must the less than brightness_max'
+            )
+
+class RotationRangeAugmentationConfiguration(): #pylint: disable=too-few-public-methods
     '''Rotation range augmentation
 
     Rotate randomly in the interval between angle_min and angle_max.
@@ -219,7 +320,7 @@ class RotationRangeAugmentationConfiguration():
                 'angle_min must the less than angle_max'
             )
 
-class RotationChoiceAugmentationConfiguration():
+class RotationChoiceAugmentationConfiguration(): #pylint: disable=too-few-public-methods
     '''Rotation selection augmentation
 
     Rotate randomly in the interval between angle_min and angle_max.
@@ -315,6 +416,7 @@ class GinjinnAugmentationConfiguration: #pylint: disable=too-few-public-methods
         'vertical_flip': VerticalFlipAugmentationConfiguration,
         'rotation_range': RotationRangeAugmentationConfiguration,
         'rotation_choice': RotationChoiceAugmentationConfiguration,
+        'brightness': BrightnessAugmentationConfiguration,
     }
 
     def __init__(
