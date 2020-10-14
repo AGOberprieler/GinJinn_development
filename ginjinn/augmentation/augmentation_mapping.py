@@ -49,8 +49,8 @@ def map_vertical_flip(aug_config: VerticalFlipAugmentationConfiguration):
     )
 
 AUGMENTATION_MAP = {
-    type(HorizontalFlipAugmentationConfiguration): map_horizontal_flip,
-    type(VerticalFlipAugmentationConfiguration): map_vertical_flip,
+    HorizontalFlipAugmentationConfiguration: map_horizontal_flip,
+    VerticalFlipAugmentationConfiguration: map_vertical_flip,
 }
 
 def map_ginjinn_augmentation(aug_config):
@@ -72,10 +72,40 @@ def map_ginjinn_augmentation(aug_config):
     InvalidAugmentationConfigurationTypeError
         Raised if unknown augmentation configuration object is passed.
     '''
-    augmentation = AUGMENTATION_MAP.get(type(aug_config), None)
-    if augmentation is None:
+    mapping = None
+    for aug_type, map_fun in AUGMENTATION_MAP.items():
+        if isinstance(aug_config, aug_type):
+            mapping = map_fun
+            break
+
+    if mapping is None:
         raise InvalidAugmentationConfigurationTypeError(
             'Unknown augmentation configuration type "{}".'.format(type(aug_config))
         )
 
-    return augmentation
+    return mapping(aug_config)
+
+def map_ginjinn_augmentation_configuration(
+    aug_config: GinjinnAugmentationConfiguration
+):
+    '''Map GinjinnAugmentationConfiguration to a
+    list of Detectron 2 augmentations.
+
+    Parameters
+    ----------
+    aug_config : GinjinnAugmentationConfiguration
+        A GinjinnAugmentationConfiguration object
+
+    Returns
+    -------
+    Augmentations
+        List of Detectron2 Augmentations
+    '''
+
+    augmentations = []
+    for aug in aug_config.augmentations:
+        augmentations.append(
+            map_ginjinn_augmentation(aug)
+        )
+
+    return augmentations
