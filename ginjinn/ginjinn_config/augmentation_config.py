@@ -24,8 +24,8 @@ def _check_probability(probability: float):
             'The probability of an augmentation must be between 0.0 and 1.0.'
         )
 
-class HorizontalFlipAugmentation: #pylint: disable=too-few-public-methods
-    '''Horizontal Flip Augmentation
+class HorizontalFlipAugmentationConfiguration: #pylint: disable=too-few-public-methods
+    '''Horizontal Flip Augmentation Configuration
 
     Parameters
     ----------
@@ -40,7 +40,7 @@ class HorizontalFlipAugmentation: #pylint: disable=too-few-public-methods
 
     @classmethod
     def from_dictionary(cls, config: dict):
-        '''Build HorizontalFlipAugmentation from dictionary
+        '''Build HorizontalFlipAugmentationConfiguration from dictionary
 
         Parameters
         ----------
@@ -55,8 +55,8 @@ class HorizontalFlipAugmentation: #pylint: disable=too-few-public-methods
         probability = config.get('probability', 1.0)
         return cls(probability = probability)
 
-class VerticalFlipAugmentation: #pylint: disable=too-few-public-methods
-    '''Vertical Flip Augmentation
+class VerticalFlipAugmentationConfiguration: #pylint: disable=too-few-public-methods
+    '''Vertical Flip Augmentation Configuration
 
     Parameters
     ----------
@@ -92,8 +92,8 @@ class GinjinnAugmentationConfiguration: #pylint: disable=too-few-public-methods
     '''
 
     AVAILABLE_AUGMENTATIONS = {
-        'horizontal_flip': HorizontalFlipAugmentation,
-        'vertical_flip': VerticalFlipAugmentation,
+        'horizontal_flip': HorizontalFlipAugmentationConfiguration,
+        'vertical_flip': VerticalFlipAugmentationConfiguration,
     }
 
     def __init__(
@@ -113,7 +113,7 @@ class GinjinnAugmentationConfiguration: #pylint: disable=too-few-public-methods
 
     @classmethod
     def from_dictionaries(cls, augmentation_dicts: List[dict]):
-        '''Build augmentations list from list of dictionaries.
+        '''Build augmentations configuration from list of dictionaries.
 
         Each augmentation dictionary should consist of single key naming
         the augmentation that should be performed with the a corresponding

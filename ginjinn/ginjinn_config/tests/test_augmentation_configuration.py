@@ -4,7 +4,7 @@
 import pytest
 
 from ginjinn.ginjinn_config import GinjinnAugmentationConfiguration, InvalidAugmentationConfigurationError
-from ginjinn.ginjinn_config.augmentation_config import HorizontalFlipAugmentation, VerticalFlipAugmentation
+from ginjinn.ginjinn_config.augmentation_config import HorizontalFlipAugmentationConfiguration, VerticalFlipAugmentationConfiguration
 
 @pytest.fixture
 def simple_augmentation_list():
@@ -22,8 +22,8 @@ def simple_augmentation_list():
             }
         ],
         [
-            HorizontalFlipAugmentation,
-            VerticalFlipAugmentation
+            HorizontalFlipAugmentationConfiguration,
+            VerticalFlipAugmentationConfiguration
         ]
     )
 
