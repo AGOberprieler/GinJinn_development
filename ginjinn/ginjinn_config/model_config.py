@@ -30,6 +30,8 @@ MODEL_NAMES = [
     'mask_rcnn_X_101_32x8d_FPN_3x'
 ]
 
+# TODO: implement model-specific parameters
+
 class GinjinnModelConfiguration: #pylint: disable=too-few-public-methods
     '''A class representing GinJinn model configurations.
 
