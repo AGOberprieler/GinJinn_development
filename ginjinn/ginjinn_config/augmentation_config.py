@@ -2,7 +2,7 @@
 GinJinn augmentation configuration module
 '''
 
-# import copy
+import detectron2.data.transforms as T
 from typing import List
 from .config_error import InvalidAugmentationConfigurationError
 
@@ -55,6 +55,20 @@ class HorizontalFlipAugmentationConfiguration: #pylint: disable=too-few-public-m
         probability = config.get('probability', 1.0)
         return cls(probability = probability)
 
+    def to_detectron2_augmentation(self):
+        '''Convert to Detectron2 augmentation
+
+        Returns
+        -------
+        Augmentation
+            Detectron2 augmentation
+        '''
+        return T.RandomFlip(
+            prob=self.probability,
+            horizontal=True,
+            vertical=False
+        )
+
 class VerticalFlipAugmentationConfiguration: #pylint: disable=too-few-public-methods
     '''Vertical Flip Augmentation Configuration
 
@@ -85,6 +99,20 @@ class VerticalFlipAugmentationConfiguration: #pylint: disable=too-few-public-met
         '''
         probability = config.get('probability', 1.0)
         return cls(probability = probability)
+
+    def to_detectron2_augmentation(self):
+        '''Convert to Detectron2 augmentation
+
+        Returns
+        -------
+        Augmentation
+            Detectron2 augmentation
+        '''
+        return T.RandomFlip(
+            prob=self.probability,
+            horizontal=False,
+            vertical=True
+        )
 
 
 class GinjinnAugmentationConfiguration: #pylint: disable=too-few-public-methods
@@ -153,9 +181,24 @@ class GinjinnAugmentationConfiguration: #pylint: disable=too-few-public-methods
                 )
 
             aug = aug_constructor.from_dictionary(aug_dict[aug_name])
+
             augmentations.append(aug)
 
         return cls(augmentations)
+
+    def to_detectron2_augmentations(self):
+        '''Convert to Detectron2 augmentation list
+
+        Returns
+        -------
+        Augmentations
+            A list of Detectron2 augmentations
+        '''
+        augmentations = []
+        for aug in self.augmentations:
+            augmentations.append(aug.to_detectron2_augmentation())
+
+        return augmentations
 
     def _check_augmentations(self):
         '''Check augmentations for validity

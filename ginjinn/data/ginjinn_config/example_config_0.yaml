@@ -26,6 +26,18 @@ augmentation:
       probability: 0.25
   - vertical_flip:
       probability: 0.25
+  - rotation_range:
+      angle_min: -45
+      angle_max: 45
+      expand: True
+  - rotation_selection:
+      angles:
+        - -20
+        - -10
+        - 10
+        - 20
+      expand: False
+  - rotation_
 # Additional options
 options:
   n_threads: 1

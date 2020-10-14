@@ -77,3 +77,18 @@ def test_invalid_probability():
                 'probability': 1.1
             }}
         ])
+
+def test_detectron2_conversion(simple_augmentation_list):
+    aug = GinjinnAugmentationConfiguration.from_dictionaries(
+        simple_augmentation_list[0]
+    )
+
+    d_augs = aug.to_detectron2_augmentations()
+
+    assert d_augs[0].prob == simple_augmentation_list[0][0]['horizontal_flip']['probability']
+    assert d_augs[0].horizontal == True
+    assert d_augs[0].vertical == False
+
+    assert d_augs[1].prob == simple_augmentation_list[0][1]['vertical_flip']['probability']
+    assert d_augs[1].horizontal == False
+    assert d_augs[1].vertical == True
