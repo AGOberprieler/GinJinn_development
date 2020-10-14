@@ -17,6 +17,10 @@ class InvalidGinjinnConfigurationError(Exception):
     '''Error representing invalid general GinJinn configuration.
     '''
 
-class InvalidGinjinnOptionsError(Exception):
+class InvalidOptionsConfigurationError(Exception):
+    '''Error representing invalid general GinJinn configuration.
+    '''
+
+class InvalidTrainingConfigurationError(Exception):
     '''Error representing invalid general GinJinn configuration.
     '''

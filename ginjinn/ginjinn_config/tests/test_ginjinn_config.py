@@ -68,14 +68,17 @@ def config_dicts(tmp_input_paths):
         },
         'model': {
             'name': 'faster_rcnn_R_50_FPN_3x',
-            'learning_rate': 0.002,
-            'batch_size': 1,
             'model_parameters': {
                 'roi_heads': {
                     'batch_size_per_image': 4096,
                     'num_classes': 2,
                 },
             },
+        },
+        'training': {
+            'learning_rate': 0.002,
+            'batch_size': 1,
+            'max_iter': 10000,
         },
         'augmentation': [
             {
@@ -119,7 +122,7 @@ def test_from_dictionary_simple(config_dicts):
         'simple base configuration not set.'
     # TODO implement model and augmentation assertions!
     assert ginjinn_config_0.model.name == simple_config_dict['model']['name']
-    assert ginjinn_config_0.model.learning_rate == simple_config_dict['model']['learning_rate']
+    assert ginjinn_config_0.training.learning_rate == simple_config_dict['training']['learning_rate']
     assert ginjinn_config_0.input.type == simple_config_dict['input']['type']
 
 def test_from_config_file_simple(config_file_examples):
@@ -141,7 +144,7 @@ def test_from_config_file_simple(config_file_examples):
         'GinjinnConfig was not successfully constructed from simple configuration file.'
     
     assert simple_config_0.model.name == simple_config_dict_0['model']['name']
-    assert simple_config_0.model.learning_rate == simple_config_dict_0['model']['learning_rate']
+    assert simple_config_0.training.learning_rate == simple_config_dict_0['training']['learning_rate']
 
     os.rmdir(simple_config_dict_0['input']['train']['annotation_path'])
     os.rmdir(simple_config_dict_0['input']['train']['image_path'])

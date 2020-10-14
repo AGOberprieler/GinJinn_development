@@ -5,7 +5,7 @@ GinJinn options configuration module
 import copy
 import os
 # from typing import Optional
-from .config_error import InvalidGinjinnOptionsError
+from .config_error import InvalidOptionsConfigurationError
 
 N_CORES = os.cpu_count()
 
@@ -58,11 +58,11 @@ class GinjinnOptionsConfiguration: #pylint: disable=too-few-public-methods
 
         Raises
         ------
-        InvalidGinjinnOptionsError
+        InvalidOptionsConfigurationError
             Raised if n_threads value is invalid.
         '''
         if self.n_threads < 0:
-            raise InvalidGinjinnOptionsError(
+            raise InvalidOptionsConfigurationError(
                 'n_threads must be a positive number.'
             )
 

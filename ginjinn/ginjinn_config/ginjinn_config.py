@@ -12,6 +12,7 @@ from .model_config import GinjinnModelConfiguration
 from .augmentation_config import GinjinnAugmentationConfiguration
 from .detectron_config import GinjinnDetectronConfiguration
 from .options_config import GinjinnOptionsConfiguration
+from .training_config import GinjinnTrainingConfiguration
 
 TASKS = [
     'bbox-detection',
@@ -34,6 +35,8 @@ class GinjinnConfiguration: #pylint: disable=too-many-arguments
         Object describing the input.
     model_configuration : GinjinnModelConfiguration
         Object describing the model.
+    training_configuration : GinjinnTrainingConfiguration
+        Object desribing the training.
     augmentation_configuration : GinjinnAugmentationConfiguration
         Object describing the augmentation.
     detectron_configuration : GinjinnDetectronConfiguration
@@ -53,6 +56,7 @@ class GinjinnConfiguration: #pylint: disable=too-many-arguments
         task: str,
         input_configuration: GinjinnInputConfiguration,
         model_configuration: GinjinnModelConfiguration,
+        training_configuration: GinjinnTrainingConfiguration,
         augmentation_configuration: GinjinnAugmentationConfiguration,
         detectron_configuration: GinjinnDetectronConfiguration = GinjinnDetectronConfiguration(),
         options_configuration: GinjinnOptionsConfiguration =
@@ -62,6 +66,7 @@ class GinjinnConfiguration: #pylint: disable=too-many-arguments
         self.task = task
         self.input = input_configuration
         self.model = model_configuration
+        self.training = training_configuration
         self.augmentation = augmentation_configuration
         self.detectron_config = detectron_configuration
         self.options = options_configuration
@@ -72,7 +77,6 @@ class GinjinnConfiguration: #pylint: disable=too-many-arguments
                 '"task" must be one of {}'.format(TASKS)
             )
 
-    # TODO: implement augmentation
     @classmethod
     def from_dictionary(cls, config: dict):
         '''Build GinjinnConfiguration from dictionary.
@@ -95,6 +99,9 @@ class GinjinnConfiguration: #pylint: disable=too-many-arguments
         model_configuration = GinjinnModelConfiguration.from_dictionary(
             config['model']
         )
+        training_configuration = GinjinnTrainingConfiguration.from_dictionary(
+            config.get('training', {})
+        )
         augmentation_configuration = GinjinnAugmentationConfiguration.from_dictionaries(
             config.get('augmentation', [])
         )
@@ -110,6 +117,7 @@ class GinjinnConfiguration: #pylint: disable=too-many-arguments
             task=config['task'],
             input_configuration=input_configuration,
             model_configuration=model_configuration,
+            training_configuration=training_configuration,
             augmentation_configuration=augmentation_configuration,
             detectron_configuration=detectron_configuration,
             options_configuration=options_configuration,
