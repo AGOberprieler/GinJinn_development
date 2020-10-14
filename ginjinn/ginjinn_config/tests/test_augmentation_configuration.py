@@ -6,7 +6,8 @@ import pytest
 from ginjinn.ginjinn_config import GinjinnAugmentationConfiguration, InvalidAugmentationConfigurationError
 from ginjinn.ginjinn_config.augmentation_config import HorizontalFlipAugmentationConfiguration, \
     VerticalFlipAugmentationConfiguration, \
-    RotationRangeAugmentationConfiguration
+    RotationRangeAugmentationConfiguration, \
+    RotationChoiceAugmentationConfiguration
 
 @pytest.fixture
 def simple_augmentation_list():
@@ -29,12 +30,25 @@ def simple_augmentation_list():
                     'expand': True,
                     'probability': 0.25
                 }
+            },
+            {
+                'rotation_choice': {
+                    'angles': [
+                        -10,
+                        -20,
+                        10,
+                        20,
+                    ],
+                    'expand': True,
+                    'probability': 0.25
+                }
             }
         ],
         [
             HorizontalFlipAugmentationConfiguration,
             VerticalFlipAugmentationConfiguration,
             RotationRangeAugmentationConfiguration,
+            RotationChoiceAugmentationConfiguration,
         ]
     )
 
@@ -135,3 +149,15 @@ def test_detectron2_conversion(simple_augmentation_list):
     assert d_augs[2].transform.angle[0] == simple_augmentation_list[0][2]['rotation_range']['angle_min']
     assert d_augs[2].transform.angle[1] == simple_augmentation_list[0][2]['rotation_range']['angle_max']
     assert d_augs[2].transform.expand == simple_augmentation_list[0][2]['rotation_range']['expand']
+
+    assert d_augs[3].prob == simple_augmentation_list[0][3]['rotation_choice']['probability']
+    l1 = len(d_augs[3].transform.angle)
+    l2 = len(simple_augmentation_list[0][3]['rotation_choice']['angles'])
+    assert l1 == l2
+    for a1, a2 in zip(
+        d_augs[3].transform.angle,
+        simple_augmentation_list[0][3]['rotation_choice']['angles']
+    ):
+        assert a1 == a2
+    
+    assert d_augs[3].transform.expand == simple_augmentation_list[0][3]['rotation_choice']['expand']

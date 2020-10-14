@@ -126,7 +126,8 @@ class RotationRangeAugmentationConfiguration():
     angle_max: float
         Maximum angle of rotation.
     expand: bool
-        image should be resized to fit the rotated image, or cropped. By default True (resized).
+        image should be resized to fit the rotated image, alternatively cropped.
+        By default True (resized).
     probability : float, optional
         Probability of applying the augmentation, by default 1.0 (always applied).
     '''
@@ -149,7 +150,7 @@ class RotationRangeAugmentationConfiguration():
 
     @classmethod
     def from_dictionary(cls, config: dict):
-        '''Build VerticalFlipAugmentation from dictionary
+        '''Build RotationRangeAugmentationConfiguration from dictionary
 
         Parameters
         ----------
@@ -218,6 +219,92 @@ class RotationRangeAugmentationConfiguration():
                 'angle_min must the less than angle_max'
             )
 
+class RotationChoiceAugmentationConfiguration():
+    '''Rotation selection augmentation
+
+    Rotate randomly in the interval between angle_min and angle_max.
+
+    Parameters
+    ----------
+    angles: list
+        list of angles from which a random one will be chosen for each rotation augmentation.
+    expand: bool
+        image should be resized to fit the rotated image, alternatively cropped.
+        By default True (resized).
+    probability : float, optional
+        Probability of applying the augmentation, by default 1.0 (always applied).
+    '''
+
+    def __init__(
+        self,
+        angles: list,
+        expand: bool = True,
+        probability: float = 1.0,
+    ):
+        _check_probability(probability)
+
+        self.angles = angles
+        self.expand = expand
+        self.probability = probability
+
+        self._check_angles()
+
+    @classmethod
+    def from_dictionary(cls, config: dict):
+        '''Build RotationChoiceAugmentationConfiguration from dictionary
+
+        Parameters
+        ----------
+        config : dict
+            Dictionary containing rotation configurations.
+
+        Returns
+        -------
+        RotationChoiceAugmentationConfiguration
+            RotationChoiceAugmentationConfiguration object.
+
+        Raises
+        ------
+        InvalidAugmentationConfigurationError
+            Raised if required dictionary field is missing
+        '''
+        probability = config.get('probability', 1.0)
+        expand = config.get('expand', True)
+        angles = config.get('angles', None)
+
+        if angles is None:
+            raise InvalidAugmentationConfigurationError(
+                '"angles" required but not in config dictionary'
+            )
+
+        return cls(
+            angles=angles,
+            expand=expand,
+            probability = probability
+        )
+
+    def to_detectron2_augmentation(self):
+        '''Convert to Detectron2 augmentation
+
+        Returns
+        -------
+        Augmentation
+            Detectron2 augmentation
+        '''
+        return T.RandomApply(
+            T.RandomRotation(
+                angle=self.angles,
+                expand=self.expand,
+                sample_style='choice'
+            ),
+            prob=self.probability
+        )
+
+    def _check_angles(self):
+        if len(self.angles) < 1:
+            raise InvalidAugmentationConfigurationError(
+                'There must be at least one angle to chose from.'
+            )
 
 class GinjinnAugmentationConfiguration: #pylint: disable=too-few-public-methods
     '''A class representing GinJinn augmentation configurations.
@@ -227,6 +314,7 @@ class GinjinnAugmentationConfiguration: #pylint: disable=too-few-public-methods
         'horizontal_flip': HorizontalFlipAugmentationConfiguration,
         'vertical_flip': VerticalFlipAugmentationConfiguration,
         'rotation_range': RotationRangeAugmentationConfiguration,
+        'rotation_choice': RotationChoiceAugmentationConfiguration,
     }
 
     def __init__(
