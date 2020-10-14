@@ -129,6 +129,14 @@ def test_invalid_rotation_range():
                 'probability': 0.25
             }
         )
+    with pytest.raises(InvalidAugmentationConfigurationError):
+        RotationChoiceAugmentationConfiguration.from_dictionary(
+            {
+                'angles': [],
+                'expand': True,
+                'probability': 0.25
+            }
+        )
 
 def test_detectron2_conversion(simple_augmentation_list):
     aug = GinjinnAugmentationConfiguration.from_dictionaries(
