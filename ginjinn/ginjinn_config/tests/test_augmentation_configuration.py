@@ -11,7 +11,8 @@ from ginjinn.ginjinn_config.augmentation_config import HorizontalFlipAugmentatio
     BrightnessAugmentationConfiguration, \
     ContrastAugmentationConfiguration, \
     SaturationAugmentationConfiguration, \
-    CropRelativeAugmentationConfiguration
+    CropRelativeAugmentationConfiguration, \
+    CropAbsoluteAugmentationConfiguration
 
 @pytest.fixture
 def simple_augmentation_list():
@@ -75,6 +76,13 @@ def simple_augmentation_list():
                     'probability': 0.3
                 }
             },
+            {
+                'crop_absolute': {
+                    'width': 128,
+                    'height': 128,
+                    'probability': 0.3
+                }
+            },
         ],
         [
             HorizontalFlipAugmentationConfiguration,
@@ -85,6 +93,7 @@ def simple_augmentation_list():
             ContrastAugmentationConfiguration,
             SaturationAugmentationConfiguration,
             CropRelativeAugmentationConfiguration,
+            CropAbsoluteAugmentationConfiguration,
         ]
     )
 
@@ -355,6 +364,26 @@ def test_invalid_rotation_range():
             {'width': 1.1, 'height': 1.1, 'probability': 0.25}
         )
 
+    with pytest.raises(InvalidAugmentationConfigurationError):
+        CropAbsoluteAugmentationConfiguration.from_dictionary(
+            {'width': 128, 'probability': 0.25}
+        )
+
+    with pytest.raises(InvalidAugmentationConfigurationError):
+        CropAbsoluteAugmentationConfiguration.from_dictionary(
+            {'height': 128, 'probability': 0.25}
+        )
+
+    with pytest.raises(InvalidAugmentationConfigurationError):
+        CropAbsoluteAugmentationConfiguration.from_dictionary(
+            {'width': 128, 'height': 0, 'probability': 0.25}
+        )
+
+    with pytest.raises(InvalidAugmentationConfigurationError):
+        CropAbsoluteAugmentationConfiguration.from_dictionary(
+            {'width': 0, 'height': 128, 'probability': 0.25}
+        )
+
 
 def test_detectron2_conversion(simple_augmentation_list):
     aug = GinjinnAugmentationConfiguration.from_dictionaries(
@@ -404,3 +433,8 @@ def test_detectron2_conversion(simple_augmentation_list):
     assert d_augs[7].transform.crop_size[0] == simple_augmentation_list[0][7]['crop_relative']['height']
     assert d_augs[7].transform.crop_size[1] == simple_augmentation_list[0][7]['crop_relative']['width']
     assert d_augs[7].transform.crop_type == 'relative'
+
+    assert d_augs[8].prob == simple_augmentation_list[0][8]['crop_absolute']['probability']
+    assert d_augs[8].transform.crop_size[0] == simple_augmentation_list[0][8]['crop_absolute']['height']
+    assert d_augs[8].transform.crop_size[1] == simple_augmentation_list[0][8]['crop_absolute']['width']
+    assert d_augs[8].transform.crop_type == 'absolute'

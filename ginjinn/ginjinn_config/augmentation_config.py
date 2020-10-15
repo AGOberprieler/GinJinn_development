@@ -513,6 +513,101 @@ class CropRelativeAugmentationConfiguration: #pylint: disable=too-few-public-met
                 'height must between 0.0 and 1.0 (exclusive).'
             )
 
+class CropAbsoluteAugmentationConfiguration: #pylint: disable=too-few-public-methods
+    '''Random Crop Augmentation Configuration
+
+    Parameters
+    ----------
+    width : int
+        Absolute width of crop in pixel.
+    height : int
+        Absolute height of crop in pixel.
+    probability : float, optional
+        Probability of applying the augmentation, by default 1.0 (always applied).
+    '''
+
+    def __init__(
+        self,
+        width: int,
+        height: int,
+        probability: float = 1.0
+    ):
+        _check_probability(probability)
+
+        self.probability = probability
+        self.width = width
+        self.height = height
+        self._check_wh()
+
+    @classmethod
+    def from_dictionary(cls, config: dict):
+        '''Build CropAbsoluteAugmentationConfiguration from dictionary
+
+        Parameters
+        ----------
+        config : dict
+            Dictionary containing crop configurations.
+
+        Returns
+        -------
+        CropAbsoluteAugmentationConfiguration
+            CropAbsoluteAugmentationConfiguration object.
+
+        Raises
+        ------
+        InvalidAugmentationConfigurationError
+            Raised when an invalid config is passed.
+        '''
+        probability = config.get('probability', 1.0)
+        width = config.get('width', None)
+        height = config.get('height', None)
+        if width is None:
+            raise InvalidAugmentationConfigurationError(
+                '"width" required but not in config dictionary'
+            )
+        if height is None:
+            raise InvalidAugmentationConfigurationError(
+                '"height" required but not in config dictionary'
+            )
+
+        return cls(
+            width=width,
+            height=height,
+            probability = probability
+        )
+
+    def to_detectron2_augmentation(self):
+        '''Convert to Detectron2 augmentation
+
+        Returns
+        -------
+        Augmentation
+            Detectron2 augmentation
+        '''
+        return T.RandomApply(
+            T.RandomCrop(
+                crop_type='absolute',
+                crop_size=(self.height, self.width),
+            ),
+            prob=self.probability
+        )
+
+    def _check_wh(self):
+        '''Check width and height values for validity
+
+        Raises
+        ------
+        InvalidAugmentationConfigurationError
+            Raised if width or height values not valid
+        '''
+        if self.width <= 0:
+            raise InvalidAugmentationConfigurationError(
+                'width must be greater than 0.'
+            )
+        if self.height <= 0:
+            raise InvalidAugmentationConfigurationError(
+                'height must be greater than 0.'
+            )
 
 class RotationRangeAugmentationConfiguration(): #pylint: disable=too-few-public-methods
     '''Rotation range augmentation
@@ -726,6 +821,7 @@ class GinjinnAugmentationConfiguration: #pylint: disable=too-few-public-methods
         'contrast': ContrastAugmentationConfiguration,
         'saturation': SaturationAugmentationConfiguration,
         'crop_relative': CropRelativeAugmentationConfiguration,
+        'crop_absolute': CropAbsoluteAugmentationConfiguration,
     }
 
     def __init__(
