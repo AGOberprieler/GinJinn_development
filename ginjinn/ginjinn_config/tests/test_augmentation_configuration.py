@@ -10,7 +10,8 @@ from ginjinn.ginjinn_config.augmentation_config import HorizontalFlipAugmentatio
     RotationChoiceAugmentationConfiguration, \
     BrightnessAugmentationConfiguration, \
     ContrastAugmentationConfiguration, \
-    SaturationAugmentationConfiguration
+    SaturationAugmentationConfiguration, \
+    CropRelativeAugmentationConfiguration
 
 @pytest.fixture
 def simple_augmentation_list():
@@ -67,6 +68,13 @@ def simple_augmentation_list():
                     'probability': 0.75
                 }
             },
+            {
+                'crop_relative': {
+                    'width': 0.75,
+                    'height': 0.75,
+                    'probability': 0.3
+                }
+            },
         ],
         [
             HorizontalFlipAugmentationConfiguration,
@@ -76,6 +84,7 @@ def simple_augmentation_list():
             BrightnessAugmentationConfiguration,
             ContrastAugmentationConfiguration,
             SaturationAugmentationConfiguration,
+            CropRelativeAugmentationConfiguration,
         ]
     )
 
@@ -305,6 +314,47 @@ def test_invalid_rotation_range():
             }
         )
 
+    with pytest.raises(InvalidAugmentationConfigurationError):
+        CropRelativeAugmentationConfiguration.from_dictionary(
+            {
+                'width': 0.7,
+                'probability': 0.25
+            }
+        )
+    
+    with pytest.raises(InvalidAugmentationConfigurationError):
+        CropRelativeAugmentationConfiguration.from_dictionary(
+            {
+                'height': 0.7,
+                'probability': 0.25
+            }
+        )
+
+    with pytest.raises(InvalidAugmentationConfigurationError):
+        CropRelativeAugmentationConfiguration.from_dictionary(
+            {'width': 0.7, 'height': 0.0, 'probability': 0.25}
+        )
+    
+    with pytest.raises(InvalidAugmentationConfigurationError):
+        CropRelativeAugmentationConfiguration.from_dictionary(
+            {'width': 0.7, 'height': 1.1, 'probability': 0.25}
+        )
+    
+    with pytest.raises(InvalidAugmentationConfigurationError):
+        CropRelativeAugmentationConfiguration.from_dictionary(
+            {'width': 0.0, 'height': 0.7, 'probability': 0.25}
+        )
+
+    with pytest.raises(InvalidAugmentationConfigurationError):
+        CropRelativeAugmentationConfiguration.from_dictionary(
+            {'width': 1.1, 'height': 0.7, 'probability': 0.25}
+        )
+
+    with pytest.raises(InvalidAugmentationConfigurationError):
+        CropRelativeAugmentationConfiguration.from_dictionary(
+            {'width': 1.1, 'height': 1.1, 'probability': 0.25}
+        )
+
 
 def test_detectron2_conversion(simple_augmentation_list):
     aug = GinjinnAugmentationConfiguration.from_dictionaries(
@@ -349,3 +399,8 @@ def test_detectron2_conversion(simple_augmentation_list):
     assert d_augs[6].prob == simple_augmentation_list[0][6]['saturation']['probability']
     assert d_augs[6].transform.intensity_min == simple_augmentation_list[0][6]['saturation']['saturation_min']
     assert d_augs[6].transform.intensity_max == simple_augmentation_list[0][6]['saturation']['saturation_max']
+
+    assert d_augs[7].prob == simple_augmentation_list[0][7]['crop_relative']['probability']
+    assert d_augs[7].transform.crop_size[0] == simple_augmentation_list[0][7]['crop_relative']['height']
+    assert d_augs[7].transform.crop_size[1] == simple_augmentation_list[0][7]['crop_relative']['width']
+    assert d_augs[7].transform.crop_type == 'relative'
