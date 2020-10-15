@@ -9,7 +9,8 @@ from ginjinn.ginjinn_config.augmentation_config import HorizontalFlipAugmentatio
     RotationRangeAugmentationConfiguration, \
     RotationChoiceAugmentationConfiguration, \
     BrightnessAugmentationConfiguration, \
-    ContrastAugmentationConfiguration
+    ContrastAugmentationConfiguration, \
+    SaturationAugmentationConfiguration
 
 @pytest.fixture
 def simple_augmentation_list():
@@ -59,6 +60,13 @@ def simple_augmentation_list():
                     'probability': 0.75
                 }
             },
+            {
+                'saturation': {
+                    'saturation_min': 0.5,
+                    'saturation_max': 1.5,
+                    'probability': 0.75
+                }
+            },
         ],
         [
             HorizontalFlipAugmentationConfiguration,
@@ -67,6 +75,7 @@ def simple_augmentation_list():
             RotationChoiceAugmentationConfiguration,
             BrightnessAugmentationConfiguration,
             ContrastAugmentationConfiguration,
+            SaturationAugmentationConfiguration,
         ]
     )
 
@@ -253,6 +262,49 @@ def test_invalid_rotation_range():
             }
         )
 
+    with pytest.raises(InvalidAugmentationConfigurationError):
+        SaturationAugmentationConfiguration.from_dictionary(
+            {
+                'saturation_min': 0.1,
+                'probability': 0.25
+            }
+        )
+    
+    with pytest.raises(InvalidAugmentationConfigurationError):
+        SaturationAugmentationConfiguration.from_dictionary(
+            {
+                'saturation_max': 0.1,
+                'probability': 0.25
+            }
+        )
+    
+    with pytest.raises(InvalidAugmentationConfigurationError):
+        SaturationAugmentationConfiguration.from_dictionary(
+            {
+                'saturation_min': 0.2,
+                'saturation_max': 0.1,
+                'probability': 0.25
+            }
+        )
+    
+    with pytest.raises(InvalidAugmentationConfigurationError):
+        SaturationAugmentationConfiguration.from_dictionary(
+            {
+                'saturation_min': -0.1,
+                'saturation_max': 0.1,
+                'probability': 0.25
+            }
+        )
+    
+    with pytest.raises(InvalidAugmentationConfigurationError):
+        SaturationAugmentationConfiguration.from_dictionary(
+            {
+                'saturation_min': 0.1,
+                'saturation_max': -0.1,
+                'probability': 0.25
+            }
+        )
+
 
 def test_detectron2_conversion(simple_augmentation_list):
     aug = GinjinnAugmentationConfiguration.from_dictionaries(
@@ -293,3 +345,7 @@ def test_detectron2_conversion(simple_augmentation_list):
     assert d_augs[5].prob == simple_augmentation_list[0][5]['contrast']['probability']
     assert d_augs[5].transform.intensity_min == simple_augmentation_list[0][5]['contrast']['contrast_min']
     assert d_augs[5].transform.intensity_max == simple_augmentation_list[0][5]['contrast']['contrast_max']
+
+    assert d_augs[6].prob == simple_augmentation_list[0][6]['saturation']['probability']
+    assert d_augs[6].transform.intensity_min == simple_augmentation_list[0][6]['saturation']['saturation_min']
+    assert d_augs[6].transform.intensity_max == simple_augmentation_list[0][6]['saturation']['saturation_max']

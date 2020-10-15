@@ -316,6 +316,107 @@ class ContrastAugmentationConfiguration: #pylint: disable=too-few-public-methods
                 'contrast_min must the less than contrast_max'
             )
 
+class SaturationAugmentationConfiguration: #pylint: disable=too-few-public-methods
+    '''Random Saturation Augmentation Configuration
+
+    Parameters
+    ----------
+    saturation_min : float
+        Relative minimal saturation
+    saturation_max : float
+        Relative maximal saturation
+    probability : float, optional
+        Probability of applying the augmentation, by default 1.0 (always applied).
+    '''
+
+    def __init__(
+        self,
+        saturation_min: float,
+        saturation_max: float,
+        probability: float = 1.0
+    ):
+        _check_probability(probability)
+
+        self.probability = probability
+        self.saturation_min = saturation_min
+        self.saturation_max = saturation_max
+        self._check_saturation()
+
+    @classmethod
+    def from_dictionary(cls, config: dict):
+        '''Build SaturationAugmentationConfiguration from dictionary
+
+        Parameters
+        ----------
+        config : dict
+            Dictionary containing saturation configurations.
+
+        Returns
+        -------
+        SaturationAugmentationConfiguration
+            SaturationAugmentationConfiguration object.
+
+        Raises
+        ------
+        InvalidAugmentationConfigurationError
+            Raised when an invalid config is passed.
+        '''
+        probability = config.get('probability', 1.0)
+        saturation_min = config.get('saturation_min', None)
+        saturation_max = config.get('saturation_max', None)
+        if saturation_min is None:
+            raise InvalidAugmentationConfigurationError(
+                '"saturation_min" required but not in config dictionary'
+            )
+        if saturation_max is None:
+            raise InvalidAugmentationConfigurationError(
+                '"saturation_max" required but not in config dictionary'
+            )
+
+        return cls(
+            saturation_min=saturation_min,
+            saturation_max=saturation_max,
+            probability = probability
+        )
+
+    def to_detectron2_augmentation(self):
+        '''Convert to Detectron2 augmentation
+
+        Returns
+        -------
+        Augmentation
+            Detectron2 augmentation
+        '''
+        return T.RandomApply(
+            T.RandomSaturation(
+                intensity_min=self.saturation_min,
+                intensity_max=self.saturation_max,
+            ),
+            prob=self.probability
+        )
+
+    def _check_saturation(self):
+        '''Check saturation values for validity
+
+        Raises
+        ------
+        InvalidAugmentationConfigurationError
+            Raised if saturation values not valid
+        '''
+        if self.saturation_min <= 0:
+            raise InvalidAugmentationConfigurationError(
+                'saturation_min must greather than 0.'
+            )
+        if self.saturation_max <= 0:
+            raise InvalidAugmentationConfigurationError(
+                'saturation_max must greather than 0.'
+            )
+
+        if self.saturation_min > self.saturation_max:
+            raise InvalidAugmentationConfigurationError(
+                'saturation_min must the less than saturation_max'
+            )
+
 class RotationRangeAugmentationConfiguration(): #pylint: disable=too-few-public-methods
     '''Rotation range augmentation
 
@@ -526,6 +627,7 @@ class GinjinnAugmentationConfiguration: #pylint: disable=too-few-public-methods
         'rotation_choice': RotationChoiceAugmentationConfiguration,
         'brightness': BrightnessAugmentationConfiguration,
         'contrast': ContrastAugmentationConfiguration,
+        'saturation': SaturationAugmentationConfiguration,
     }
 
     def __init__(
