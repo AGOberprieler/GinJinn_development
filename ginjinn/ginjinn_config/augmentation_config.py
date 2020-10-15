@@ -503,6 +503,13 @@ class RotationChoiceAugmentationConfiguration(): #pylint: disable=too-few-public
         )
 
     def _check_angles(self):
+        '''Check angles for validity
+
+        Raises
+        ------
+        InvalidAugmentationConfigurationError
+            Raised if angles are not valid
+        '''
         if len(self.angles) < 1:
             raise InvalidAugmentationConfigurationError(
                 'There must be at least one angle to chose from.'
