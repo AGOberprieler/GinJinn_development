@@ -8,7 +8,8 @@ from ginjinn.ginjinn_config.augmentation_config import HorizontalFlipAugmentatio
     VerticalFlipAugmentationConfiguration, \
     RotationRangeAugmentationConfiguration, \
     RotationChoiceAugmentationConfiguration, \
-    BrightnessAugmentationConfiguration
+    BrightnessAugmentationConfiguration, \
+    ContrastAugmentationConfiguration
 
 @pytest.fixture
 def simple_augmentation_list():
@@ -51,6 +52,13 @@ def simple_augmentation_list():
                     'probability': 0.75
                 }
             },
+            {
+                'contrast': {
+                    'contrast_min': 0.5,
+                    'contrast_max': 1.5,
+                    'probability': 0.75
+                }
+            },
         ],
         [
             HorizontalFlipAugmentationConfiguration,
@@ -58,6 +66,7 @@ def simple_augmentation_list():
             RotationRangeAugmentationConfiguration,
             RotationChoiceAugmentationConfiguration,
             BrightnessAugmentationConfiguration,
+            ContrastAugmentationConfiguration,
         ]
     )
 
@@ -77,10 +86,13 @@ def test_simple(simple_augmentation_list):
     )
 
     assert len(aug.augmentations) == len(simple_augmentation_list[0])
-    assert isinstance(aug.augmentations[0], simple_augmentation_list[1][0])
+    # assert isinstance(aug.augmentations[0], simple_augmentation_list[1][0])
     assert aug.augmentations[0].probability == simple_augmentation_list[0][0]['horizontal_flip']['probability']
-    assert isinstance(aug.augmentations[1], simple_augmentation_list[1][1])
+    # assert isinstance(aug.augmentations[1], simple_augmentation_list[1][1])
     assert aug.augmentations[1].probability == simple_augmentation_list[0][1]['vertical_flip']['probability']
+
+    for i, aug_conf in enumerate(aug.augmentations):
+        assert isinstance(aug_conf, simple_augmentation_list[1][i])
 
 def test_invalid_aug_name(invalid_augmentation_list):
     with pytest.raises(InvalidAugmentationConfigurationError):
@@ -198,6 +210,50 @@ def test_invalid_rotation_range():
             }
         )
 
+    with pytest.raises(InvalidAugmentationConfigurationError):
+        ContrastAugmentationConfiguration.from_dictionary(
+            {
+                'contrast_min': 0.1,
+                'probability': 0.25
+            }
+        )
+    
+    with pytest.raises(InvalidAugmentationConfigurationError):
+        ContrastAugmentationConfiguration.from_dictionary(
+            {
+                'contrast_max': 0.1,
+                'probability': 0.25
+            }
+        )
+    
+    with pytest.raises(InvalidAugmentationConfigurationError):
+        ContrastAugmentationConfiguration.from_dictionary(
+            {
+                'contrast_min': 0.2,
+                'contrast_max': 0.1,
+                'probability': 0.25
+            }
+        )
+    
+    with pytest.raises(InvalidAugmentationConfigurationError):
+        ContrastAugmentationConfiguration.from_dictionary(
+            {
+                'contrast_min': -0.1,
+                'contrast_max': 0.1,
+                'probability': 0.25
+            }
+        )
+    
+    with pytest.raises(InvalidAugmentationConfigurationError):
+        ContrastAugmentationConfiguration.from_dictionary(
+            {
+                'contrast_min': 0.1,
+                'contrast_max': -0.1,
+                'probability': 0.25
+            }
+        )
+
+
 def test_detectron2_conversion(simple_augmentation_list):
     aug = GinjinnAugmentationConfiguration.from_dictionaries(
         simple_augmentation_list[0]
@@ -233,3 +289,7 @@ def test_detectron2_conversion(simple_augmentation_list):
     assert d_augs[4].prob == simple_augmentation_list[0][4]['brightness']['probability']
     assert d_augs[4].transform.intensity_min == simple_augmentation_list[0][4]['brightness']['brightness_min']
     assert d_augs[4].transform.intensity_max == simple_augmentation_list[0][4]['brightness']['brightness_max']
+
+    assert d_augs[5].prob == simple_augmentation_list[0][5]['contrast']['probability']
+    assert d_augs[5].transform.intensity_min == simple_augmentation_list[0][5]['contrast']['contrast_min']
+    assert d_augs[5].transform.intensity_max == simple_augmentation_list[0][5]['contrast']['contrast_max']

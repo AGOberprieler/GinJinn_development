@@ -215,6 +215,107 @@ class BrightnessAugmentationConfiguration: #pylint: disable=too-few-public-metho
                 'brightness_min must the less than brightness_max'
             )
 
+class ContrastAugmentationConfiguration: #pylint: disable=too-few-public-methods
+    '''Random Contrast Augmentation Configuration
+
+    Parameters
+    ----------
+    contrast_min : float
+        Relative minimal contrast
+    contrast_max : float
+        Relative maximal contrast
+    probability : float, optional
+        Probability of applying the augmentation, by default 1.0 (always applied).
+    '''
+
+    def __init__(
+        self,
+        contrast_min: float,
+        contrast_max: float,
+        probability: float = 1.0
+    ):
+        _check_probability(probability)
+
+        self.probability = probability
+        self.contrast_min = contrast_min
+        self.contrast_max = contrast_max
+        self._check_contrast()
+
+    @classmethod
+    def from_dictionary(cls, config: dict):
+        '''Build ContrastAugmentationConfiguration from dictionary
+
+        Parameters
+        ----------
+        config : dict
+            Dictionary containing contrast configurations.
+
+        Returns
+        -------
+        ContrastAugmentationConfiguration
+            ContrastAugmentationConfiguration object.
+
+        Raises
+        ------
+        InvalidAugmentationConfigurationError
+            Raised when an invalid config is passed.
+        '''
+        probability = config.get('probability', 1.0)
+        contrast_min = config.get('contrast_min', None)
+        contrast_max = config.get('contrast_max', None)
+        if contrast_min is None:
+            raise InvalidAugmentationConfigurationError(
+                '"contrast_min" required but not in config dictionary'
+            )
+        if contrast_max is None:
+            raise InvalidAugmentationConfigurationError(
+                '"contrast_max" required but not in config dictionary'
+            )
+
+        return cls(
+            contrast_min=contrast_min,
+            contrast_max=contrast_max,
+            probability = probability
+        )
+
+    def to_detectron2_augmentation(self):
+        '''Convert to Detectron2 augmentation
+
+        Returns
+        -------
+        Augmentation
+            Detectron2 augmentation
+        '''
+        return T.RandomApply(
+            T.RandomContrast(
+                intensity_min=self.contrast_min,
+                intensity_max=self.contrast_max,
+            ),
+            prob=self.probability
+        )
+
+    def _check_contrast(self):
+        '''Check contrast values for validity
+
+        Raises
+        ------
+        InvalidAugmentationConfigurationError
+            Raised if contrast values not valid
+        '''
+        if self.contrast_min <= 0:
+            raise InvalidAugmentationConfigurationError(
+                'contrast_min must greather than 0.'
+            )
+        if self.contrast_max <= 0:
+            raise InvalidAugmentationConfigurationError(
+                'contrast_max must greather than 0.'
+            )
+
+        if self.contrast_min > self.contrast_max:
+            raise InvalidAugmentationConfigurationError(
+                'contrast_min must the less than contrast_max'
+            )
+
 class RotationRangeAugmentationConfiguration(): #pylint: disable=too-few-public-methods
     '''Rotation range augmentation
 
@@ -417,6 +518,7 @@ class GinjinnAugmentationConfiguration: #pylint: disable=too-few-public-methods
         'rotation_range': RotationRangeAugmentationConfiguration,
         'rotation_choice': RotationChoiceAugmentationConfiguration,
         'brightness': BrightnessAugmentationConfiguration,
+        'contrast': ContrastAugmentationConfiguration,
     }
 
     def __init__(
