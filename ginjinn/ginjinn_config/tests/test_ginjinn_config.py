@@ -68,6 +68,7 @@ def config_dicts(tmp_input_paths):
         },
         'model': {
             'name': 'faster_rcnn_R_50_FPN_3x',
+            # 'weights': 'random',
             'model_parameters': {
                 'roi_heads': {
                     'batch_size_per_image': 4096,
