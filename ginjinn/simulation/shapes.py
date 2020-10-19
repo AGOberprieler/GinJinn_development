@@ -10,8 +10,25 @@ import skimage.filters
 
 try:
     draw_circle = skimage.draw.disk
-except:
+except: # pylint: disable=bare-except
     def draw_circle(center, radius, shape=None):
+        '''Wrapper around skimage.draw.circle for backward compatibility,
+        when skimage.draw.disk is not available
+
+        Parameters
+        ----------
+        center
+            center of the circle
+        radius
+            radius of the circle
+        shape, optional
+            shape of "image" to draw to, by default None
+
+        Returns
+        -------
+        Circle
+            Numpy "image" containing a circle
+        '''
         return skimage.draw.circle(center[0], center[1], radius, shape)
 
 # Should probably find/clip contours using

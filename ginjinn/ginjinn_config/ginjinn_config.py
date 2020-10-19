@@ -20,7 +20,7 @@ TASKS = [
     'instance-segmentation',
 ]
 
-class GinjinnConfiguration: #pylint: disable=too-many-arguments
+class GinjinnConfiguration: #pylint: disable=too-many-arguments,too-many-instance-attributes
     '''GinJinn configuration class.
 
     A class representing the configuration of a GinJinn project.
