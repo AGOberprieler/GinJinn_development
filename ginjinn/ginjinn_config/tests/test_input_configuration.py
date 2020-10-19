@@ -6,6 +6,7 @@ import tempfile
 import os
 import copy
 from ginjinn.ginjinn_config import GinjinnInputConfiguration, InvalidInputConfigurationError
+from ginjinn.ginjinn_config.input_config import SplitConfig
 
 @pytest.fixture(scope='module', autouse=True)
 def tmp_input_paths():
@@ -427,3 +428,21 @@ def test_invalid_paths(tmp_input_paths):
         }
 
         GinjinnInputConfiguration.from_dictionary(input_dict)
+
+def test_SplitConfig():
+    sc_0 = SplitConfig(0.2, 0.3)
+    assert sc_0.test == 0.2
+    assert sc_0.validation == 0.3
+
+    with pytest.raises(InvalidInputConfigurationError):
+        SplitConfig(0.0, 0.3)
+    with pytest.raises(InvalidInputConfigurationError):
+        SplitConfig(1.0, 0.3)
+
+    with pytest.raises(InvalidInputConfigurationError):
+        SplitConfig(0.2, 0.0)
+    with pytest.raises(InvalidInputConfigurationError):
+        SplitConfig(0.2, 1.0)
+
+    with pytest.raises(InvalidInputConfigurationError):
+        SplitConfig(0.5, 0.5)

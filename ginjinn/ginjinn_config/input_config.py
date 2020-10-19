@@ -48,6 +48,33 @@ class SplitConfig: #pylint: disable=too-few-public-methods
         self.test = test_split
         self.validation = validation_split
 
+        self._check()
+    
+    def _check(self):
+        ''' Checks validity of splitting.
+
+        Raises
+        ------
+        InvalidInputConfigurationError
+            Raised in case of invalid splitting options.
+        '''
+        if not self.test is None:
+            if self.test <= 0.0 or self.test >= 1.0:
+                raise InvalidInputConfigurationError(
+                    'The proportion of the test split must be greater than 0.0 and less than 1.0.'
+                )
+        if not self.validation is None:
+            if self.validation <= 0.0 or self.validation >= 1.0:
+                raise InvalidInputConfigurationError(
+                    'The proportion of the validation split must be greater than 0.0 and less than 1.0.'
+                )
+        if (not self.test is None) and (not self.validation is None):
+            proportion = self.test + self.validation
+            if proportion >= 1.0 or proportion <= 0.0:
+                raise InvalidInputConfigurationError(
+                    'The sum of test and validation split proportions must be greater than 0.0 and less than 1.0.'
+                )
+
 class GinjinnInputConfiguration: #pylint: disable=too-few-public-methods
     '''GinJinn input configuration class.
 
