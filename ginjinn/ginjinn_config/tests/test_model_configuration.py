@@ -6,7 +6,7 @@ from ginjinn.ginjinn_config.model_config import GinjinnModelConfiguration, MODEL
 from ginjinn.ginjinn_config.config_error import InvalidModelConfigurationError
 
 def test_simple_model():
-    name = MODEL_NAMES[0]
+    name = list(MODEL_NAMES.keys())[0]
 
     model = GinjinnModelConfiguration(
         name=name,
