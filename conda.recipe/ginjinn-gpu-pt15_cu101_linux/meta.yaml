@@ -26,8 +26,8 @@ requirements:
 
 build:
   skip: true # [not linux]
-# entry_points:
-#    - ginjinn = ginjinn.__main__:main
+entry_points:
+   - ginjinn = ginjinn.commandline.main:main
 
 # test:
 #   imports:

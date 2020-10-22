@@ -2,7 +2,11 @@
 '''
 
 import pytest
-import os
+import subprocess
 
 def test_main_simple():
-    os.system('ginjinn')
+    p = subprocess.Popen('ginjinn')
+    r = p.communicate()
+    rc = p.returncode
+
+    assert rc == 0
