@@ -102,11 +102,15 @@ def config_dicts(tmp_input_paths):
 @pytest.fixture
 def config_file_examples():
     example_config_0_path = pkg_resources.resource_filename(
-        'ginjinn', 'data/ginjinn_config/example_config_0.yaml'
+        'ginjinn', 'data/ginjinn_config/example_config_0.yaml',
+    )
+    example_config_1_path = pkg_resources.resource_filename(
+        'ginjinn', 'data/ginjinn_config/example_config_1.yaml',
     )
 
     return [
         example_config_0_path,
+        example_config_1_path,
     ]
 
 def read_config_file(file_path):
@@ -136,7 +140,6 @@ def test_from_config_file_simple(config_file_examples):
         os.mkdir(simple_config_dict_0['input']['train']['image_path'])
 
     simple_config_0 = GinjinnConfiguration.from_config_file(simple_config_file_0)
-    # TODO implement model and augmentation assertions!
     assert simple_config_0.task == simple_config_dict_0['task'] and\
         simple_config_0.project_dir == simple_config_dict_0['project_dir'] and\
         simple_config_0.input.train.annotation_path == simple_config_dict_0['input']['train']['annotation_path'] and\
@@ -149,6 +152,30 @@ def test_from_config_file_simple(config_file_examples):
 
     os.rmdir(simple_config_dict_0['input']['train']['annotation_path'])
     os.rmdir(simple_config_dict_0['input']['train']['image_path'])
+
+
+    simple_config_file_1 = config_file_examples[1]
+    simple_config_dict_1 = read_config_file(simple_config_file_1)
+
+    if not os.path.exists(simple_config_dict_1['input']['train']['annotation_path']):
+        with open(simple_config_dict_1['input']['train']['annotation_path'], 'w') as f:
+            f.write('')
+    if not os.path.exists(simple_config_dict_1['input']['train']['image_path']):
+        os.mkdir(simple_config_dict_1['input']['train']['image_path'])
+
+    simple_config_1 = GinjinnConfiguration.from_config_file(simple_config_file_1)
+    assert simple_config_1.task == simple_config_dict_1['task'] and\
+        simple_config_1.project_dir == simple_config_dict_1['project_dir'] and\
+        simple_config_1.input.train.annotation_path == simple_config_dict_1['input']['train']['annotation_path'] and\
+        simple_config_1.input.train.image_path == simple_config_dict_1['input']['train']['image_path'] and\
+        simple_config_1.input.split.test == simple_config_dict_1['input']['split']['test'],\
+        'GinjinnConfig was not successfully constructed from simple configuration file.'
+    
+    assert simple_config_1.model.name == simple_config_dict_1['model']['name']
+    assert simple_config_1.training.learning_rate == simple_config_dict_1['training']['learning_rate']
+
+    os.remove(simple_config_dict_1['input']['train']['annotation_path'])
+    os.rmdir(simple_config_dict_1['input']['train']['image_path'])
 
 
 def test_invalid_task(config_dicts):

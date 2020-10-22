@@ -42,6 +42,7 @@ setup(
        'ginjinn': [
            'data/example_data.txt',
            'data/ginjinn_config/example_config_0.yaml',
+           'data/ginjinn_config/example_config_1.yaml',
        ],
    }
 )
