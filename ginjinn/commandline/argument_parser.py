@@ -11,3 +11,15 @@ class GinjinnArgumentParser():
     '''
     def __init__(self):
         self.parser = argparse.ArgumentParser()
+
+    def parse_args(self):
+        '''parse_args
+        Parses the commandline arguments and returns them in argparse 
+        format.
+
+        Returns
+        -------
+        args
+            Parsed argparse arguments
+        '''
+        return self.parser.parse_args()
