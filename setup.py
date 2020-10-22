@@ -33,11 +33,11 @@ setup(
     description=DESCRIPTION,
     packages=find_packages(),
     install_requires=install_requires(),
-#    entry_points={
-#        'console_scripts': [
-#            'ginjinn = ginjinn.__main__:main',
-#        ]
-#    },
+   entry_points={
+       'console_scripts': [
+           'ginjinn = ginjinn.commandline.main:main',
+       ]
+   },
    package_data={
        'ginjinn': [
            'data/example_data.txt',

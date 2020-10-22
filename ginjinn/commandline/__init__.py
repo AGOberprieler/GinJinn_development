@@ -2,3 +2,4 @@
 '''
 
 from .argument_parser import GinjinnArgumentParser
+from .main import main
