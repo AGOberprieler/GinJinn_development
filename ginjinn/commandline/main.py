@@ -7,5 +7,7 @@ def main():
     '''main
     GinJinn main.
     '''
-    GinjinnArgumentParser()
+    parser = GinjinnArgumentParser()
+    args = parser.parse_args()
+    print(args)
     print('GinJinn called!')
