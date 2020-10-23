@@ -3,8 +3,8 @@
 
 import argparse
 
-def _setup_train_parser(subparsers):
-    '''_setup_train_parser
+def _setup_new_parser(subparsers):
+    '''_setup_new_parser
 
     Setup parser for the ginjinn new subcommand.
 
@@ -81,6 +81,6 @@ class GinjinnArgumentParser():
         Initilialize parsers for GinJinn subcommands.
         '''
 
-        _setup_train_parser(self._subparsers)
+        _setup_new_parser(self._subparsers)
 
         # TODO: implement
