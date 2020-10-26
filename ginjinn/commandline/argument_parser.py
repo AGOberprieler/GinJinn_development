@@ -19,6 +19,8 @@ def _setup_new_parser(subparsers):
         An argparse ArgumentParser, registered for the new subcommand.
     '''
 
+    # TODO: implement
+
     parser = subparsers.add_parser(
         'new',
         help = '''
@@ -33,6 +35,118 @@ def _setup_new_parser(subparsers):
         type = str,
         help = '''
             Path to new GinJinn project directory.
+        '''
+    )
+
+    return parser
+
+def _setup_train_parser(subparsers):
+    '''_setup_train_parser
+
+    Setup parser for the ginjinn train subcommand.
+
+    Parameters
+    ----------
+    subparsers
+        An object returned by argparse.ArgumentParser.add_subparsers()
+
+    Returns
+    -------
+    parser
+        An argparse ArgumentParser, registered for the train subcommand.
+    '''
+
+    # TODO: implement
+
+    parser = subparsers.add_parser(
+        'train',
+        help = '''
+            Train a GinJinn model.
+        ''',
+        description = '''
+            Train a GinJinn model.
+        '''
+    )
+    parser.add_argument(
+        'project_dir',
+        type = str,
+        help = '''
+            Path to GinJinn project directory.
+        '''
+    )
+
+    return parser
+
+def _setup_evaluate_parser(subparsers):
+    '''_setup_evaluate_parser
+
+    Setup parser for the ginjinn evaluate subcommand.
+
+    Parameters
+    ----------
+    subparsers
+        An object returned by argparse.ArgumentParser.add_subparsers()
+
+    Returns
+    -------
+    parser
+        An argparse ArgumentParser, registered for the evaluate subcommand.
+    '''
+
+    # TODO: implement
+
+    parser = subparsers.add_parser(
+        'evaluate',
+        aliases=['eval'],
+        help = '''
+            Evaluate a trained GinJinn model.
+        ''',
+        description = '''
+            Evaluate a trained GinJinn model.
+        '''
+    )
+    parser.add_argument(
+        'project_dir',
+        type = str,
+        help = '''
+            Path to GinJinn project directory.
+        '''
+    )
+
+    return parser
+
+def _setup_predict_parser(subparsers):
+    '''_setup_predict_parser
+
+    Setup parser for the ginjinn predict subcommand.
+
+    Parameters
+    ----------
+    subparsers
+        An object returned by argparse.ArgumentParser.add_subparsers()
+
+    Returns
+    -------
+    parser
+        An argparse ArgumentParser, registered for the predict subcommand.
+    '''
+
+    # TODO: implement
+
+    parser = subparsers.add_parser(
+        'predict',
+        help = '''
+            Predict from a trained GinJinn model.
+        ''',
+        description = '''
+            Predict from a trained GinJinn model.
+        '''
+    )
+    parser.add_argument(
+        'project_dir',
+        type = str,
+        help = '''
+            Path to GinJinn project directory.
         '''
     )
 
@@ -63,7 +177,7 @@ class GinjinnArgumentParser():
         )
         self._init_subparsers()
 
-    def parse_args(self):
+    def parse_args(self, args=None, namespace=None):
         '''parse_args
         Parses the commandline arguments and returns them in argparse
         format.
@@ -73,7 +187,8 @@ class GinjinnArgumentParser():
         args
             Parsed argparse arguments
         '''
-        return self.parser.parse_args()
+        print(self)
+        return self.parser.parse_args(args=args, namespace=namespace)
 
     def _init_subparsers(self):
         '''_init_subparsers
@@ -82,5 +197,8 @@ class GinjinnArgumentParser():
         '''
 
         _setup_new_parser(self._subparsers)
+        _setup_train_parser(self._subparsers)
+        _setup_evaluate_parser(self._subparsers)
+        _setup_predict_parser(self._subparsers)
 
         # TODO: implement
