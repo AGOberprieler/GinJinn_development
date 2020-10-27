@@ -16,3 +16,14 @@ def test_simple_():
 
     # predict
     args = p.parse_args(['predict', 'my_project_dir'])
+
+    # split
+    args = p.parse_args([
+        'split',
+        '-i', 'my_image_dir',
+        '-a', 'my_annotations.json',
+        '-o', 'my_split_dir',
+        '-t', '0.6',
+        '-e', '0.2',
+        '-v', '0.2'
+    ])
