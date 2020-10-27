@@ -181,7 +181,8 @@ def _setup_split_parser(subparsers):
             evaluation datasets.
         '''
     )
-    parser.add_argument(
+    required_parser = parser.add_argument_group('required named arguments')
+    required_parser.add_argument(
         '-i', '--image_dir',
         type = str,
         help = '''
@@ -189,7 +190,7 @@ def _setup_split_parser(subparsers):
         ''',
         required = True,
     )
-    parser.add_argument(
+    required_parser.add_argument(
         '-a', '--annotation_path',
         type = str,
         help = '''
@@ -198,7 +199,7 @@ def _setup_split_parser(subparsers):
         ''',
         required = True,
     )
-    parser.add_argument(
+    required_parser.add_argument(
         '-o', '--output_dir',
         type = str,
         help = '''
@@ -212,7 +213,7 @@ def _setup_split_parser(subparsers):
         '-t', '--train_fraction',
         type = float,
         help = '''
-            Fraction of the dataset to use for training. 
+            Fraction of the dataset to use for training. (Default: 0.6)
         ''',
         default = 0.6,
     )
@@ -220,7 +221,7 @@ def _setup_split_parser(subparsers):
         '-e', '--test_fraction',
         type = float,
         help = '''
-            Fraction of the dataset to use for testing. 
+            Fraction of the dataset to use for testing. (Default: 0.2)
         ''',
         default = 0.2,
     )
@@ -228,7 +229,7 @@ def _setup_split_parser(subparsers):
         '-v', '--validation_fraction',
         type = float,
         help = '''
-            Fraction of the dataset to use for validation while training. 
+            Fraction of the dataset to use for validation while training. (Default: 0.2)
         ''',
         default = 0.2,
     )
