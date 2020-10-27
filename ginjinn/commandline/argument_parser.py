@@ -152,6 +152,89 @@ def _setup_predict_parser(subparsers):
 
     return parser
 
+def _setup_split_parser(subparsers):
+    '''_setup_split_parser
+
+    Setup parser for the ginjinn split subcommand.
+
+    Parameters
+    ----------
+    subparsers
+        An object returned by argparse.ArgumentParser.add_subparsers()
+
+    Returns
+    -------
+    parser
+        An argparse ArgumentParser, registered for the split subcommand.
+    '''
+
+    # TODO: implement
+
+    parser = subparsers.add_parser(
+        'split',
+        help = '''
+            Split dataset (images and annotations) into test, train, and optionally
+            evaluation datasets.
+        ''',
+        description = '''
+            Split dataset (images and annotations) into test, train, and optionally
+            evaluation datasets.
+        '''
+    )
+    parser.add_argument(
+        '-i', '--image_dir',
+        type = str,
+        help = '''
+            Path to directory containing images.
+        ''',
+        required = True,
+    )
+    parser.add_argument(
+        '-a', '--annotation_path',
+        type = str,
+        help = '''
+            Path to directory containing annotations (PVOC) or path to an annotation
+            JSON file (COCO).
+        ''',
+        required = True,
+    )
+    parser.add_argument(
+        '-o', '--output_dir',
+        type = str,
+        help = '''
+            Path to output directory. Splits will be written to output_dir/train,
+            output_dir/test, and output_dir/eval, respectively. The output directory
+            will be created, if it does not exist. 
+        ''',
+        required = True,
+    )
+    parser.add_argument(
+        '-t', '--train_fraction',
+        type = float,
+        help = '''
+            Fraction of the dataset to use for training. 
+        ''',
+        default = 0.6,
+    )
+    parser.add_argument(
+        '-e', '--test_fraction',
+        type = float,
+        help = '''
+            Fraction of the dataset to use for testing. 
+        ''',
+        default = 0.2,
+    )
+    parser.add_argument(
+        '-v', '--validation_fraction',
+        type = float,
+        help = '''
+            Fraction of the dataset to use for validation while training. 
+        ''',
+        default = 0.2,
+    )
+
+    return parser
+
 # Note: It is a deliberate decision not to subclass argparse.ArgumentParser.
 #       It might be preferable to work with composition instead of inheritance,
 #       since it might be desirable to include postprocessing steps after argparse
@@ -200,5 +283,6 @@ class GinjinnArgumentParser():
         _setup_train_parser(self._subparsers)
         _setup_evaluate_parser(self._subparsers)
         _setup_predict_parser(self._subparsers)
+        _setup_split_parser(self._subparsers)
 
         # TODO: implement
