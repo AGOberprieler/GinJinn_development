@@ -1,13 +1,13 @@
 ''' Commandline main
 '''
 
-from .argument_parser import GinjinnArgumentParser
+from .commandline_app import GinjinnCommandlineApplication
 
 def main():
     '''main
     GinJinn main.
     '''
-    parser = GinjinnArgumentParser()
-    args = parser.parse_args()
-    print(args)
+    app = GinjinnCommandlineApplication()
+    app.run()
+    print(app.args)
     print('GinJinn called!')
