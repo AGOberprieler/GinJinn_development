@@ -30,6 +30,7 @@ class InputPaths: #pylint: disable=too-few-public-methods
         self.annotation_path = ann_path
         self.image_path = img_path
 
+# TODO recycle this for the commandline script
 class SplitConfig: #pylint: disable=too-few-public-methods
     '''Class representing test and validation split options.
 
@@ -86,9 +87,6 @@ class GinjinnInputConfiguration: #pylint: disable=too-few-public-methods
     Train-validation-test can be
     - skipped, when leaving test_* and val_* arguments at default
     - custom, when specifying test_* and val_* arguments
-    - automatic, when specifying split_* arguments
-
-    Specifying test_*/val_* and split_* arguments at the same time is not allowed.
 
     Parameters
     ----------
