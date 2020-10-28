@@ -266,12 +266,19 @@ class GinjinnArgumentParser():
         Parses the commandline arguments and returns them in argparse
         format.
 
+        Parameters
+        ----------
+        args
+            List of strings to parse. If None, the strings are taken from sys.argv.
+        namespace
+            An object to take the attributes. The default is a new empty argparse Namespace object.
+
         Returns
         -------
         args
             Parsed argparse arguments
         '''
-        print(self)
+
         return self.parser.parse_args(args=args, namespace=namespace)
 
     def _init_subparsers(self):
