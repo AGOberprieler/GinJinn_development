@@ -6,9 +6,6 @@ input:
   train:
     annotation_path: "annotations_xyz"
     image_path: "images_xyz"
-  split:
-    test: 0.20
-    validation: 0.20
 # Model options
 model:
   name: "faster_rcnn_R_50_FPN_3x"

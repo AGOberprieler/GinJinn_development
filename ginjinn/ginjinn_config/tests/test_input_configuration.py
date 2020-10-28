@@ -96,16 +96,6 @@ def config_dicts(tmp_input_paths):
             'image_path': tmp_input_paths['img_path_validation'],
         }
     }
-    test_automatic_0 = {
-        'split': {
-            'test': 0.25
-        }
-    }
-    val_automatic_0 = {
-        'split': {
-            'validation': 0.25
-        }
-    }
 
     test_custom_config_0 = copy.deepcopy(simple_config)
     test_custom_config_0.update(test_custom_0)
@@ -117,16 +107,11 @@ def config_dicts(tmp_input_paths):
     test_val_custom_config_0.update(test_custom_0)
     test_val_custom_config_0.update(val_custom_0)
 
-    test_val_automatic_config_0 = copy.deepcopy(simple_config)
-    test_val_automatic_config_0.update(test_automatic_0)
-    test_val_automatic_config_0['split']['validation'] = val_automatic_0['split']['validation']
-
     return [
         simple_config,
         test_custom_config_0,
         val_custom_config_0,
-        test_val_custom_config_0,
-        test_val_automatic_config_0,
+        test_val_custom_config_0
     ]
 
 def test_constructor_simple(basic_inputs):
@@ -204,41 +189,6 @@ def test_constructor_custom_split(basic_inputs, custom_split_inputs_pvoc):
     assert input_configuration_2.validation.image_path == val_img_path,\
         'validation image path not set correctly (test-val)'
 
-def test_automatic_split(basic_inputs, automatic_split_inputs):
-    ann_type = basic_inputs[0]
-    train_ann_path = basic_inputs[1]
-    train_img_path = basic_inputs[2]
-
-    split_test=automatic_split_inputs[0]
-    split_val=automatic_split_inputs[1]
-
-    # test
-    input_configuration_0 = GinjinnInputConfiguration(
-        ann_type, train_ann_path, train_img_path,
-        split_test=split_test
-    )
-    assert input_configuration_0.split.test == split_test,\
-        'automatic test split not set correctly'
-
-    # validation
-    input_configuration_1 = GinjinnInputConfiguration(
-        ann_type, train_ann_path, train_img_path,
-        split_val=split_val
-    )
-    assert input_configuration_1.split.validation == split_val,\
-        'automatic validation split not set correctly'
-
-    # test-validation
-    input_configuration_2 = GinjinnInputConfiguration(
-        ann_type, train_ann_path, train_img_path,
-        split_test=split_test,
-        split_val=split_val
-    )
-    assert input_configuration_2.split.validation == split_val,\
-        'automatic validation split not set correctly (test-val)'
-    assert input_configuration_2.split.test == split_test,\
-        'automatic test split not set correctly (test-val)'
-
 def test_invalid_annotation_type(basic_inputs):
     ann_type = 'CVAT'
     train_ann_path = basic_inputs[1]
@@ -283,59 +233,11 @@ def test_missing_test_val_paths(basic_inputs, custom_split_inputs_pvoc):
             val_img_path=val_img_path,
         )
 
-def test_contradictionary_inputs(
-    basic_inputs, custom_split_inputs_pvoc, automatic_split_inputs
-):
-    ann_type = basic_inputs[0]
-    train_ann_path = basic_inputs[1]
-    train_img_path = basic_inputs[2]
-
-    test_ann_path = custom_split_inputs_pvoc[0]
-    test_img_path = custom_split_inputs_pvoc[1]
-    val_ann_path = custom_split_inputs_pvoc[2]
-    val_img_path = custom_split_inputs_pvoc[3]
-
-    split_test=automatic_split_inputs[0]
-    split_val=automatic_split_inputs[1]
-
-    with pytest.raises(InvalidInputConfigurationError):
-        GinjinnInputConfiguration(
-            ann_type, train_ann_path, train_img_path,
-            test_ann_path=test_ann_path,
-            test_img_path=test_img_path,
-            split_test=split_test,
-        )
-    
-    with pytest.raises(InvalidInputConfigurationError):
-        GinjinnInputConfiguration(
-            ann_type, train_ann_path, train_img_path,
-            val_ann_path=val_ann_path,
-            val_img_path=val_img_path,
-            split_test=split_test,
-        )
-
-    with pytest.raises(InvalidInputConfigurationError):
-        GinjinnInputConfiguration(
-            ann_type, train_ann_path, train_img_path,
-            test_ann_path=test_ann_path,
-            test_img_path=test_img_path,
-            split_val=split_val,
-        )
-
-    with pytest.raises(InvalidInputConfigurationError):
-        GinjinnInputConfiguration(
-            ann_type, train_ann_path, train_img_path,
-            val_ann_path=val_ann_path,
-            val_img_path=val_img_path,
-            split_val=split_val,
-        )
-
 def test_from_dictionary(config_dicts, tmp_input_paths):
     simple_config = config_dicts[0]
     test_custom_config_0 = config_dicts[1]
     val_custom_config_0 = config_dicts[2]
     test_val_custom_config_0 = config_dicts[3]
-    test_val_automatic_config_0 = config_dicts[4]
 
     input_configuration_0 = GinjinnInputConfiguration.from_dictionary(simple_config)
     assert input_configuration_0.type == simple_config['type'] and\
@@ -369,13 +271,6 @@ def test_from_dictionary(config_dicts, tmp_input_paths):
         input_configuration_3.test.image_path == test_val_custom_config_0['test']['image_path'],\
         'Custom test-validation configuration from dictionary not successful.'
 
-    input_configuration_4 = GinjinnInputConfiguration.from_dictionary(test_val_automatic_config_0)
-    assert input_configuration_4.type == test_val_automatic_config_0['type'] and\
-        input_configuration_4.train.annotation_path == test_val_automatic_config_0['train']['annotation_path'] and\
-        input_configuration_4.train.image_path == test_val_automatic_config_0['train']['image_path'] and\
-        input_configuration_4.split.test == test_val_automatic_config_0['split']['test'] and\
-        input_configuration_4.split.validation == test_val_automatic_config_0['split']['validation'],\
-        'Automatic test-validation configuration from dictionary not successful.'
 
     input_configuration_5 = GinjinnInputConfiguration.from_dictionary({
         'type': 'COCO',

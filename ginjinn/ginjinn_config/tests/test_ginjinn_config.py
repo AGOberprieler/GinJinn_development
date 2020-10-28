@@ -143,8 +143,7 @@ def test_from_config_file_simple(config_file_examples):
     assert simple_config_0.task == simple_config_dict_0['task'] and\
         simple_config_0.project_dir == simple_config_dict_0['project_dir'] and\
         simple_config_0.input.train.annotation_path == simple_config_dict_0['input']['train']['annotation_path'] and\
-        simple_config_0.input.train.image_path == simple_config_dict_0['input']['train']['image_path'] and\
-        simple_config_0.input.split.test == simple_config_dict_0['input']['split']['test'],\
+        simple_config_0.input.train.image_path == simple_config_dict_0['input']['train']['image_path'],\
         'GinjinnConfig was not successfully constructed from simple configuration file.'
     
     assert simple_config_0.model.name == simple_config_dict_0['model']['name']
@@ -167,8 +166,7 @@ def test_from_config_file_simple(config_file_examples):
     assert simple_config_1.task == simple_config_dict_1['task'] and\
         simple_config_1.project_dir == simple_config_dict_1['project_dir'] and\
         simple_config_1.input.train.annotation_path == simple_config_dict_1['input']['train']['annotation_path'] and\
-        simple_config_1.input.train.image_path == simple_config_dict_1['input']['train']['image_path'] and\
-        simple_config_1.input.split.test == simple_config_dict_1['input']['split']['test'],\
+        simple_config_1.input.train.image_path == simple_config_dict_1['input']['train']['image_path'],\
         'GinjinnConfig was not successfully constructed from simple configuration file.'
     
     assert simple_config_1.model.name == simple_config_dict_1['model']['name']

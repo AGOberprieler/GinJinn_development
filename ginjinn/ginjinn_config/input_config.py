@@ -21,7 +21,7 @@ class InputPaths: #pylint: disable=too-few-public-methods
         Path to annotations. I.e. either a file or a folder path.
     img_path : str
         Path to the folder containing images.
-        '''
+    '''
     def __init__(
         self,
         ann_path: str,
@@ -110,10 +110,6 @@ class GinjinnInputConfiguration: #pylint: disable=too-few-public-methods
         Path to the annotation file for "COCO".
     val_img_path : Optional[str], optional
         Path to the directory containing the images.
-    split_test : Optional[float], optional
-        Fraction of the dataset to use for testing.
-    split_val : Optional[float], optional
-        Fraction of the dataset to use for validation.
 
     Raises
     ------
@@ -130,15 +126,12 @@ class GinjinnInputConfiguration: #pylint: disable=too-few-public-methods
         test_img_path: Optional[str] = None,
         val_ann_path: Optional[str] = None,
         val_img_path: Optional[str] = None,
-        split_test: Optional[float] = None,
-        split_val: Optional[float] = None,
     ):
         self.type = ann_type
         self.train = InputPaths(train_ann_path, train_img_path)
 
         self.test = None
         self.validation = None
-        self.split = None
 
         # type
         if not self.type in ANNOTATION_TYPES:
@@ -169,23 +162,6 @@ class GinjinnInputConfiguration: #pylint: disable=too-few-public-methods
         #       in the data reader.
         self._check_filepaths()
 
-        # split
-        if (not split_test is None) or (not split_val is None):
-            self.split = SplitConfig()
-            if not split_test is None:
-                self.split.test = split_test
-            if not split_val is None:
-                self.split.validation = split_val
-
-        # check whether contradicting parameters were passed
-        is_custom = (not self.test is None) or (not self.validation is None)
-        is_automatic = not self.split is None
-        if is_custom and is_automatic:
-            raise InvalidInputConfigurationError(
-                'Specifying "test_*/val_*" and "split_*" arguments at the same time is not \
-                allowed. Either pass "test_*/val_*" arguments for a custom train-validation-test \
-                split or specify options for automatic split via "split_*" arguments.'
-            )
 
     @staticmethod
     def _check_pvoc_annotation_path(ann_path: str):
@@ -316,6 +292,4 @@ class GinjinnInputConfiguration: #pylint: disable=too-few-public-methods
             test_img_path = config['test']['image_path'],
             val_ann_path = config['validation']['annotation_path'],
             val_img_path = config['validation']['image_path'],
-            split_test = config['split']['test'],
-            split_val = config['split']['validation'],
         )
