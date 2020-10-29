@@ -23,6 +23,8 @@ requirements:
     - cudatoolkit=10.1
     - opencv
     - scikit-image
+    - pandas
+    - pycocotools
 
 build:
   skip: true # [not linux]
