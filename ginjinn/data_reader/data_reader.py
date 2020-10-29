@@ -7,6 +7,7 @@ import os
 from typing import List
 import xml.etree.ElementTree as ET
 from detectron2.structures import BoxMode
+from detectron2.data.datasets import load_coco_json
 from pycocotools.coco import COCO
 from .data_error import IncompatibleDatasetsError
 

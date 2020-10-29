@@ -9,7 +9,7 @@ import random
 import shutil
 import sys
 import xml.etree.ElementTree as ET
-from typing import List, Union, Generator
+from typing import List, Union, Generator, Callable, Optional
 import numpy as np
 import pandas as pd
 from detectron2.data.datasets import load_coco_json
@@ -98,14 +98,13 @@ def create_split(
         return dicts_split
     return None
 
-
 def split_dataset_dicts(
     dict_list: List[dict],
     class_names: List[str],
     task: str,
     p_val: Union[int, float] = 0,
-    p_test: Union[int, float] = 0
-    ) -> dict:
+    p_test: Union[int, float] = 0,
+) -> dict:
     """Create a new train/val/test split for a list of Detectron2 dataset dictionaries.
     This function requires user interaction.
 
@@ -122,6 +121,7 @@ def split_dataset_dicts(
     p_test : int or float
         Proportion of images to be used as test set
 
+
     Returns
     -------
     dicts_split : dict
@@ -134,30 +134,9 @@ def split_dataset_dicts(
     n_trials = 0
     accept = False
     while not accept:
-        partition = greedy_split(class_counts, p_val, p_test)
         n_trials += 1
 
-        col0 = class_counts[partition["train"], :].sum(axis=0)
-        col1 = class_counts[partition["val"], :].sum(axis=0)
-        col2 = class_counts[partition["test"], :].sum(axis=0)
-
-        df1 = pd.DataFrame(
-            [[len(partition["train"]), len(partition["val"]), len(partition["test"])]],
-            columns=["train", "val", "test"],
-            index=["images"]
-        )
-        df2 = pd.DataFrame(
-            {"train": col0, "val": col1, "test": col2},
-            columns=["train", "val", "test"],
-            index=class_names
-        )
-        df = pd.concat([df1, df2])
-
-        if p_val == 0:
-            del df['val']
-        if p_test == 0:
-            del df['test']
-
+        df, partition = propose_split(class_counts, class_names, p_val, p_test)
         print(df)
 
         # handle invalid splits
@@ -179,6 +158,219 @@ def split_dataset_dicts(
 
     return dicts_split
 
+def create_split_2(
+    ann_path: str,
+    img_path: str,
+    split_dir: str,
+    task: str,
+    ann_type: str,
+    p_val: Union[int, float] = 0,
+    p_test: Union[int, float] = 0,
+    return_dicts: bool = False,
+    on_split_dir_exists: Optional[Callable] = lambda x: False,
+    on_split_proposal: Optional[Callable] = lambda x: True,
+    on_no_valid_split: Optional[Callable] = lambda: False,
+    ):
+    """Create a new train/val/test split, which is stored in split_dir.
+    To avoid wasting disk space, images are not copied, but hard-linked into
+    their new directories. This function may require user interaction.
+
+    Parameters
+    ----------
+    ann_path : str
+        Annotations to be splitted, either a COCO json file or a directory
+        containing PascalVOC xml files
+    img_path : str
+        Directory containing JPG images
+    split_dir : str
+        Directory for storing newly created datasets
+    task : str
+        "bbox-detection" or "instance-segmentation"
+    ann_type : str
+        "COCO" or "PVOC"
+    p_val : int or float
+        Proportion of images to be used as validation set
+    p_test : int or float
+        Proportion of images to be used as test set
+    return_dicts : bool
+        If set to True, newly created datasets are not only saved to disk, but also
+        returned in Detectron2's default dictionary format.
+    on_split_proposal : Callable
+        Function to decide, whether to overwrite existing split_dir.
+        (str) -> bool
+    on_split_proposal : Callable
+        Function to decide, whether to accept a proposed split.
+        (pd.DataFrame) -> bool
+    on_split_proposal : Callable
+        Function to decide, whether to retry splitting after not finding a valid
+        split proposal.
+        () -> bool
+
+    Returns
+    ------
+    dicts_split : dict
+        For each subset ("train", "val", "test"), dicts_split[subset] contains
+        a list of dictionaries, which can be registered as dataset for
+        Detectron2. If return_dicts=False, None is returned.
+    """
+    if os.path.exists(split_dir):
+        if on_split_dir_exists(split_dir):
+            shutil.rmtree(split_dir)
+        else:
+            sys.exit()
+
+    os.makedirs(os.path.join(split_dir, "images", "train"))
+    if p_val > 0:
+        os.mkdir(os.path.join(split_dir, "images", "val"))
+    if p_test > 0:
+        os.mkdir(os.path.join(split_dir, "images", "test"))
+    os.mkdir(os.path.join(split_dir, "annotations"))
+
+    if ann_type == "COCO":
+        class_names = get_class_names_coco([ann_path])
+        dict_list_all = load_coco_json(ann_path, img_path)
+        set_category_ids_coco(dict_list_all, ann_path)
+        dicts_split = split_dataset_dicts_2(
+            dict_list_all, class_names, task, p_val, p_test,
+            on_split_proposal, on_no_valid_split
+        )
+        save_split_coco(ann_path, dicts_split, split_dir)
+
+    if ann_type == "PVOC":
+        os.makedirs(os.path.join(split_dir, "annotations", "train"))
+        if p_val > 0:
+            os.mkdir(os.path.join(split_dir, "annotations", "val"))
+        if p_test > 0:
+            os.mkdir(os.path.join(split_dir, "annotations", "test"))
+
+        class_names = get_class_names_pvoc([ann_path])
+        dict_list_all = get_dicts_pvoc(ann_path, img_path, class_names)
+        dicts_split = split_dataset_dicts_2(
+            dict_list_all, class_names, task, p_val, p_test,
+            on_split_proposal, on_no_valid_split
+        )
+        save_split_pvoc(ann_path, dicts_split, split_dir)
+
+    if return_dicts:
+        return dicts_split
+    return None
+
+
+def split_dataset_dicts_2(
+    dict_list: List[dict],
+    class_names: List[str],
+    task: str,
+    p_val: Union[int, float] = 0,
+    p_test: Union[int, float] = 0,
+    on_split_proposal: Optional[Callable] = lambda x: True,
+    on_no_valid_split: Optional[Callable] = lambda: False,
+) -> dict:
+    """Create a new train/val/test split for a list of Detectron2 dataset dictionaries.
+    This function requires user interaction.
+
+    Parameters
+    ----------
+    dict_list : list of dict
+        Image annotations in Detectron2's default format
+    class_names : list of str
+        Ordered list of object class names
+    task : str
+        "bbox-detection" or "instance-segmentation"
+    p_val : int or float
+        Proportion of images to be used as validation set
+    p_test : int or float
+        Proportion of images to be used as test set
+    on_split_proposal : Callable
+        Function to decide, whether to accept a proposed split.
+        (pd.DataFrame) -> bool
+    on_no_valid_split : Callable
+        Function to decide, whether to retry splitting after not finding a valid
+        split proposal.
+        () -> bool
+
+    Returns
+    -------
+    dicts_split : dict
+        For each subset ("train", "val", "test"), dicts_split[subset] contains
+        a list of dictionaries, which can be registered as dataset for
+        Detectron2.
+    """
+    class_counts = count_class_occurrences(dict_list, len(class_names), task)
+
+    n_trials = 0
+    accept = False
+    while not accept:
+        n_trials += 1
+
+        df, partition = propose_split(class_counts, class_names, p_val, p_test)
+
+        # handle invalid splits
+        if 0 in df.values:
+            if n_trials < 10:
+                continue
+            if on_no_valid_split():
+                n_trials = 0
+                continue
+            sys.exit()
+
+        accept = on_split_proposal(df)
+
+    dicts_split = dict()
+    for key in partition:
+        dicts_split[key] = [d for i, d in enumerate(dict_list) if i in partition[key]]
+
+    return dicts_split
+
+def propose_split(
+    class_counts: "np.ndarray[np.int]",
+    class_names: List[str],
+    p_val: Union[int, float],
+    p_test: Union[int, float],
+) -> "(pd.DataFrame, dict)":
+    '''propose_split
+
+    Propose a split based on class_counts and p_val, p_test.
+
+    Parameters
+    ----------
+    class_counts : np.ndarray[np.int]
+        Object class counts.
+    class_names : List[str]
+        Names of object classes
+    p_val : int or float
+        Proportion of images to be used as validation set
+    p_test : int or float
+        Proportion of images to be used as test set
+
+    Returns
+    -------
+    "pd.DataFrame"
+        Pandas DataFrame with class counts for the potential split.
+    '''
+    partition = greedy_split(class_counts, p_val, p_test)
+
+    col0 = class_counts[partition["train"], :].sum(axis=0)
+    col1 = class_counts[partition["val"], :].sum(axis=0)
+    col2 = class_counts[partition["test"], :].sum(axis=0)
+
+    df1 = pd.DataFrame(
+        [[len(partition["train"]), len(partition["val"]), len(partition["test"])]],
+        columns=["train", "val", "test"],
+        index=["images"]
+    )
+    df2 = pd.DataFrame(
+        {"train": col0, "val": col1, "test": col2},
+        columns=["train", "val", "test"],
+        index=class_names
+    )
+    df = pd.concat([df1, df2])
+
+    if p_val == 0:
+        del df['val']
+    if p_test == 0:
+        del df['test']
+
+    return df, partition
 
 def count_class_occurrences(
     dict_list: List[dict],
