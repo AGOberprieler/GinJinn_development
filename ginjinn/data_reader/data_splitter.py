@@ -12,6 +12,91 @@ import xml.etree.ElementTree as ET
 from typing import List, Union, Generator
 import numpy as np
 import pandas as pd
+from detectron2.data.datasets import load_coco_json
+from ginjinn.utils.utils import confirmation
+from .data_reader import get_class_names_coco, set_category_ids_coco
+from .data_reader import get_class_names_pvoc, get_dicts_pvoc
+
+
+def create_split(
+    ann_path: str,
+    img_path: str,
+    split_dir: str,
+    task: str,
+    ann_type: str,
+    p_val: Union[int, float] = 0,
+    p_test: Union[int, float] = 0,
+    return_dicts: bool = False
+    ):
+    """Create a new train/val/test split, which is stored in split_dir.
+    To avoid wasting disk space, images are not copied, but hard-linked into
+    their new directories. This function may require user interaction.
+
+    Parameters
+    ----------
+    ann_path : str
+        Annotations to be splitted, either a COCO json file or a directory
+        containing PascalVOC xml files
+    img_path : str
+        Directory containing JPG images
+    split_dir : str
+        Directory for storing newly created datasets
+    task : str
+        "bbox-detection" or "instance-segmentation"
+    ann_type : str
+        "COCO" or "PVOC"
+    p_val : int or float
+        Proportion of images to be used as validation set
+    p_test : int or float
+        Proportion of images to be used as test set
+    return_dicts : bool
+        If set to True, newly created datasets are not only saved to disk, but also
+        returned in Detectron2's default dictionary format.
+
+    Returns
+    ------
+    dicts_split : dict
+        For each subset ("train", "val", "test"), dicts_split[subset] contains
+        a list of dictionaries, which can be registered as dataset for
+        Detectron2. If return_dicts=False, None is returned.
+    """
+    if os.path.exists(split_dir):
+        if confirmation(
+            split_dir + ' already exists.\nDo you want do overwrite it?'
+        ):
+            shutil.rmtree(split_dir)
+        else:
+            sys.exit()
+
+    os.makedirs(os.path.join(split_dir, "images", "train"))
+    if p_val > 0:
+        os.mkdir(os.path.join(split_dir, "images", "val"))
+    if p_test > 0:
+        os.mkdir(os.path.join(split_dir, "images", "test"))
+    os.mkdir(os.path.join(split_dir, "annotations"))
+
+    if ann_type == "COCO":
+        class_names = get_class_names_coco([ann_path])
+        dict_list_all = load_coco_json(ann_path, img_path)
+        set_category_ids_coco(dict_list_all, ann_path)
+        dicts_split = split_dataset_dicts(dict_list_all, class_names, task, p_val, p_test)
+        save_split_coco(ann_path, dicts_split, split_dir)
+
+    if ann_type == "PVOC":
+        os.makedirs(os.path.join(split_dir, "annotations", "train"))
+        if p_val > 0:
+            os.mkdir(os.path.join(split_dir, "annotations", "val"))
+        if p_test > 0:
+            os.mkdir(os.path.join(split_dir, "annotations", "test"))
+
+        class_names = get_class_names_pvoc([ann_path])
+        dict_list_all = get_dicts_pvoc(ann_path, img_path, class_names)
+        dicts_split = split_dataset_dicts(dict_list_all, class_names, task, p_val, p_test)
+        save_split_pvoc(ann_path, dicts_split, split_dir)
+
+    if return_dicts:
+        return dicts_split
+    return None
 
 
 def split_dataset_dicts(
@@ -95,87 +180,6 @@ def split_dataset_dicts(
     return dicts_split
 
 
-def split_dataset(
-    ann_path: str,
-    project_dir: str,
-    dict_list: List[dict],
-    class_names: List[str],
-    task: str,
-    ann_type: str,
-    p_val: Union[int, float] = 0,
-    p_test: Union[int, float] = 0
-    ) -> dict:
-    """Create a new train/val/test split for a given dataset.
-
-    This function splits images along with annotations into subsets for training,
-    validation and test. Splitted datasets are returned in Detectron2's
-    default format and, additionally, stored within the project directory.
-
-    Parameters
-    ----------
-    ann_path : str
-        Annotations to be splitted, either a COCO json file or a directory
-        containing PascalVOC xml files
-    project_dir : str
-        Project directory
-    dict_list : list of dict
-        Image annotations in Detectron2's default format
-    class_names : list of str
-        Ordered list of object class names
-    task : str
-        "bbox-detection" or "instance-segmentation"
-    ann_type : str
-        "COCO" or "PVOC"
-    p_val : int or float
-        Proportion of images to be used as validation set
-    p_test : int or float
-        Proportion of images to be used as test set
-
-    Returns
-    -------
-    dicts_split : dict
-        For each subset ("train", "val", "test"), dicts_split[subset] contains
-        a list of dictionaries, which can be registered as dataset for
-        Detectron2.
-    """
-
-    split_dir = os.path.join(project_dir, "data_split")
-    if os.path.exists(split_dir):
-        if confirmation(
-            split_dir + ' already exists. Do you want do overwrite it? ' \
-            '(If you want to reuse it, please type "no" and adjust the image ' \
-            'and annotation paths in your config file accordingly.)'
-        ):
-            shutil.rmtree(split_dir)
-        else:
-            sys.exit()
-
-    os.makedirs(os.path.join(split_dir, "annotations"))
-    
-    os.makedirs(os.path.join(split_dir, "images", "train"))
-    if p_val > 0:
-        os.mkdir(os.path.join(split_dir, "images", "val"))
-    if p_test > 0:
-        os.mkdir(os.path.join(split_dir, "images", "test"))
-
-    if ann_type == "PVOC":
-        os.makedirs(os.path.join(split_dir, "annotations", "train"))
-        if p_val > 0:
-            os.mkdir(os.path.join(split_dir, "annotations", "val"))
-        if p_test > 0:
-            os.mkdir(os.path.join(split_dir, "annotations", "test"))
-
-    dicts_split = split_dataset_dicts(dict_list, class_names, task, p_val, p_test)
-
-    # save splitted data
-    if ann_type == "COCO":
-        save_split_coco(ann_path, dicts_split, split_dir)
-    elif ann_type == "PVOC":
-        save_split_pvoc(ann_path, dicts_split, split_dir)
-
-    return dicts_split
-
-
 def count_class_occurrences(
     dict_list: List[dict],
     n_classes: int,
@@ -196,7 +200,7 @@ def count_class_occurrences(
 
     Returns
     -------
-    class_counts: ndarray
+    class_counts : ndarray
         2-D array indicating how many objects of each class (column) are
         annotated within each image (row)
     """
@@ -238,8 +242,13 @@ def sel_order(
 
     Yields
     -------
-    j: int
+    j : int
         Index of next dataset (0=train, 1=validation, 2=test)
+
+    Raises
+    ------
+    ValueError
+        If p_val or p_test is not within the allowed range [0, 1]
     """
     p = [1-p_val-p_test, p_val, p_test]
 
@@ -273,7 +282,7 @@ def greedy_split(
 
     Returns
     -------
-    partition: dict
+    partition : dict
         For each data subset, partition[subset] lists the corresponding image indices,
         i.e. row indices in class_counts,
         e.g. {'train': [2, 7, 9, 3, 8, 0], 'val': [5, 6], 'test': [4, 1]}
@@ -305,28 +314,6 @@ def greedy_split(
     return partition
 
 
-def confirmation(question: str) -> bool:
-    """Ask question expecting "yes" or "no".
-
-    Parameters
-    ----------
-    question : str
-        Question to be printed
-
-    Returns
-    -------
-    bool
-        True or False for "yes" or "no", respectively
-    """
-    valid = {"yes": True, "y": True, "no": False, "n": False}
-
-    while True:
-        choice = input(question + " [y/n]\n").strip().lower()
-        if choice in valid.keys():
-            return valid[choice]
-        print("Please type 'yes' or 'no'\n")
-
-
 def save_split_coco(
     ann_file: str,
     dicts_split: dict,
@@ -343,7 +330,7 @@ def save_split_coco(
     ----------
     ann_file : str
         Path of COCO json file to be splitted
-    dicts_split: dict
+    dicts_split : dict
         For each dataset ("train", "val", "test"), partition[subset] is a
         list of image annotations in Detectron2's default dictionary format.
     split_dir : str
@@ -405,9 +392,9 @@ def save_split_pvoc(
 
     Parameters
     ----------
-    ann_file : str
-        Path of COCO json file to be splitted
-    dicts_split: dict
+    ann_dir : str
+        Directory containing PascalVOC xml files to be partitioned.
+    dicts_split : dict
         For each dataset ("train", "val", "test"), partition[subset] is a
         list of image annotations in Detectron2's default dictionary format.
     split_dir : str
