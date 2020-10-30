@@ -209,16 +209,36 @@ def _setup_split_parser(subparsers):
         ''',
         required = True,
     )
-    parser.add_argument(
-        '-t', '--train_fraction',
-        type = float,
+    required_parser.add_argument(
+        '-d', '--task',
+        type = str,
+        choices = [
+            'instance-segmentation', 'bbox-detection'
+        ],
         help = '''
-            Fraction of the dataset to use for training. (Default: 0.6)
+            Task, which the dataset will be used for.
         ''',
-        default = 0.6,
+        required = True,
     )
+    required_parser.add_argument(
+        '-k', '--ann_type',
+        type = str,
+        choices = ['COCO', 'PVOC'],
+        help = '''
+            Dataset type.
+        ''',
+        required = True,
+    )
+    # parser.add_argument(
+    #     '-t', '--train_fraction',
+    #     type = float,
+    #     help = '''
+    #         Fraction of the dataset to use for training. (Default: 0.6)
+    #     ''',
+    #     default = 0.6,
+    # )
     parser.add_argument(
-        '-e', '--test_fraction',
+        '-t', '--test_fraction',
         type = float,
         help = '''
             Fraction of the dataset to use for testing. (Default: 0.2)

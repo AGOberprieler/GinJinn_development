@@ -2,6 +2,7 @@
 '''
 
 from .argument_parser import GinjinnArgumentParser
+from .splitter import ginjinn_split
 
 class GinjinnCommandlineApplication():
     '''GinjinnCommandlineApplication
@@ -24,7 +25,7 @@ class GinjinnCommandlineApplication():
             An object to take the attributes. The default is a new empty argparse Namespace object.
         '''
         self.args = self.parser.parse_args(args=args, namespace=namespace)
-        print(self.args)
+        # print(self.args)
 
         if self.args.subcommand == 'new':
             self._run_new()
@@ -36,10 +37,7 @@ class GinjinnCommandlineApplication():
         Run the GinJinn split command.
         '''
 
-        print('Running ginjinn split')
-        print(self.args)
-
-        # TODO: implement
+        ginjinn_split(self.args)
 
     def _run_new(self):
         '''_run_new

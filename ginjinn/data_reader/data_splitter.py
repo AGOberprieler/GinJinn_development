@@ -166,11 +166,10 @@ def create_split_2(
     ann_type: str,
     p_val: Union[int, float] = 0,
     p_test: Union[int, float] = 0,
-    return_dicts: bool = False,
     on_split_dir_exists: Optional[Callable] = lambda x: False,
     on_split_proposal: Optional[Callable] = lambda x: True,
     on_no_valid_split: Optional[Callable] = lambda: False,
-    ):
+):
     """Create a new train/val/test split, which is stored in split_dir.
     To avoid wasting disk space, images are not copied, but hard-linked into
     their new directories. This function may require user interaction.
@@ -192,10 +191,7 @@ def create_split_2(
         Proportion of images to be used as validation set
     p_test : int or float
         Proportion of images to be used as test set
-    return_dicts : bool
-        If set to True, newly created datasets are not only saved to disk, but also
-        returned in Detectron2's default dictionary format.
-    on_split_proposal : Callable
+    on_split_dir_exists : Callable
         Function to decide, whether to overwrite existing split_dir.
         (str) -> bool
     on_split_proposal : Callable
@@ -217,7 +213,7 @@ def create_split_2(
         if on_split_dir_exists(split_dir):
             shutil.rmtree(split_dir)
         else:
-            sys.exit()
+            return
 
     os.makedirs(os.path.join(split_dir, "images", "train"))
     if p_val > 0:
@@ -251,9 +247,6 @@ def create_split_2(
         )
         save_split_pvoc(ann_path, dicts_split, split_dir)
 
-    if return_dicts:
-        return dicts_split
-    return None
 
 
 def split_dataset_dicts_2(
