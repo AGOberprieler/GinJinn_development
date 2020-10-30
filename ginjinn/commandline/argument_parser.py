@@ -256,6 +256,43 @@ def _setup_split_parser(subparsers):
 
     return parser
 
+def _setup_simulate_parser(subparsers):
+    '''_setup_simulate_parser
+
+    Setup parser for the ginjinn simulate subcommand.
+
+    Parameters
+    ----------
+    subparsers
+        An object returned by argparse.ArgumentParser.add_subparsers()
+
+    Returns
+    -------
+    parser
+        An argparse ArgumentParser, registered for the simulate subcommand.
+    '''
+
+    # TODO: implement
+
+    parser = subparsers.add_parser(
+        'simulate',
+        help = '''
+            Simulate datasets.
+        ''',
+        description = '''
+            Simulate datasets.
+        '''
+    )
+    parser.add_argument(
+        'out_dir',
+        type = str,
+        help = '''
+            Path to directory, which the simulated data should be written to.
+        '''
+    )
+
+    return parser
+
 # Note: It is a deliberate decision not to subclass argparse.ArgumentParser.
 #       It might be preferable to work with composition instead of inheritance,
 #       since it might be desirable to include postprocessing steps after argparse
@@ -312,5 +349,6 @@ class GinjinnArgumentParser():
         _setup_evaluate_parser(self._subparsers)
         _setup_predict_parser(self._subparsers)
         _setup_split_parser(self._subparsers)
+        _setup_simulate_parser(self._subparsers)
 
         # TODO: implement

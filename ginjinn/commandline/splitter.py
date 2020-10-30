@@ -5,9 +5,6 @@ import sys
 import pandas as pd
 import numpy as np
 
-
-from ginjinn.data_reader.data_splitter import create_split_2
-
 def confirmation_cancel(question: str) -> bool:
     '''Ask question expecting 'yes' or 'no'.
 
@@ -111,6 +108,9 @@ def ginjinn_split(args):
 
     # print('Running ginjinn split')
     # print(args)
+
+    # import here to avoid long startup time, when ginjinn_split is not called
+    from ginjinn.data_reader.data_splitter import create_split_2
 
     ann_path = args.annotation_path
     img_dir = args.image_dir
