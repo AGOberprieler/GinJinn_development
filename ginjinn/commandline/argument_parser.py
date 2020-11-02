@@ -237,7 +237,8 @@ def _setup_split_parser(subparsers):
     #     ''',
     #     default = 0.6,
     # )
-    parser.add_argument(
+    optional_parser = parser.add_argument_group('optional arguments')
+    optional_parser.add_argument(
         '-t', '--test_fraction',
         type = float,
         help = '''
@@ -245,7 +246,7 @@ def _setup_split_parser(subparsers):
         ''',
         default = 0.2,
     )
-    parser.add_argument(
+    optional_parser.add_argument(
         '-v', '--validation_fraction',
         type = float,
         help = '''
@@ -292,10 +293,12 @@ def _setup_simulate_parser(subparsers):
     shapes_parser = simulate_parsers.add_parser(
         'shapes',
         help = '''
-            Simulate a simple dataset consisting of two classes: circles and triangles.
+            Simulate a simple segmentation dataset with COCO annotations,
+            containing two classes: circles and triangles.
         ''',
         description = '''
-            Simulate a simple dataset consisting of two classes: circles and triangles.
+            Simulate a simple segmentation dataset with COCO annotations,
+            containing two classes: circles and triangles.
         '''
     )
     required = shapes_parser.add_argument_group('required arguments')
@@ -440,7 +443,7 @@ def _setup_simulate_parser(subparsers):
     )
 
     # ==
-    # ...
+    # ... further simulations ...
     # ==
 
     return parser
