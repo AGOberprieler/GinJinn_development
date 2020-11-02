@@ -3,6 +3,7 @@
 
 from .argument_parser import GinjinnArgumentParser
 from .splitter import ginjinn_split
+from .simulate import ginjinn_simulate
 
 class GinjinnCommandlineApplication():
     '''GinjinnCommandlineApplication
@@ -31,6 +32,8 @@ class GinjinnCommandlineApplication():
             self._run_new()
         elif self.args.subcommand == 'split':
             self._run_split()
+        elif self.args.subcommand == 'simulate':
+            self._run_simulate()
 
     def _run_split(self):
         '''_run_split
@@ -38,6 +41,13 @@ class GinjinnCommandlineApplication():
         '''
 
         ginjinn_split(self.args)
+
+    def _run_simulate(self):
+        '''_run_simulate
+        Run the GinJinn simulate command.
+        '''
+
+        ginjinn_simulate(self.args)
 
     def _run_new(self):
         '''_run_new

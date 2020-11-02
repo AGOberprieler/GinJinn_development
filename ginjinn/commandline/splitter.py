@@ -1,33 +1,9 @@
 ''' GinJinn split commandline module
 '''
 
-import sys
 import pandas as pd
-import numpy as np
 
-def confirmation_cancel(question: str) -> bool:
-    '''Ask question expecting 'yes' or 'no'.
-
-    Parameters
-    ----------
-    question : str
-        Question to be printed
-
-    Returns
-    -------
-    bool
-        True or False for 'yes' or 'no', respectively
-    '''
-    valid = {'yes': True, 'y': True, 'no': False, 'n': False}
-    cancel = ['c', 'cancel', 'quit', 'q']
-
-    while True:
-        choice = input(question + ' [y(es)/n(o)/c(ancel)]\n').strip().lower()
-        if choice in valid.keys():
-            return valid[choice]
-        elif choice in cancel:
-            sys.exit()
-        print('Please type "yes" or "no" (or "cancel")\n')
+from .utils import confirmation_cancel
 
 def on_split_dir_exists(split_dir: str) -> bool:
     '''on_split_dir_exists
