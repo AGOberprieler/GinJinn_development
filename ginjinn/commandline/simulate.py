@@ -47,8 +47,8 @@ def simulate_shapes(args):
 
     if os.path.exists(out_dir):
         if confirmation_cancel(
-            f'\nDirectory "{out_dir}" already exists.\nDo you want to overwrite it? WARNING: ' + \
-            f'this will delete "{out_dir}" and ALL SUBDIRECTORIES!\n'
+            f'\nDirectory "{out_dir}" already exists.\nDo you want to overwrite it? ' + \
+            f'WARNING: this will delete "{out_dir}" and ALL SUBDIRECTORIES!\n'
         ):
             shutil.rmtree(out_dir)
         else:

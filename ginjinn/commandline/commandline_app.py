@@ -4,6 +4,7 @@
 from .argument_parser import GinjinnArgumentParser
 from .splitter import ginjinn_split
 from .simulate import ginjinn_simulate
+from .new import ginjinn_new
 
 class GinjinnCommandlineApplication():
     '''GinjinnCommandlineApplication
@@ -54,7 +55,4 @@ class GinjinnCommandlineApplication():
         Run the GinJinn new command.
         '''
 
-        print('Running ginjinn new')
-        print(self.args)
-
-        # TODO: implement
+        ginjinn_new(self.args)

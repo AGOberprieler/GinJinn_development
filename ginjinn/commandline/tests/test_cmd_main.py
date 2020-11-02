@@ -30,9 +30,11 @@ def simulate_coco(tmp_dir):
     return img_dir, ann_path
 
 
-def test_main_simple():
+def test_main_simple(tmp_dir):
+    project_dir = os.path.join(tmp_dir, 'test_new_0')
+
     tmp = copy.deepcopy(sys.argv)
-    sys.argv = ['ginjinn', 'new', 'my_project_dir']
+    sys.argv = ['ginjinn', 'new', project_dir]
     main()
     sys.argv = tmp
 
