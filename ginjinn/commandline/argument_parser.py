@@ -467,6 +467,11 @@ class GinjinnArgumentParser():
         self.parser = argparse.ArgumentParser(
             description=self._description
         )
+        self.parser.add_argument(
+            '-d', '--debug',
+            help='Debug mode',
+            action='store_true',
+        )
 
         self._subparsers = self.parser.add_subparsers(
             dest='subcommand',

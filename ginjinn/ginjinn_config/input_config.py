@@ -143,8 +143,8 @@ class GinjinnInputConfiguration: #pylint: disable=too-few-public-methods
         if (not test_ann_path is None) or (not test_img_path is None):
             if (test_ann_path is None) or (test_img_path is None):
                 raise InvalidInputConfigurationError(
-                    'If any of "test_ann_path" and "test_img_path" is passed, \
-                    the other must be passed too.'
+                    'If any of "test_ann_path" and "test_img_path" is passed, ' \
+                    'the other must be passed too.'
                 )
             self.test = InputPaths(test_ann_path, test_img_path)
 
@@ -152,8 +152,8 @@ class GinjinnInputConfiguration: #pylint: disable=too-few-public-methods
         if (not val_ann_path is None) or (not val_img_path is None):
             if (val_ann_path is None) or (val_img_path is None):
                 raise InvalidInputConfigurationError(
-                    'If any of "val_ann_path" and "val_img_path" is passed, \
-                    the other must be passed too.'
+                    'If any of "val_ann_path" and "val_img_path" is passed, ' \
+                    'the other must be passed too.'
                 )
             self.validation = InputPaths(val_ann_path, val_img_path)
 
@@ -179,8 +179,8 @@ class GinjinnInputConfiguration: #pylint: disable=too-few-public-methods
         '''
         if not os.path.isdir(ann_path):
             raise InvalidInputConfigurationError(
-                '{} is not a valid PVOC annotation file path. The path might not exist \
-                or refer to a file instead of a directory.'.format(ann_path)
+                '"{}" is not a valid PVOC annotation path. The path might not exist ' \
+                'or refer to a file instead of a directory.'.format(ann_path)
             )
 
     @staticmethod
@@ -200,8 +200,8 @@ class GinjinnInputConfiguration: #pylint: disable=too-few-public-methods
 
         if not os.path.isfile(ann_path):
             raise InvalidInputConfigurationError(
-                '{} is not a valid annotation file path. The path might not exist \
-                or refer to a directory instead of a file.'.format(ann_path)
+                '"{}" is not a valid COCO annotation file path. The path might not exist ' \
+                'or refer to a directory instead of a file.'.format(ann_path)
             )
 
     @staticmethod
@@ -220,8 +220,8 @@ class GinjinnInputConfiguration: #pylint: disable=too-few-public-methods
         '''
         if not os.path.isdir(image_path):
             raise InvalidInputConfigurationError(
-                '{} is not a valid image directory path. The path might not exist \
-                or refer to a file.'.format(image_path)
+                '"{}" is not a valid image directory path. The path might not exist ' \
+                'or refer to a file.'.format(image_path)
             )
 
     def _check_filepaths(self):
