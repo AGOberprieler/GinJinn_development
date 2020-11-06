@@ -24,10 +24,24 @@ def ginjinn_train(args):
     else:
         try:
             config = GinjinnConfiguration.from_config_file(config_file)
-        except config_error.InvalidInputConfigurationError as iic_e:
+        except config_error.InvalidInputConfigurationError as err:
             print('\nInvalid input configuration:')
-            print(iic_e)
-        #TODO: implement remaining exception checks.
+            print(err)
+        except config_error.InvalidModelConfigurationError as err:
+            print('\nInvalid model configuration:')
+            print(err)
+        except config_error.InvalidAugmentationConfigurationError as err:
+            print('\nInvalid augmentation configuration:')
+            print(err)
+        except config_error.InvalidGinjinnConfigurationError as err:
+            print('\nInvalid GinJinn configuration:')
+            print(err)
+        except config_error.InvalidOptionsConfigurationError as err:
+            print('\nInvalid options configuration:')
+            print(err)
+        except config_error.InvalidTrainingConfigurationError as err:
+            print('\nInvalid training configuration:')
+            print(err)
         except Exception as any_e:
             raise any_e
 

@@ -5,7 +5,10 @@ import tempfile
 import os
 import mock
 
-from ginjinn.commandline import main, commandline_app, argument_parser, splitter
+from ginjinn.commandline import main, commandline_app, argument_parser
+from ginjinn.commandline import splitter
+from ginjinn.commandline import simulate
+
 from ginjinn.simulation import generate_simple_shapes_coco
 
 @pytest.fixture(scope='module', autouse=True)
@@ -72,3 +75,23 @@ def test_splitting(tmp_dir, simulate_coco):
     
     with mock.patch('builtins.input', lambda *args: 'n'):
         splitter.ginjinn_split(args)
+
+
+def test_simulate(tmp_dir):
+    simulate_dir = os.path.join(tmp_dir, 'test_simulate_0')
+    os.mkdir(simulate_dir)
+
+    args = argument_parser.GinjinnArgumentParser().parse_args(
+        [
+            'simulate',
+            'shapes',
+            '-o', simulate_dir,
+            '-n', '5',
+        ]
+    )
+
+    with mock.patch('builtins.input', lambda *args: 'y'):
+        simulate.ginjinn_simulate(args)
+
+    with mock.patch('builtins.input', lambda *args: 'y'):
+        simulate.ginjinn_simulate(args)
