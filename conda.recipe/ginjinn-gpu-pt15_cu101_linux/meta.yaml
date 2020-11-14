@@ -25,6 +25,7 @@ requirements:
     - scikit-image
     - pandas
     - pycocotools
+    - mock
 
 build:
   skip: true # [not linux]
