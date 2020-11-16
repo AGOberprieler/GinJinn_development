@@ -38,6 +38,12 @@ def ginjinn_new(args):
     os.mkdir(project_dir)
 
     config_path = os.path.join(project_dir, 'ginjinn_config.yaml')
-    shutil.copy(config_template_path, config_path)
+
+    with open(config_template_path) as cfg_template_file:
+        config_str = cfg_template_file.read()
+    config_str = config_str.replace('"ENTER PROJECT DIRECTORY"', f'{os.path.abspath(project_dir)}')
+
+    with open(config_path, 'w') as cfg_file:
+        cfg_file.write(config_str)
 
     print(f'Initialized GinJinn project at "{project_dir}".')

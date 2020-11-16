@@ -51,8 +51,9 @@ def example_config(tmp_dir, simulate_coco):
 
     config_dir = os.path.join(tmp_dir, 'example_config')
     os.mkdir(config_dir)
+    config['project_dir'] = os.path.abspath(config_dir)
 
-    config_file = os.path.join(config_dir, 'config_0.yaml')
+    config_file = os.path.join(config_dir, 'ginjinn_config.yaml')
     with open(config_file, 'w') as config_f:
         yaml.dump(config, config_f)
 

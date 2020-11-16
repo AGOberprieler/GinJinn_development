@@ -145,17 +145,27 @@ def load_train_val_sets (
     """
     ann_path_train = cfg.input.train.annotation_path
     img_path_train = cfg.input.train.image_path
-    ann_path_val = cfg.input.val.annotation_path
-    img_path_val = cfg.input.val.image_path
+
+    if not cfg.input.validation is None:
+        ann_path_val = cfg.input.validation.annotation_path
+        img_path_val = cfg.input.validation.image_path
 
     if cfg.input.type == "COCO":
-        class_names = get_class_names_coco([ann_path_train, ann_path_val])
-        register_coco(ann_path_train, img_path_train, "train", class_names)
-        register_coco(ann_path_val, img_path_val, "val", class_names)
+        if not cfg.input.validation is None:
+            class_names = get_class_names_coco([ann_path_train, ann_path_val])
+            register_coco(ann_path_train, img_path_train, "train", class_names)
+            register_coco(ann_path_val, img_path_val, "val", class_names)
+        else:
+            class_names = get_class_names_coco([ann_path_train])
+            register_coco(ann_path_train, img_path_train, "train", class_names)
 
     elif cfg.input.type == "PVOC":
-        class_names = get_class_names_pvoc([ann_path_train, ann_path_val])
-        register_pvoc(ann_path_train, img_path_train, "train", class_names)
-        register_pvoc(ann_path_val, img_path_val, "val", class_names)
+        if not cfg.input.validation is None:
+            class_names = get_class_names_pvoc([ann_path_train, ann_path_val])
+            register_pvoc(ann_path_train, img_path_train, "train", class_names)
+            register_pvoc(ann_path_val, img_path_val, "val", class_names)
+        else:
+            class_names = get_class_names_pvoc([ann_path_train])
+            register_pvoc(ann_path_train, img_path_train, "train", class_names)
 
     save_class_names(cfg.project_dir, class_names)

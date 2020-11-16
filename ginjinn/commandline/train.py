@@ -4,6 +4,7 @@
 import os
 from ginjinn.ginjinn_config import GinjinnConfiguration
 import ginjinn.ginjinn_config.config_error as config_error
+from ginjinn.data_reader.load_datasets import load_train_val_sets
 
 def ginjinn_train(args):
     '''ginjinn_train
@@ -45,4 +46,5 @@ def ginjinn_train(args):
         except Exception as any_e:
             raise any_e
 
+    load_train_val_sets(config)
     # TODO implement training
