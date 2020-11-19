@@ -66,6 +66,37 @@ class GinjinnModelConfiguration: #pylint: disable=too-few-public-methods
         self.initial_weights = initial_weights
         self._check_initial_weights()
 
+    def to_detectron2_config(self):
+        '''to_detectron2_config
+
+        Convert model configuration to Detectron2 configuration.
+
+        Returns
+        -------
+        detectron2_config
+            Detectron2 configuration.
+        '''
+
+        # import here to reduce loading times, when detectron2 conversion is not
+        # required
+        from detectron2.config import get_cfg #pylint: disable=import-outside-toplevel
+        from detectron2.model_zoo import get_config_file, get_checkpoint_url #pylint: disable=import-outside-toplevel
+
+        cfg = get_cfg()
+        model_config_file = get_config_file(self.detectron2_config_name)
+        cfg.merge_from_file(model_config_file)
+
+        if self.initial_weights == 'pretrained':
+            model_url = get_checkpoint_url(self.detectron2_config_name)
+            cfg.MODEL.WEIGHTS = model_url
+        else:
+            cfg.MODEL.WEIGHTS = ''
+
+        # TODO:
+        # model_parameters
+
+        return cfg
+
     @classmethod
     def from_dictionary(cls, config: dict):
         '''Build GinjinnModelConfiguration from a dictionary object.

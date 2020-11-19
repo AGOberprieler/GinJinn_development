@@ -77,6 +77,28 @@ class GinjinnConfiguration: #pylint: disable=too-many-arguments,too-many-instanc
                 '"task" must be one of {}'.format(TASKS)
             )
 
+    def to_detectron2_config(self):
+        '''to_detectron2_config
+
+        Convert GinJinn configuration to Detectron2 configuration.
+
+        Returns
+        -------
+        detectron2_config
+            Detectron2 configuration.
+        '''
+
+        config = self.model.to_detectron2_config()
+
+        # TODO:
+        # input
+        # training
+        # options
+        # extra detectron config
+        # check if task and model compatible
+
+        return config
+
     @classmethod
     def from_dictionary(cls, config: dict):
         '''Build GinjinnConfiguration from dictionary.

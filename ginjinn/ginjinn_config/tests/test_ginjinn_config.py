@@ -68,7 +68,7 @@ def config_dicts(tmp_input_paths):
         },
         'model': {
             'name': 'faster_rcnn_R_50_FPN_3x',
-            # 'weights': 'random',
+            'weights': 'random',
             'model_parameters': {
                 'roi_heads': {
                     'batch_size_per_image': 4096,
@@ -182,3 +182,11 @@ def test_invalid_task(config_dicts):
 
     with pytest.raises(InvalidGinjinnConfigurationError):
         GinjinnConfiguration.from_dictionary(simple_config_dict)
+
+def test_to_detectron2_config(config_dicts):
+    simple_config_dict = config_dicts[0]
+
+    ginjinn_config_0 = GinjinnConfiguration.from_dictionary(simple_config_dict)
+    detectron2_config_0 = ginjinn_config_0.to_detectron2_config()
+
+    # TODO additional tests
