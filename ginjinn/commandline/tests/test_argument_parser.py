@@ -23,7 +23,8 @@ def test_simple_():
         '-i', 'my_image_dir',
         '-a', 'my_annotations.json',
         '-o', 'my_split_dir',
-        '-t', '0.6',
-        '-e', '0.2',
+        '-d', 'instance-segmentation',
+        '-k', 'COCO',
+        '-t', '0.2',
         '-v', '0.2'
     ])

@@ -133,3 +133,6 @@ dmypy.json
 
 # conda-build
 .empty
+
+# local tests
+local_tests

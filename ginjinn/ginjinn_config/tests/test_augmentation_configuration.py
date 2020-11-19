@@ -401,40 +401,40 @@ def test_detectron2_conversion(simple_augmentation_list):
     assert d_augs[1].vertical == True
 
     assert d_augs[2].prob == simple_augmentation_list[0][2]['rotation_range']['probability']
-    assert d_augs[2].transform.angle[0] == simple_augmentation_list[0][2]['rotation_range']['angle_min']
-    assert d_augs[2].transform.angle[1] == simple_augmentation_list[0][2]['rotation_range']['angle_max']
-    assert d_augs[2].transform.expand == simple_augmentation_list[0][2]['rotation_range']['expand']
+    assert d_augs[2].aug.angle[0] == simple_augmentation_list[0][2]['rotation_range']['angle_min']
+    assert d_augs[2].aug.angle[1] == simple_augmentation_list[0][2]['rotation_range']['angle_max']
+    assert d_augs[2].aug.expand == simple_augmentation_list[0][2]['rotation_range']['expand']
 
     assert d_augs[3].prob == simple_augmentation_list[0][3]['rotation_choice']['probability']
-    l1 = len(d_augs[3].transform.angle)
+    l1 = len(d_augs[3].aug.angle)
     l2 = len(simple_augmentation_list[0][3]['rotation_choice']['angles'])
     assert l1 == l2
     for a1, a2 in zip(
-        d_augs[3].transform.angle,
+        d_augs[3].aug.angle,
         simple_augmentation_list[0][3]['rotation_choice']['angles']
     ):
         assert a1 == a2
 
-    assert d_augs[3].transform.expand == simple_augmentation_list[0][3]['rotation_choice']['expand']
+    assert d_augs[3].aug.expand == simple_augmentation_list[0][3]['rotation_choice']['expand']
 
     assert d_augs[4].prob == simple_augmentation_list[0][4]['brightness']['probability']
-    assert d_augs[4].transform.intensity_min == simple_augmentation_list[0][4]['brightness']['brightness_min']
-    assert d_augs[4].transform.intensity_max == simple_augmentation_list[0][4]['brightness']['brightness_max']
+    assert d_augs[4].aug.intensity_min == simple_augmentation_list[0][4]['brightness']['brightness_min']
+    assert d_augs[4].aug.intensity_max == simple_augmentation_list[0][4]['brightness']['brightness_max']
 
     assert d_augs[5].prob == simple_augmentation_list[0][5]['contrast']['probability']
-    assert d_augs[5].transform.intensity_min == simple_augmentation_list[0][5]['contrast']['contrast_min']
-    assert d_augs[5].transform.intensity_max == simple_augmentation_list[0][5]['contrast']['contrast_max']
+    assert d_augs[5].aug.intensity_min == simple_augmentation_list[0][5]['contrast']['contrast_min']
+    assert d_augs[5].aug.intensity_max == simple_augmentation_list[0][5]['contrast']['contrast_max']
 
     assert d_augs[6].prob == simple_augmentation_list[0][6]['saturation']['probability']
-    assert d_augs[6].transform.intensity_min == simple_augmentation_list[0][6]['saturation']['saturation_min']
-    assert d_augs[6].transform.intensity_max == simple_augmentation_list[0][6]['saturation']['saturation_max']
+    assert d_augs[6].aug.intensity_min == simple_augmentation_list[0][6]['saturation']['saturation_min']
+    assert d_augs[6].aug.intensity_max == simple_augmentation_list[0][6]['saturation']['saturation_max']
 
     assert d_augs[7].prob == simple_augmentation_list[0][7]['crop_relative']['probability']
-    assert d_augs[7].transform.crop_size[0] == simple_augmentation_list[0][7]['crop_relative']['height']
-    assert d_augs[7].transform.crop_size[1] == simple_augmentation_list[0][7]['crop_relative']['width']
-    assert d_augs[7].transform.crop_type == 'relative'
+    assert d_augs[7].aug.crop_size[0] == simple_augmentation_list[0][7]['crop_relative']['height']
+    assert d_augs[7].aug.crop_size[1] == simple_augmentation_list[0][7]['crop_relative']['width']
+    assert d_augs[7].aug.crop_type == 'relative'
 
     assert d_augs[8].prob == simple_augmentation_list[0][8]['crop_absolute']['probability']
-    assert d_augs[8].transform.crop_size[0] == simple_augmentation_list[0][8]['crop_absolute']['height']
-    assert d_augs[8].transform.crop_size[1] == simple_augmentation_list[0][8]['crop_absolute']['width']
-    assert d_augs[8].transform.crop_type == 'absolute'
+    assert d_augs[8].aug.crop_size[0] == simple_augmentation_list[0][8]['crop_absolute']['height']
+    assert d_augs[8].aug.crop_size[1] == simple_augmentation_list[0][8]['crop_absolute']['width']
+    assert d_augs[8].aug.crop_type == 'absolute'
