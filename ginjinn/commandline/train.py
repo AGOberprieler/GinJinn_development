@@ -46,5 +46,7 @@ def ginjinn_train(args):
         except Exception as any_e:
             raise any_e
 
+    # register dataset(s) globally
     load_train_val_sets(config)
+
     # TODO implement training
