@@ -31,6 +31,29 @@ MODEL_NAMES = {
     'mask_rcnn_X_101_32x8d_FPN_3x': 'COCO-InstanceSegmentation/mask_rcnn_X_101_32x8d_FPN_3x.yaml',
 }
 
+MODEL_TASKS = {
+    'faster_rcnn_R_50_C4_1x': ['bbox-detection'],
+    'faster_rcnn_R_50_DC5_1x': ['bbox-detection'],
+    'faster_rcnn_R_50_FPN_1x': ['bbox-detection'],
+    'faster_rcnn_R_50_C4_3x': ['bbox-detection'],
+    'faster_rcnn_R_50_DC5_3x': ['bbox-detection'],
+    'faster_rcnn_R_50_FPN_3x': ['bbox-detection'],
+    'faster_rcnn_R_101_C4_3x': ['bbox-detection'],
+    'faster_rcnn_R_101_DC5_3x': ['bbox-detection'],
+    'faster_rcnn_R_101_FPN_3x': ['bbox-detection'],
+    'faster_rcnn_X_101_32x8d_FPN_3x': ['bbox-detection'],
+    'mask_rcnn_R_50_C4_1x': ['instance-segmentation'],
+    'mask_rcnn_R_50_DC5_1x': ['instance-segmentation'],
+    'mask_rcnn_R_50_FPN_1x': ['instance-segmentation'],
+    'mask_rcnn_R_50_C4_3x': ['instance-segmentation'],
+    'mask_rcnn_R_50_DC5_3x': ['instance-segmentation'],
+    'mask_rcnn_R_50_FPN_3x': ['instance-segmentation'],
+    'mask_rcnn_R_101_C4_3x': ['instance-segmentation'],
+    'mask_rcnn_R_101_DC5_3x': ['instance-segmentation'],
+    'mask_rcnn_R_101_FPN_3x': ['instance-segmentation'],
+    'mask_rcnn_X_101_32x8d_FPN_3x': ['instance-segmentation'],
+}
+
 # TODO: implement model-specific parameters
 
 class GinjinnModelConfiguration: #pylint: disable=too-few-public-methods

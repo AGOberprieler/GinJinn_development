@@ -30,6 +30,21 @@ class GinjinnTrainingConfiguration: #pylint: disable=too-few-public-methods
 
         self._check_config()
 
+    def update_detectron2_config(self, cfg):
+        '''update_detectron2_config
+
+        Updates detectron2 config with the training configuration.
+
+        Parameters
+        ----------
+        cfg
+            Detectron2 configuration
+        '''
+
+        cfg.SOLVER.IMS_PER_BATCH = self.batch_size
+        cfg.SOLVER.BASE_LR = self.learning_rate
+        cfg.SOLVER.MAX_ITER = self.max_iter
+
     @classmethod
     def from_dictionary(cls, config: dict):
         '''Build GinjinnTrainingConfiguration from a dictionary object.

@@ -160,6 +160,26 @@ class GinjinnInputConfiguration: #pylint: disable=too-few-public-methods
         #       in the data reader.
         self._check_filepaths()
 
+    def update_detectron2_config(self, cfg, is_test: bool=False):
+        '''update_detectron2_config
+
+        Updates detectron2 config with the input configuration.
+
+        Parameters
+        ----------
+        cfg
+            Detectron2 configuration
+        is_test: bool
+            Whether current function call is in context of a test setting.
+        '''
+        if not is_test:
+            if self.train:
+                cfg.DATASETS.TRAIN = ('train', )
+            if self.validation:
+                cfg.DATASETS.TEST = ('val', )
+        else:
+            if self.test:
+                cfg.DATASETS.TEST = ('test', )
 
     @staticmethod
     def _check_pvoc_annotation_path(ann_path: str):

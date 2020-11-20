@@ -29,6 +29,19 @@ class GinjinnOptionsConfiguration: #pylint: disable=too-few-public-methods
 
         self._check_config()
 
+    def update_detectron2_config(self, cfg):
+        '''update_detectron2_config
+
+        Updates detectron2 config with the options configuration.
+
+        Parameters
+        ----------
+        cfg
+            Detectron2 configuration
+        '''
+
+        cfg.DATALOADER.NUM_WORKERS = self.n_threads
+
     @classmethod
     def from_dictionary(cls, config: dict):
         '''Build GinjinnOptionsConfiguration from a dictionary object.

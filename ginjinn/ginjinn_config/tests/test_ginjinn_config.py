@@ -183,6 +183,13 @@ def test_invalid_task(config_dicts):
     with pytest.raises(InvalidGinjinnConfigurationError):
         GinjinnConfiguration.from_dictionary(simple_config_dict)
 
+def test_incompatible_task(config_dicts):
+    simple_config_dict = copy.deepcopy(config_dicts[0])
+    simple_config_dict['task'] = 'instance-segmentation'
+
+    with pytest.raises(InvalidGinjinnConfigurationError):
+        GinjinnConfiguration.from_dictionary(simple_config_dict)
+
 def test_to_detectron2_config(config_dicts):
     simple_config_dict = config_dicts[0]
 

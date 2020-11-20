@@ -8,7 +8,7 @@ A module for managing the representation of GinJinn configurations.
 import yaml
 from .config_error import InvalidGinjinnConfigurationError
 from .input_config import GinjinnInputConfiguration
-from .model_config import GinjinnModelConfiguration
+from .model_config import GinjinnModelConfiguration, MODEL_TASKS
 from .augmentation_config import GinjinnAugmentationConfiguration
 from .detectron_config import GinjinnDetectronConfiguration
 from .options_config import GinjinnOptionsConfiguration
@@ -71,16 +71,17 @@ class GinjinnConfiguration: #pylint: disable=too-many-arguments,too-many-instanc
         self.detectron_config = detectron_configuration
         self.options = options_configuration
 
-        # task
-        if not self.task in TASKS:
-            raise InvalidGinjinnConfigurationError(
-                '"task" must be one of {}'.format(TASKS)
-            )
+        self._check()
 
-    def to_detectron2_config(self):
+    def to_detectron2_config(self, is_test: bool = False):
         '''to_detectron2_config
 
         Convert GinJinn configuration to Detectron2 configuration.
+
+        Parameters
+        ----------
+        is_test: bool
+            Whether current function call is in context of a test setting.
 
         Returns
         -------
@@ -88,14 +89,18 @@ class GinjinnConfiguration: #pylint: disable=too-many-arguments,too-many-instanc
             Detectron2 configuration.
         '''
 
+        # model
         config = self.model.to_detectron2_config()
 
-        # TODO:
         # input
+        self.input.update_detectron2_config(config, is_test=is_test)
+
+        # TODO:
         # training
-        # options
-        # extra detectron config
-        # check if task and model compatible
+        self.training.update_detectron2_config(config)
+        # options, TODO: implement additional options
+        self.options.update_detectron2_config(config)
+        # extra detectron config TODO
 
         return config
 
@@ -165,3 +170,26 @@ class GinjinnConfiguration: #pylint: disable=too-many-arguments,too-many-instanc
             config = yaml.safe_load(config_file)
 
         return cls.from_dictionary(config)
+
+    def _check(self):
+        '''_check
+
+        Check validity of configuration options.
+
+        Raises
+        ------
+        InvalidGinjinnConfigurationError
+            Raised if invalid task passed.
+        InvalidGinjinnConfigurationError
+            Raised if task incompatible with model.
+        '''
+        if not self.task in TASKS:
+            raise InvalidGinjinnConfigurationError(
+                '"task" must be one of {}'.format(TASKS)
+            )
+
+        model_tasks = MODEL_TASKS[self.model.name]
+        if not self.task in model_tasks:
+            err_msg = f'Task "{self.task}" is incompatible with model' +\
+                f'"{self.model.name}" (available tasks: {", ".join(model_tasks)}).'
+            raise InvalidGinjinnConfigurationError(err_msg)
