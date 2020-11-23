@@ -101,6 +101,7 @@ class GinjinnConfiguration: #pylint: disable=too-many-arguments,too-many-instanc
         # options, TODO: implement additional options
         self.options.update_detectron2_config(config)
         # extra detectron config TODO
+        self.detectron_config.update_detectron2_config(config)
 
         return config
 
