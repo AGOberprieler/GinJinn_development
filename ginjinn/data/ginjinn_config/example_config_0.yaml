@@ -61,6 +61,7 @@ augmentation:
 # Additional options
 options:
   n_threads: 1
+  device: "cuda"
   resume: False
 # Detectron options
 detectron:
