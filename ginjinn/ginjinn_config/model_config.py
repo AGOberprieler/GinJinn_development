@@ -4,54 +4,90 @@ GinJinn model configuration module
 
 import copy
 import os
-# from typing import Optional
 from .config_error import InvalidModelConfigurationError
 
 # see all models: detectron2.model_zoo.model_zoo._ModelZooUrls.CONFIG_PATH_TO_URL_SUFFIX
-MODEL_NAMES = {
-    'faster_rcnn_R_50_C4_1x': 'COCO-Detection/faster_rcnn_R_50_C4_1x.yaml',
-    'faster_rcnn_R_50_DC5_1x': 'COCO-Detection/faster_rcnn_R_50_DC5_1x.yaml',
-    'faster_rcnn_R_50_FPN_1x': 'COCO-Detection/faster_rcnn_R_50_FPN_1x.yaml',
-    'faster_rcnn_R_50_C4_3x': 'COCO-Detection/faster_rcnn_R_50_C4_3x.yaml',
-    'faster_rcnn_R_50_DC5_3x': 'COCO-Detection/faster_rcnn_R_50_DC5_3x.yaml',
-    'faster_rcnn_R_50_FPN_3x': 'COCO-Detection/faster_rcnn_R_50_FPN_3x.yaml',
-    'faster_rcnn_R_101_C4_3x': 'COCO-Detection/faster_rcnn_R_101_C4_3x.yaml',
-    'faster_rcnn_R_101_DC5_3x': 'COCO-Detection/faster_rcnn_R_101_DC5_3x.yaml',
-    'faster_rcnn_R_101_FPN_3x': 'COCO-Detection/faster_rcnn_R_101_FPN_3x.yaml',
-    'faster_rcnn_X_101_32x8d_FPN_3x': 'COCO-Detection/faster_rcnn_X_101_32x8d_FPN_3x.yaml',
-    'mask_rcnn_R_50_C4_1x': 'COCO-InstanceSegmentation/mask_rcnn_R_50_C4_1x.yaml',
-    'mask_rcnn_R_50_DC5_1x': 'COCO-InstanceSegmentation/mask_rcnn_R_50_DC5_1x.yaml',
-    'mask_rcnn_R_50_FPN_1x': 'COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_1x.yaml',
-    'mask_rcnn_R_50_C4_3x': 'COCO-InstanceSegmentation/mask_rcnn_R_50_C4_3x.yaml',
-    'mask_rcnn_R_50_DC5_3x': 'COCO-InstanceSegmentation/mask_rcnn_R_50_DC5_3x.yaml',
-    'mask_rcnn_R_50_FPN_3x': 'COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml',
-    'mask_rcnn_R_101_C4_3x': 'COCO-InstanceSegmentation/mask_rcnn_R_101_C4_3x.yaml',
-    'mask_rcnn_R_101_DC5_3x': 'COCO-InstanceSegmentation/mask_rcnn_R_101_DC5_3x.yaml',
-    'mask_rcnn_R_101_FPN_3x': 'COCO-InstanceSegmentation/mask_rcnn_R_101_FPN_3x.yaml',
-    'mask_rcnn_X_101_32x8d_FPN_3x': 'COCO-InstanceSegmentation/mask_rcnn_X_101_32x8d_FPN_3x.yaml',
-}
-
-MODEL_TASKS = {
-    'faster_rcnn_R_50_C4_1x': ['bbox-detection'],
-    'faster_rcnn_R_50_DC5_1x': ['bbox-detection'],
-    'faster_rcnn_R_50_FPN_1x': ['bbox-detection'],
-    'faster_rcnn_R_50_C4_3x': ['bbox-detection'],
-    'faster_rcnn_R_50_DC5_3x': ['bbox-detection'],
-    'faster_rcnn_R_50_FPN_3x': ['bbox-detection'],
-    'faster_rcnn_R_101_C4_3x': ['bbox-detection'],
-    'faster_rcnn_R_101_DC5_3x': ['bbox-detection'],
-    'faster_rcnn_R_101_FPN_3x': ['bbox-detection'],
-    'faster_rcnn_X_101_32x8d_FPN_3x': ['bbox-detection'],
-    'mask_rcnn_R_50_C4_1x': ['instance-segmentation'],
-    'mask_rcnn_R_50_DC5_1x': ['instance-segmentation'],
-    'mask_rcnn_R_50_FPN_1x': ['instance-segmentation'],
-    'mask_rcnn_R_50_C4_3x': ['instance-segmentation'],
-    'mask_rcnn_R_50_DC5_3x': ['instance-segmentation'],
-    'mask_rcnn_R_50_FPN_3x': ['instance-segmentation'],
-    'mask_rcnn_R_101_C4_3x': ['instance-segmentation'],
-    'mask_rcnn_R_101_DC5_3x': ['instance-segmentation'],
-    'mask_rcnn_R_101_FPN_3x': ['instance-segmentation'],
-    'mask_rcnn_X_101_32x8d_FPN_3x': ['instance-segmentation'],
+MODELS = {
+    'faster_rcnn_R_50_C4_1x': {
+        'config_file': 'COCO-Detection/faster_rcnn_R_50_C4_1x.yaml',
+        'tasks': ['bbox-detection']
+    },
+    'faster_rcnn_R_50_DC5_1x': {
+        'config_file': 'COCO-Detection/faster_rcnn_R_50_DC5_1x.yaml',
+        'tasks': ['bbox-detection']
+    },
+    'faster_rcnn_R_50_FPN_1x': {
+        'config_file': 'COCO-Detection/faster_rcnn_R_50_FPN_1x.yaml',
+        'tasks': ['bbox-detection']
+    },
+    'faster_rcnn_R_50_C4_3x': {
+        'config_file': 'COCO-Detection/faster_rcnn_R_50_C4_3x.yaml',
+        'tasks': ['bbox-detection']
+    },
+    'faster_rcnn_R_50_DC5_3x': {
+        'config_file': 'COCO-Detection/faster_rcnn_R_50_DC5_3x.yaml',
+        'tasks': ['bbox-detection']
+    },
+    'faster_rcnn_R_50_FPN_3x': {
+        'config_file': 'COCO-Detection/faster_rcnn_R_50_FPN_3x.yaml',
+        'tasks': ['bbox-detection']
+    },
+    'faster_rcnn_R_101_C4_3x': {
+        'config_file': 'COCO-Detection/faster_rcnn_R_101_C4_3x.yaml',
+        'tasks': ['bbox-detection']
+    },
+    'faster_rcnn_R_101_DC5_3x': {
+        'config_file': 'COCO-Detection/faster_rcnn_R_101_DC5_3x.yaml',
+        'tasks': ['bbox-detection']
+    },
+    'faster_rcnn_R_101_FPN_3x': {
+        'config_file': 'COCO-Detection/faster_rcnn_R_101_FPN_3x.yaml',
+        'tasks': ['bbox-detection']
+    },
+    'faster_rcnn_X_101_32x8d_FPN_3x': {
+        'config_file': 'COCO-Detection/faster_rcnn_X_101_32x8d_FPN_3x.yaml',
+        'tasks': ['bbox-detection']
+    },
+    'mask_rcnn_R_50_C4_1x': {
+        'config_file': 'COCO-InstanceSegmentation/mask_rcnn_R_50_C4_1x.yaml',
+        'tasks': ['instance-segmentation']
+    },
+    'mask_rcnn_R_50_DC5_1x': {
+        'config_file': 'COCO-InstanceSegmentation/mask_rcnn_R_50_DC5_1x.yaml',
+        'tasks': ['instance-segmentation']
+    },
+    'mask_rcnn_R_50_FPN_1x': {
+        'config_file': 'COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_1x.yaml',
+        'tasks': ['instance-segmentation']
+    },
+    'mask_rcnn_R_50_C4_3x': {
+        'config_file': 'COCO-InstanceSegmentation/mask_rcnn_R_50_C4_3x.yaml',
+        'tasks': ['instance-segmentation']
+    },
+    'mask_rcnn_R_50_DC5_3x': {
+        'config_file': 'COCO-InstanceSegmentation/mask_rcnn_R_50_DC5_3x.yaml',
+        'tasks': ['instance-segmentation']
+    },
+    'mask_rcnn_R_50_FPN_3x': {
+        'config_file': 'COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml',
+        'tasks': ['instance-segmentation']
+    },
+    'mask_rcnn_R_101_C4_3x': {
+        'config_file': 'COCO-InstanceSegmentation/mask_rcnn_R_101_C4_3x.yaml',
+        'tasks': ['instance-segmentation']
+    },
+    'mask_rcnn_R_101_DC5_3x': {
+        'config_file': 'COCO-InstanceSegmentation/mask_rcnn_R_101_DC5_3x.yaml',
+        'tasks': ['instance-segmentation']
+    },
+    'mask_rcnn_R_101_FPN_3x': {
+        'config_file': 'COCO-InstanceSegmentation/mask_rcnn_R_101_FPN_3x.yaml',
+        'tasks': ['instance-segmentation']
+    },
+    'mask_rcnn_X_101_32x8d_FPN_3x': {
+        'config_file': 'COCO-InstanceSegmentation/mask_rcnn_X_101_32x8d_FPN_3x.yaml',
+        'tasks': ['instance-segmentation']
+    },
 }
 
 # TODO: implement model-specific parameters
@@ -69,6 +105,8 @@ class GinjinnModelConfiguration: #pylint: disable=too-few-public-methods
             - 'random', meaning random weights initialization
             - 'pretrained', meaning pretrained weights from the Detectron2 model zoo, if available
         or the file path of a weights file.
+    classification_threshold: float
+        Classification threshold for training.
 
     Raises
     ------
@@ -79,15 +117,18 @@ class GinjinnModelConfiguration: #pylint: disable=too-few-public-methods
         self,
         name: str,
         initial_weights: str,
+        classification_threshold: float,
     ):
         self.name = name
-        if not name in MODEL_NAMES.keys():
+        if not name in MODELS.keys():
             raise InvalidModelConfigurationError('Invalid model name.')
 
-        self.detectron2_config_name = MODEL_NAMES[self.name]
+        self.detectron2_config_name = MODELS[self.name]['config_file']
 
         self.initial_weights = initial_weights
-        self._check_initial_weights()
+        self.classification_threshold = classification_threshold
+
+        self._check_config()
 
     def to_detectron2_config(self):
         '''to_detectron2_config
@@ -137,7 +178,8 @@ class GinjinnModelConfiguration: #pylint: disable=too-few-public-methods
         '''
 
         default_config = {
-            'initial_weights': 'random'
+            'initial_weights': 'random',
+            'classification_threshold': 0.5,
         }
 
         # Maybe implement this more elegantly...
@@ -147,6 +189,7 @@ class GinjinnModelConfiguration: #pylint: disable=too-few-public-methods
         return cls(
             name=config['name'],
             initial_weights=config['initial_weights'],
+            classification_threshold=config['classification_threshold'],
         )
 
     def _check_initial_weights(self):
@@ -164,3 +207,24 @@ class GinjinnModelConfiguration: #pylint: disable=too-few-public-methods
                 raise InvalidModelConfigurationError(
                     'initial_weights must be either "random", "pretrained", or a valid weights file path.' #pylint: disable=line-too-long
                 )
+
+    def _check_classification_threshold(self):
+        '''_check_classification_threshold
+
+        Raises
+        ------
+        InvalidModelConfigurationError
+            Raised if an invalid classification_threshold option is passed.
+        '''
+        if self.classification_threshold <= 0.0 or self.classification_threshold > 1.0:
+            raise InvalidModelConfigurationError(
+                'classification_threshold must be between 0.0 and 1.0.'
+            )
+
+    def _check_config(self):
+        '''_check_config
+
+        Check model configuration.
+        '''
+        self._check_initial_weights()
+        self._check_classification_threshold()

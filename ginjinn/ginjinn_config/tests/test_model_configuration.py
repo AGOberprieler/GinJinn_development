@@ -4,7 +4,7 @@
 import pytest
 import tempfile
 import os
-from ginjinn.ginjinn_config.model_config import GinjinnModelConfiguration, MODEL_NAMES
+from ginjinn.ginjinn_config.model_config import GinjinnModelConfiguration, MODELS
 from ginjinn.ginjinn_config.config_error import InvalidModelConfigurationError
 
 @pytest.fixture(scope='module', autouse=True)
@@ -21,12 +21,13 @@ def tmp_input_path():
     tmpdir.cleanup()
 
 def test_simple_model(tmp_input_path):
-    name = list(MODEL_NAMES.keys())[0]
+    name = list(MODELS.keys())[0]
     initial_weights = 'random'
 
     model = GinjinnModelConfiguration(
         name=name,
         initial_weights=initial_weights,
+        classification_threshold=0.5,
     )
 
     assert model.name == name
@@ -36,6 +37,7 @@ def test_simple_model(tmp_input_path):
     model = GinjinnModelConfiguration(
         name=name,
         initial_weights=initial_weights,
+        classification_threshold=0.5,
     )
 
     assert model.name == name
@@ -48,9 +50,16 @@ def test_invalid_model():
     with pytest.raises(InvalidModelConfigurationError):
         model = GinjinnModelConfiguration(
             name=name,
-            initial_weights = 'random'
+            initial_weights = 'random',
+            classification_threshold=0.5,
         )
     
-    valid_name = list(MODEL_NAMES.keys())[0]
+    valid_name = list(MODELS.keys())[0]
     with pytest.raises(InvalidModelConfigurationError):
-        GinjinnModelConfiguration(name=valid_name, initial_weights='xyz')
+        GinjinnModelConfiguration(name=valid_name, initial_weights='xyz', classification_threshold=0.5,)
+
+    with pytest.raises(InvalidModelConfigurationError):
+        GinjinnModelConfiguration(name=valid_name, initial_weights='random', classification_threshold=-0.1,)
+    
+    with pytest.raises(InvalidModelConfigurationError):
+        GinjinnModelConfiguration(name=valid_name, initial_weights='random', classification_threshold=1.1,)

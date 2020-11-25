@@ -17,16 +17,20 @@ class GinjinnTrainingConfiguration: #pylint: disable=too-few-public-methods
         batch size for model training and evaluation.
     max_iter: int
         maximum number of training iterations.
+    momentum: float
+        momentum for solver
     '''
     def __init__( #pylint: disable=too-many-arguments
         self,
         learning_rate: float,
         batch_size: int,
         max_iter: int,
+        momentum: float = 0.9,
     ):
         self.learning_rate = learning_rate
         self.batch_size = batch_size
         self.max_iter = max_iter
+        self.momentum = momentum
 
         self._check_config()
 
@@ -44,6 +48,7 @@ class GinjinnTrainingConfiguration: #pylint: disable=too-few-public-methods
         cfg.SOLVER.IMS_PER_BATCH = self.batch_size
         cfg.SOLVER.BASE_LR = self.learning_rate
         cfg.SOLVER.MAX_ITER = self.max_iter
+        cfg.SOLVER.MOMENTUM = self.momentum
 
     @classmethod
     def from_dictionary(cls, config: dict):
@@ -62,9 +67,10 @@ class GinjinnTrainingConfiguration: #pylint: disable=too-few-public-methods
         '''
 
         default_config = {
-            'learning_rate': 0.002,
+            'learning_rate': 0.001,
             'batch_size': 1,
             'max_iter': 40000,
+            'momentum': 0.9,
         }
 
         # Maybe implement this more elegantly...
@@ -74,7 +80,8 @@ class GinjinnTrainingConfiguration: #pylint: disable=too-few-public-methods
         return cls(
             learning_rate=config['learning_rate'],
             batch_size=config['batch_size'],
-            max_iter=config['max_iter']
+            max_iter=config['max_iter'],
+            momentum=config['momentum'],
         )
 
     def _check_learning_rate(self):
@@ -85,7 +92,7 @@ class GinjinnTrainingConfiguration: #pylint: disable=too-few-public-methods
         InvalidTrainingConfigurationError
             Raised for invalid learning rate values.
         '''
-        if self.learning_rate < 0:
+        if self.learning_rate < 0.0:
             raise InvalidTrainingConfigurationError(
                 'learning_rate must be greater than 0'
             )
@@ -116,9 +123,24 @@ class GinjinnTrainingConfiguration: #pylint: disable=too-few-public-methods
                 'max_iter must be greater than or equal to 1'
             )
 
+    def _check_momentum(self):
+        '''_check_momentum [summary]
+
+        Raises
+        ------
+        InvalidTrainingConfigurationError
+            Raised for invalid momentum value.
+        '''
+
+        if self.momentum < 0.0:
+            raise InvalidTrainingConfigurationError(
+                'momentum must be positive.'
+            )
+
     def _check_config(self):
         ''' Check configs
         '''
         self._check_learning_rate()
         self._check_batch_size()
         self._check_max_iter()
+        self._check_momentum()

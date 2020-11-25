@@ -18,6 +18,8 @@ class GinjinnOptionsConfiguration: #pylint: disable=too-few-public-methods
         Determines, whether a previous run should be resumed
     n_threads : int
         Number of CPU threads to use.
+    device: str
+        Device to run the model on. E.g. "cuda", "cpu". 
     '''
     def __init__( #pylint: disable=too-many-arguments
         self,

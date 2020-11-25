@@ -8,7 +8,7 @@ A module for managing the representation of GinJinn configurations.
 import yaml
 from .config_error import InvalidGinjinnConfigurationError
 from .input_config import GinjinnInputConfiguration
-from .model_config import GinjinnModelConfiguration, MODEL_TASKS
+from .model_config import GinjinnModelConfiguration, MODELS
 from .augmentation_config import GinjinnAugmentationConfiguration
 from .detectron_config import GinjinnDetectronConfiguration
 from .options_config import GinjinnOptionsConfiguration
@@ -189,7 +189,7 @@ class GinjinnConfiguration: #pylint: disable=too-many-arguments,too-many-instanc
                 '"task" must be one of {}'.format(TASKS)
             )
 
-        model_tasks = MODEL_TASKS[self.model.name]
+        model_tasks = MODELS[self.model.name]['tasks']
         if not self.task in model_tasks:
             err_msg = f'Task "{self.task}" is incompatible with model' +\
                 f'"{self.model.name}" (available tasks: {", ".join(model_tasks)}).'
