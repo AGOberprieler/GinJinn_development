@@ -6,11 +6,51 @@ import copy
 import os
 from .config_error import InvalidModelConfigurationError
 
+# TODO
+# implement model-specific configs:
+# - AnchorGeneratorConfig
+# - RPNConfig
+# - ROIHeadsConfig
+# - ROIBoxHeadConfig
+# - ROIMaskHeadConfig
+
+# TODO: implement this
+class ROIHeadsConfig: #pylint: disable=too-few-public-methods
+    def __init__(
+        self,
+    ):
+        pass
+
+    @classmethod
+    def from_dictionary(cls, config: dict):
+        '''Build ROIHeadsConfig from a dictionary object.
+
+        Parameters
+        ----------
+        config : dict
+            Dictionary object containing the model configuration.
+
+        Returns
+        -------
+        ROIHeadsConfig
+            ROIHeadsConfig constructed with the parameters in config.
+        '''
+
+        default_config = {
+        }
+
+        default_config.update(config)
+        config = copy.deepcopy(default_config)
+
+        return cls(
+        )
+
+
 # see all models: detectron2.model_zoo.model_zoo._ModelZooUrls.CONFIG_PATH_TO_URL_SUFFIX
 MODELS = {
     'faster_rcnn_R_50_C4_1x': {
         'config_file': 'COCO-Detection/faster_rcnn_R_50_C4_1x.yaml',
-        'tasks': ['bbox-detection']
+        'tasks': ['bbox-detection'],
     },
     'faster_rcnn_R_50_DC5_1x': {
         'config_file': 'COCO-Detection/faster_rcnn_R_50_DC5_1x.yaml',
@@ -107,6 +147,8 @@ class GinjinnModelConfiguration: #pylint: disable=too-few-public-methods
         or the file path of a weights file.
     classification_threshold: float
         Classification threshold for training.
+    model_parameters: dict
+        dict of model-specific parameters.
 
     Raises
     ------
@@ -118,6 +160,7 @@ class GinjinnModelConfiguration: #pylint: disable=too-few-public-methods
         name: str,
         initial_weights: str,
         classification_threshold: float,
+        model_parameters: dict = {},
     ):
         self.name = name
         if not name in MODELS.keys():
@@ -127,6 +170,8 @@ class GinjinnModelConfiguration: #pylint: disable=too-few-public-methods
 
         self.initial_weights = initial_weights
         self.classification_threshold = classification_threshold
+
+        # TODO: implement model_parameters
 
         self._check_config()
 
@@ -180,6 +225,7 @@ class GinjinnModelConfiguration: #pylint: disable=too-few-public-methods
         default_config = {
             'initial_weights': 'random',
             'classification_threshold': 0.5,
+            'model_parameters': {},
         }
 
         # Maybe implement this more elegantly...
@@ -190,6 +236,7 @@ class GinjinnModelConfiguration: #pylint: disable=too-few-public-methods
             name=config['name'],
             initial_weights=config['initial_weights'],
             classification_threshold=config['classification_threshold'],
+            model_parameters=config['model_parameters'],
         )
 
     def _check_initial_weights(self):
