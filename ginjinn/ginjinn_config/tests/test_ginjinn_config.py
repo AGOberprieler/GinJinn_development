@@ -72,8 +72,13 @@ def config_dicts(tmp_input_paths):
             'model_parameters': {
                 'roi_heads': {
                     'batch_size_per_image': 4096,
-                    'num_classes': 2,
+                    'iou_threshold': 0.5,
                 },
+                'anchor_generator': {
+                    'sizes': [32, 64, 128, 256],
+                    'angles': [-90, 0, 90],
+                    'aspect_ratios': [0.25, 0.5, 0.75, 1.0, 1.25]
+                }
             },
         },
         'training': {

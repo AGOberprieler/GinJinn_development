@@ -15,26 +15,57 @@ from .config_error import InvalidModelConfigurationError
 # - ROIMaskHeadConfig
 
 # TODO: implement this
-class ROIHeadsConfig: #pylint: disable=too-few-public-methods
+
+class AnchorGeneratorConfig: #pylint: disable=too-few-public-methods
+    '''AnchorGeneratorConfig
+
+    Object representing AnchorGenerator model configurations.
+
+    Parameters
+    ----------
+    sizes : list
+        List of anchor sizes in absolute pixels.
+    aspect_ratios : list
+        List of anchor aspect ratios.
+    angles : list
+        List of anchor angles.
+    '''
     def __init__(
         self,
+        sizes : list = None,
+        aspect_ratios : list = None,
+        angles : list = None,
     ):
-        pass
+        self.sizes = sizes
+        self.aspect_ratios = aspect_ratios
+        self.angles = angles
 
     @classmethod
     def from_dictionary(cls, config: dict):
-        '''Build ROIHeadsConfig from a dictionary object.
+        '''Build AnchorGeneratorConfig from a dictionary object.
 
         Parameters
         ----------
         config : dict
-            Dictionary object containing the model configuration.
+            Dictionary object containing the AnchorGenerator configuration.
 
         Returns
         -------
-        ROIHeadsConfig
-            ROIHeadsConfig constructed with the parameters in config.
+        AnchorGeneratorConfig
+            AnchorGeneratorConfig constructed with the parameters in config.
+
+        Raises
+        ------
+        InvalidModelConfigurationError
+            Raised if unknown parameter in config dict.
         '''
+
+        available_configs = ['sizes', 'aspect_ratios', 'angles']
+        for cfg_name in config.keys():
+            if not cfg_name in available_configs:
+                err_msg = f'Unknown anchor generator parameter name "{cfg_name}". ' +\
+                    f'Available parameters are {available_configs}.'
+                raise InvalidModelConfigurationError(err_msg)
 
         default_config = {
         }
@@ -43,7 +74,104 @@ class ROIHeadsConfig: #pylint: disable=too-few-public-methods
         config = copy.deepcopy(default_config)
 
         return cls(
+            sizes=config.get('sizes', None),
+            aspect_ratios=config.get('aspect_ratios', None),
+            angles=config.get('angles', None),
         )
+
+    def update_detectron2_config(self, cfg):
+        '''update_detectron2_config
+
+        Updates detectron2 config with the AnchorGenerator configuration.
+
+        Parameters
+        ----------
+        cfg
+            Detectron2 configuration
+
+        '''
+
+        if self.sizes:
+            cfg.MODEL.ANCHOR_GENERATOR.SIZES = [self.sizes]
+        if self.aspect_ratios:
+            cfg.MODEL.ANCHOR_GENERATOR.ASPECT_RATIOS = [self.aspect_ratios]
+        if self.angles:
+            cfg.MODEL.ANCHOR_GENERATOR.ANGLES = [self.angles]
+
+class ROIHeadsConfig: #pylint: disable=too-few-public-methods
+    def __init__(
+        self,
+        iou_threshold: float = None,
+        batch_size_per_image: int = None,
+    ):
+        '''ROIHeadsConfig
+
+        Object representing ROIHeads model configurations.
+
+        Parameters
+        ----------
+        iou_threshold : float
+            Overlap threshold for an RoI to be considered foreground, by default None
+        batch_size_per_image : int, optional
+            Number of RoIs per image, by default None
+        '''
+        self.iou_threshold = iou_threshold
+        self.batch_size_per_image = batch_size_per_image
+
+    @classmethod
+    def from_dictionary(cls, config: dict):
+        '''Build ROIHeadsConfig from a dictionary object.
+
+        Parameters
+        ----------
+        config : dict
+            Dictionary object containing the ROIHeads configuration.
+
+        Returns
+        -------
+        ROIHeadsConfig
+            ROIHeadsConfig constructed with the parameters in config.
+
+        Raises
+        ------
+        InvalidModelConfigurationError
+            Raised if unknown parameter in config dict.
+        '''
+
+        available_configs = ['iou_threshold', 'batch_size_per_image']
+        for cfg_name in config.keys():
+            if not cfg_name in available_configs:
+                err_msg = f'Unknown roi heads parameter name "{cfg_name}". ' +\
+                    f'Available parameters are {available_configs}.'
+                raise InvalidModelConfigurationError(err_msg)
+
+        default_config = {
+        }
+
+        default_config.update(config)
+        config = copy.deepcopy(default_config)
+
+        return cls(
+            iou_threshold=config.get('iou_threshold', None),
+            batch_size_per_image=config.get('batch_size_per_image', None),
+        )
+
+    def update_detectron2_config(self, cfg):
+        '''update_detectron2_config
+
+        Updates detectron2 config with the ROIHeads configuration.
+
+        Parameters
+        ----------
+        cfg
+            Detectron2 configuration
+
+        '''
+
+        if self.iou_threshold:
+            cfg.MODEL.ROI_HEADS.IOU_THRESHOLDS = self.iou_threshold
+        if self.batch_size_per_image:
+            cfg.MODEL.ROI_HEADS.BATCH_SIZE_PER_IMAGE = self.batch_size_per_image
 
 
 # see all models: detectron2.model_zoo.model_zoo._ModelZooUrls.CONFIG_PATH_TO_URL_SUFFIX
@@ -51,83 +179,168 @@ MODELS = {
     'faster_rcnn_R_50_C4_1x': {
         'config_file': 'COCO-Detection/faster_rcnn_R_50_C4_1x.yaml',
         'tasks': ['bbox-detection'],
+        'model_parameters': {
+            'anchor_generator': AnchorGeneratorConfig,
+            'roi_heads': ROIHeadsConfig,
+        },
     },
     'faster_rcnn_R_50_DC5_1x': {
         'config_file': 'COCO-Detection/faster_rcnn_R_50_DC5_1x.yaml',
-        'tasks': ['bbox-detection']
+        'tasks': ['bbox-detection'],
+        'model_parameters': {
+            'anchor_generator': AnchorGeneratorConfig,
+            'roi_heads': ROIHeadsConfig,
+        },
     },
     'faster_rcnn_R_50_FPN_1x': {
         'config_file': 'COCO-Detection/faster_rcnn_R_50_FPN_1x.yaml',
-        'tasks': ['bbox-detection']
+        'tasks': ['bbox-detection'],
+        'model_parameters': {
+            'anchor_generator': AnchorGeneratorConfig,
+            'roi_heads': ROIHeadsConfig,
+        },
     },
     'faster_rcnn_R_50_C4_3x': {
         'config_file': 'COCO-Detection/faster_rcnn_R_50_C4_3x.yaml',
-        'tasks': ['bbox-detection']
+        'tasks': ['bbox-detection'],
+        'model_parameters': {
+            'anchor_generator': AnchorGeneratorConfig,
+            'roi_heads': ROIHeadsConfig,
+        },
     },
     'faster_rcnn_R_50_DC5_3x': {
         'config_file': 'COCO-Detection/faster_rcnn_R_50_DC5_3x.yaml',
-        'tasks': ['bbox-detection']
+        'tasks': ['bbox-detection'],
+        'model_parameters': {
+            'anchor_generator': AnchorGeneratorConfig,
+            'roi_heads': ROIHeadsConfig,
+        },
     },
     'faster_rcnn_R_50_FPN_3x': {
         'config_file': 'COCO-Detection/faster_rcnn_R_50_FPN_3x.yaml',
-        'tasks': ['bbox-detection']
+        'tasks': ['bbox-detection'],
+        'model_parameters': {
+            'anchor_generator': AnchorGeneratorConfig,
+            'roi_heads': ROIHeadsConfig,
+        },
     },
     'faster_rcnn_R_101_C4_3x': {
         'config_file': 'COCO-Detection/faster_rcnn_R_101_C4_3x.yaml',
-        'tasks': ['bbox-detection']
+        'tasks': ['bbox-detection'],
+        'model_parameters': {
+            'anchor_generator': AnchorGeneratorConfig,
+            'roi_heads': ROIHeadsConfig,
+        },
     },
     'faster_rcnn_R_101_DC5_3x': {
         'config_file': 'COCO-Detection/faster_rcnn_R_101_DC5_3x.yaml',
-        'tasks': ['bbox-detection']
+        'tasks': ['bbox-detection'],
+        'model_parameters': {
+            'anchor_generator': AnchorGeneratorConfig,
+            'roi_heads': ROIHeadsConfig,
+        },
     },
     'faster_rcnn_R_101_FPN_3x': {
         'config_file': 'COCO-Detection/faster_rcnn_R_101_FPN_3x.yaml',
-        'tasks': ['bbox-detection']
+        'tasks': ['bbox-detection'],
+        'model_parameters': {
+            'anchor_generator': AnchorGeneratorConfig,
+            'roi_heads': ROIHeadsConfig,
+        },
     },
     'faster_rcnn_X_101_32x8d_FPN_3x': {
         'config_file': 'COCO-Detection/faster_rcnn_X_101_32x8d_FPN_3x.yaml',
-        'tasks': ['bbox-detection']
+        'tasks': ['bbox-detection'],
+        'model_parameters': {
+            'anchor_generator': AnchorGeneratorConfig,
+            'roi_heads': ROIHeadsConfig,
+        },
     },
     'mask_rcnn_R_50_C4_1x': {
         'config_file': 'COCO-InstanceSegmentation/mask_rcnn_R_50_C4_1x.yaml',
-        'tasks': ['instance-segmentation']
+        'tasks': ['instance-segmentation'],
+        'model_parameters': {
+            'anchor_generator': AnchorGeneratorConfig,
+            'roi_heads': ROIHeadsConfig,
+        },
     },
     'mask_rcnn_R_50_DC5_1x': {
         'config_file': 'COCO-InstanceSegmentation/mask_rcnn_R_50_DC5_1x.yaml',
-        'tasks': ['instance-segmentation']
+        'tasks': ['instance-segmentation'],
+        'model_parameters': {
+            'anchor_generator': AnchorGeneratorConfig,
+            'roi_heads': ROIHeadsConfig,
+        },
     },
     'mask_rcnn_R_50_FPN_1x': {
         'config_file': 'COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_1x.yaml',
-        'tasks': ['instance-segmentation']
+        'tasks': ['instance-segmentation'],
+        'model_parameters': {
+            'anchor_generator': AnchorGeneratorConfig,
+            'roi_heads': ROIHeadsConfig,
+        },
     },
     'mask_rcnn_R_50_C4_3x': {
         'config_file': 'COCO-InstanceSegmentation/mask_rcnn_R_50_C4_3x.yaml',
-        'tasks': ['instance-segmentation']
+        'tasks': ['instance-segmentation'],
+        'model_parameters': {
+            'anchor_generator': AnchorGeneratorConfig,
+            'roi_heads': ROIHeadsConfig,
+        },
     },
     'mask_rcnn_R_50_DC5_3x': {
         'config_file': 'COCO-InstanceSegmentation/mask_rcnn_R_50_DC5_3x.yaml',
-        'tasks': ['instance-segmentation']
+        'tasks': ['instance-segmentation'],
+        'model_parameters': {
+            'anchor_generator': AnchorGeneratorConfig,
+            'roi_heads': ROIHeadsConfig,
+        },
     },
     'mask_rcnn_R_50_FPN_3x': {
         'config_file': 'COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml',
-        'tasks': ['instance-segmentation']
+        'tasks': ['instance-segmentation'],
+        'model_parameters': {
+            'anchor_generator': AnchorGeneratorConfig,
+            'roi_heads': ROIHeadsConfig,
+        },
     },
     'mask_rcnn_R_101_C4_3x': {
         'config_file': 'COCO-InstanceSegmentation/mask_rcnn_R_101_C4_3x.yaml',
-        'tasks': ['instance-segmentation']
+        'tasks': ['instance-segmentation'],
+        'model_parameters': {
+            'anchor_generator': AnchorGeneratorConfig,
+            'roi_heads': ROIHeadsConfig,
+        },
     },
     'mask_rcnn_R_101_DC5_3x': {
         'config_file': 'COCO-InstanceSegmentation/mask_rcnn_R_101_DC5_3x.yaml',
-        'tasks': ['instance-segmentation']
+        'tasks': ['instance-segmentation'],
+        'model_parameters': {
+            'anchor_generator': AnchorGeneratorConfig,
+            'roi_heads': ROIHeadsConfig,
+        },
     },
     'mask_rcnn_R_101_FPN_3x': {
         'config_file': 'COCO-InstanceSegmentation/mask_rcnn_R_101_FPN_3x.yaml',
-        'tasks': ['instance-segmentation']
+        'tasks': ['instance-segmentation'],
+        'model_parameters': {
+            'anchor_generator': AnchorGeneratorConfig,
+            'roi_heads': ROIHeadsConfig,
+        },
     },
     'mask_rcnn_X_101_32x8d_FPN_3x': {
         'config_file': 'COCO-InstanceSegmentation/mask_rcnn_X_101_32x8d_FPN_3x.yaml',
-        'tasks': ['instance-segmentation']
+        'tasks': ['instance-segmentation'],
+        'model_parameters': {
+            'anchor_generator': AnchorGeneratorConfig,
+            'roi_heads': ROIHeadsConfig,
+        },
     },
+}
+
+MODEL_PARAMETERS_MAP = {
+    'anchor_generator': AnchorGeneratorConfig,
+    'roi_heads': ROIHeadsConfig,
 }
 
 # TODO: implement model-specific parameters
@@ -171,7 +384,7 @@ class GinjinnModelConfiguration: #pylint: disable=too-few-public-methods
         self.initial_weights = initial_weights
         self.classification_threshold = classification_threshold
 
-        # TODO: implement model_parameters
+        self.model_parameters = model_parameters
 
         self._check_config()
 
@@ -201,8 +414,8 @@ class GinjinnModelConfiguration: #pylint: disable=too-few-public-methods
         else:
             cfg.MODEL.WEIGHTS = ''
 
-        # TODO:
-        # model_parameters
+        for model_param in self.model_parameters.values():
+            model_param.update_detectron2_config(cfg)
 
         return cfg
 
@@ -231,6 +444,16 @@ class GinjinnModelConfiguration: #pylint: disable=too-few-public-methods
         # Maybe implement this more elegantly...
         default_config.update(config)
         config = copy.deepcopy(default_config)
+
+        # model parameters
+        for mp_name, mp_cfg in config['model_parameters'].items():
+            mp_class = MODEL_PARAMETERS_MAP.get(mp_name, None)
+            if not mp_class:
+                err_msg = f'Unknown model_parameters entry "{mp_name}". Available ' +\
+                    f'model_parameters are {", ".join(MODEL_PARAMETERS_MAP.keys())}.'
+                raise InvalidModelConfigurationError(err_msg)
+
+            config['model_parameters'][mp_name] = mp_class.from_dictionary(mp_cfg)
 
         return cls(
             name=config['name'],
@@ -268,6 +491,27 @@ class GinjinnModelConfiguration: #pylint: disable=too-few-public-methods
                 'classification_threshold must be between 0.0 and 1.0.'
             )
 
+    def _check_model_parameters(self):
+        '''_check_model_parameters
+
+        Raises
+        ------
+        InvalidModelConfigurationError
+            Raised if an invalid model_parameters option is passed.
+        '''
+
+        for name, cfg in self.model_parameters.items():
+            model_par_class = MODELS[self.name]['model_parameters'].get(name)
+
+            if not model_par_class:
+                err_msg = f'Unknown model_parameters entry "{name}". Availabe model_parameters ' +\
+                    f'are {", ".join(MODELS[self.name]["model_parameters"].keys())}'
+                raise InvalidModelConfigurationError(err_msg)
+
+            expected_class = MODELS[self.name]['model_parameters'][name]
+            if not isinstance(cfg, expected_class):
+                err_msg = f'Model parameter "{name}" must be instance of class {expected_class}.'
+
     def _check_config(self):
         '''_check_config
 
@@ -275,3 +519,4 @@ class GinjinnModelConfiguration: #pylint: disable=too-few-public-methods
         '''
         self._check_initial_weights()
         self._check_classification_threshold()
+        self._check_model_parameters()
