@@ -9,6 +9,7 @@ import yaml
 import copy
 
 from ginjinn.ginjinn_config import GinjinnConfiguration, InvalidGinjinnConfigurationError
+from ginjinn.ginjinn_config.config_error import InvalidModelConfigurationError
 
 @pytest.fixture(scope='module', autouse=True)
 def tmp_input_paths():
@@ -78,6 +79,14 @@ def config_dicts(tmp_input_paths):
                     'sizes': [32, 64, 128, 256],
                     'angles': [-90, 0, 90],
                     'aspect_ratios': [0.25, 0.5, 0.75, 1.0, 1.25]
+                },
+                'rpn': {
+                    'iou_thresholds': [0.3, 0.7],
+                    'batch_size_per_image': 256,
+                },
+                'box_head': {
+                    'class_agnostic': False,
+                    'train_on_pred_boxes': False,
                 }
             },
         },
@@ -202,3 +211,44 @@ def test_to_detectron2_config(config_dicts):
     detectron2_config_0 = ginjinn_config_0.to_detectron2_config()
 
     # TODO additional tests
+
+def test_model_parameters(config_dicts):
+    
+    config_dict = copy.deepcopy(config_dicts[0])
+    config_dict['model']['model_parameters']['invalid_parameter'] = {}
+    with pytest.raises(InvalidModelConfigurationError):
+        GinjinnConfiguration.from_dictionary(config_dict)
+
+    config_dict = copy.deepcopy(config_dicts[0])
+    config_dict['model']['model_parameters']['anchor_generator']['invalid_parameter'] = 1
+    with pytest.raises(InvalidModelConfigurationError):
+        GinjinnConfiguration.from_dictionary(config_dict)
+
+    config_dict = copy.deepcopy(config_dicts[0])
+    config_dict['model']['model_parameters']['rpn']['invalid_parameter'] = 1
+    with pytest.raises(InvalidModelConfigurationError):
+        GinjinnConfiguration.from_dictionary(config_dict)
+
+    config_dict = copy.deepcopy(config_dicts[0])
+    config_dict['model']['model_parameters']['roi_heads']['invalid_parameter'] = 1
+    with pytest.raises(InvalidModelConfigurationError):
+        GinjinnConfiguration.from_dictionary(config_dict)
+
+    config_dict = copy.deepcopy(config_dicts[0])
+    config_dict['model']['model_parameters']['box_head']['invalid_parameter'] = 1
+    with pytest.raises(InvalidModelConfigurationError):
+        GinjinnConfiguration.from_dictionary(config_dict)
+
+    config_dict = copy.deepcopy(config_dicts[0])
+    config_dict['model']['name'] = 'mask_rcnn_R_50_C4_1x'
+    config_dict['task'] = 'instance-segmentation'
+    del config_dict['model']['model_parameters']['box_head']
+    config_dict['model']['model_parameters']['mask_head'] = {
+        'class_agnostic': False,
+        'pooler_resolution': 10,
+    }
+    GinjinnConfiguration.from_dictionary(config_dict)
+
+    config_dict['model']['model_parameters']['mask_head']['invalid_parameter'] = 1
+    with pytest.raises(InvalidModelConfigurationError):
+        GinjinnConfiguration.from_dictionary(config_dict)

@@ -8,13 +8,7 @@ from .config_error import InvalidModelConfigurationError
 
 # TODO
 # implement model-specific configs:
-# - AnchorGeneratorConfig
-# - RPNConfig
-# - ROIHeadsConfig
-# - ROIBoxHeadConfig
 # - ROIMaskHeadConfig
-
-# TODO: implement this
 
 class AnchorGeneratorConfig: #pylint: disable=too-few-public-methods
     '''AnchorGeneratorConfig
@@ -98,23 +92,99 @@ class AnchorGeneratorConfig: #pylint: disable=too-few-public-methods
         if self.angles:
             cfg.MODEL.ANCHOR_GENERATOR.ANGLES = [self.angles]
 
+class RPNConfig: #pylint: disable=too-few-public-methods
+    '''RPNConfig
+
+    Object representing RPN model configurations.
+
+    Parameters
+    ----------
+    iou_thresholds : list
+        Background and foreground thresholds for the IoU.
+    batch_size_per_image : int
+        Number of regions per image used to train the RPN.
+    '''
+    def __init__(
+        self,
+        iou_thresholds : list = None,
+        batch_size_per_image : int = None,
+    ):
+        self.iou_thresholds = iou_thresholds
+        self.batch_size_per_image = batch_size_per_image
+
+    @classmethod
+    def from_dictionary(cls, config: dict):
+        '''Build RPNConfig from a dictionary object.
+
+        Parameters
+        ----------
+        config : dict
+            Dictionary object containing the RPNC configuration.
+
+        Returns
+        -------
+        RPNConfig
+            RPNConfig constructed with the parameters in config.
+
+        Raises
+        ------
+        InvalidModelConfigurationError
+            Raised if unknown parameter in config dict.
+        '''
+
+        available_configs = ['iou_thresholds', 'batch_size_per_image']
+        for cfg_name in config.keys():
+            if not cfg_name in available_configs:
+                err_msg = f'Unknown anchor generator parameter name "{cfg_name}". ' +\
+                    f'Available parameters are {available_configs}.'
+                raise InvalidModelConfigurationError(err_msg)
+
+        default_config = {
+        }
+
+        default_config.update(config)
+        config = copy.deepcopy(default_config)
+
+        return cls(
+            iou_thresholds=config.get('iou_thresholds', None),
+            batch_size_per_image=config.get('batch_size_per_image', None),
+        )
+
+    def update_detectron2_config(self, cfg):
+        '''update_detectron2_config
+
+        Updates detectron2 config with the RPN configuration.
+
+        Parameters
+        ----------
+        cfg
+            Detectron2 configuration
+
+        '''
+
+        if self.iou_thresholds:
+            cfg.MODEL.RPN.IOU_THRESHOLDS = self.iou_thresholds
+        if self.batch_size_per_image:
+            cfg.MODEL.RPN.BATCH_SIZE_PER_IMAGE = self.batch_size_per_image
+
 class ROIHeadsConfig: #pylint: disable=too-few-public-methods
+    '''ROIHeadsConfig
+
+    Object representing ROIHeads model configurations.
+
+    Parameters
+    ----------
+    iou_threshold : float
+        Overlap threshold for an RoI to be considered foreground, by default None
+    batch_size_per_image : int, optional
+        Number of RoIs per image, by default None
+    '''
+
     def __init__(
         self,
         iou_threshold: float = None,
         batch_size_per_image: int = None,
     ):
-        '''ROIHeadsConfig
-
-        Object representing ROIHeads model configurations.
-
-        Parameters
-        ----------
-        iou_threshold : float
-            Overlap threshold for an RoI to be considered foreground, by default None
-        batch_size_per_image : int, optional
-            Number of RoIs per image, by default None
-        '''
         self.iou_threshold = iou_threshold
         self.batch_size_per_image = batch_size_per_image
 
@@ -174,6 +244,156 @@ class ROIHeadsConfig: #pylint: disable=too-few-public-methods
             cfg.MODEL.ROI_HEADS.BATCH_SIZE_PER_IMAGE = self.batch_size_per_image
 
 
+class BoxHeadConfig: #pylint: disable=too-few-public-methods
+    '''BoxHeadConfig
+
+    Object representing BoxHead model configurations.
+
+    Parameters
+    ----------
+    class_agnostic : bool
+        Whether to apply class agnostic bbox regression.
+    train_on_pred_boxes : bool
+        Whether to use predicted BoxHead boxes instead of proposal boxes.
+    '''
+    def __init__(
+        self,
+        class_agnostic : bool = None,
+        train_on_pred_boxes : bool = None,
+    ):
+        self.class_agnostic = class_agnostic
+        self.train_on_pred_boxes = train_on_pred_boxes
+
+    @classmethod
+    def from_dictionary(cls, config: dict):
+        '''Build BoxHeadConfig from a dictionary object.
+
+        Parameters
+        ----------
+        config : dict
+            Dictionary object containing the BoxHead configuration.
+
+        Returns
+        -------
+        BoxHeadConfig
+            BoxHeadConfig constructed with the parameters in config.
+
+        Raises
+        ------
+        InvalidModelConfigurationError
+            Raised if unknown parameter in config dict.
+        '''
+
+        available_configs = ['class_agnostic', 'train_on_pred_boxes']
+        for cfg_name in config.keys():
+            if not cfg_name in available_configs:
+                err_msg = f'Unknown anchor generator parameter name "{cfg_name}". ' +\
+                    f'Available parameters are {available_configs}.'
+                raise InvalidModelConfigurationError(err_msg)
+
+        default_config = {
+        }
+
+        default_config.update(config)
+        config = copy.deepcopy(default_config)
+
+        return cls(
+            class_agnostic=config.get('class_agnostic', None),
+            train_on_pred_boxes=config.get('train_on_pred_boxes', None),
+        )
+
+    def update_detectron2_config(self, cfg):
+        '''update_detectron2_config
+
+        Updates detectron2 config with the BoxHead configuration.
+
+        Parameters
+        ----------
+        cfg
+            Detectron2 configuration
+
+        '''
+
+        if self.class_agnostic:
+            cfg.MODEL.ROI_BOX_HEAD.CLS_AGNOSTIC_BBOX_REG = self.class_agnostic
+        if self.train_on_pred_boxes:
+            cfg.MODEL.ROI_BOX_HEAD.TRAIN_ON_PRED_BOXES = self.train_on_pred_boxes
+
+class MaskHeadConfig: #pylint: disable=too-few-public-methods
+    '''MaskHeadConfig
+
+    Object representing MaskHead model configurations.
+
+    Parameters
+    ----------
+    class_agnostic : bool
+        Whether to apply class agnostic mask regression.
+    pooler_resolution : int
+        Resolution of the pooling.
+    '''
+    def __init__(
+        self,
+        class_agnostic : bool = None,
+        pooler_resolution : int = None,
+    ):
+        self.class_agnostic = class_agnostic
+        self.pooler_resolution = pooler_resolution
+
+    @classmethod
+    def from_dictionary(cls, config: dict):
+        '''Build MaskHeadConfig from a dictionary object.
+
+        Parameters
+        ----------
+        config : dict
+            Dictionary object containing the MaskHead configuration.
+
+        Returns
+        -------
+        MaskHeadConfig
+            MaskHeadConfig constructed with the parameters in config.
+
+        Raises
+        ------
+        InvalidModelConfigurationError
+            Raised if unknown parameter in config dict.
+        '''
+
+        available_configs = ['class_agnostic', 'pooler_resolution']
+        for cfg_name in config.keys():
+            if not cfg_name in available_configs:
+                err_msg = f'Unknown anchor generator parameter name "{cfg_name}". ' +\
+                    f'Available parameters are {available_configs}.'
+                raise InvalidModelConfigurationError(err_msg)
+
+        default_config = {
+        }
+
+        default_config.update(config)
+        config = copy.deepcopy(default_config)
+
+        return cls(
+            class_agnostic=config.get('class_agnostic', None),
+            pooler_resolution=config.get('pooler_resolution', None),
+        )
+
+    def update_detectron2_config(self, cfg):
+        '''update_detectron2_config
+
+        Updates detectron2 config with the BoxHead configuration.
+
+        Parameters
+        ----------
+        cfg
+            Detectron2 configuration
+
+        '''
+
+        if self.class_agnostic:
+            cfg.MODEL.ROI_MASK_HEAD.CLS_AGNOSTIC_MASK = self.class_agnostic
+        if self.pooler_resolution:
+            cfg.MODEL.ROI_MASK_HEAD.POOLER_RESOLUTION = self.pooler_resolution
+
 # see all models: detectron2.model_zoo.model_zoo._ModelZooUrls.CONFIG_PATH_TO_URL_SUFFIX
 MODELS = {
     'faster_rcnn_R_50_C4_1x': {
@@ -181,7 +401,9 @@ MODELS = {
         'tasks': ['bbox-detection'],
         'model_parameters': {
             'anchor_generator': AnchorGeneratorConfig,
+            'rpn': RPNConfig,
             'roi_heads': ROIHeadsConfig,
+            'box_head': BoxHeadConfig,
         },
     },
     'faster_rcnn_R_50_DC5_1x': {
@@ -189,7 +411,9 @@ MODELS = {
         'tasks': ['bbox-detection'],
         'model_parameters': {
             'anchor_generator': AnchorGeneratorConfig,
+            'rpn': RPNConfig,
             'roi_heads': ROIHeadsConfig,
+            'box_head': BoxHeadConfig,
         },
     },
     'faster_rcnn_R_50_FPN_1x': {
@@ -197,7 +421,9 @@ MODELS = {
         'tasks': ['bbox-detection'],
         'model_parameters': {
             'anchor_generator': AnchorGeneratorConfig,
+            'rpn': RPNConfig,
             'roi_heads': ROIHeadsConfig,
+            'box_head': BoxHeadConfig,
         },
     },
     'faster_rcnn_R_50_C4_3x': {
@@ -205,7 +431,9 @@ MODELS = {
         'tasks': ['bbox-detection'],
         'model_parameters': {
             'anchor_generator': AnchorGeneratorConfig,
+            'rpn': RPNConfig,
             'roi_heads': ROIHeadsConfig,
+            'box_head': BoxHeadConfig,
         },
     },
     'faster_rcnn_R_50_DC5_3x': {
@@ -213,7 +441,9 @@ MODELS = {
         'tasks': ['bbox-detection'],
         'model_parameters': {
             'anchor_generator': AnchorGeneratorConfig,
+            'rpn': RPNConfig,
             'roi_heads': ROIHeadsConfig,
+            'box_head': BoxHeadConfig,
         },
     },
     'faster_rcnn_R_50_FPN_3x': {
@@ -221,7 +451,9 @@ MODELS = {
         'tasks': ['bbox-detection'],
         'model_parameters': {
             'anchor_generator': AnchorGeneratorConfig,
+            'rpn': RPNConfig,
             'roi_heads': ROIHeadsConfig,
+            'box_head': BoxHeadConfig,
         },
     },
     'faster_rcnn_R_101_C4_3x': {
@@ -229,7 +461,9 @@ MODELS = {
         'tasks': ['bbox-detection'],
         'model_parameters': {
             'anchor_generator': AnchorGeneratorConfig,
+            'rpn': RPNConfig,
             'roi_heads': ROIHeadsConfig,
+            'box_head': BoxHeadConfig,
         },
     },
     'faster_rcnn_R_101_DC5_3x': {
@@ -237,7 +471,9 @@ MODELS = {
         'tasks': ['bbox-detection'],
         'model_parameters': {
             'anchor_generator': AnchorGeneratorConfig,
+            'rpn': RPNConfig,
             'roi_heads': ROIHeadsConfig,
+            'box_head': BoxHeadConfig,
         },
     },
     'faster_rcnn_R_101_FPN_3x': {
@@ -245,7 +481,9 @@ MODELS = {
         'tasks': ['bbox-detection'],
         'model_parameters': {
             'anchor_generator': AnchorGeneratorConfig,
+            'rpn': RPNConfig,
             'roi_heads': ROIHeadsConfig,
+            'box_head': BoxHeadConfig,
         },
     },
     'faster_rcnn_X_101_32x8d_FPN_3x': {
@@ -253,7 +491,9 @@ MODELS = {
         'tasks': ['bbox-detection'],
         'model_parameters': {
             'anchor_generator': AnchorGeneratorConfig,
+            'rpn': RPNConfig,
             'roi_heads': ROIHeadsConfig,
+            'box_head': BoxHeadConfig,
         },
     },
     'mask_rcnn_R_50_C4_1x': {
@@ -261,7 +501,9 @@ MODELS = {
         'tasks': ['instance-segmentation'],
         'model_parameters': {
             'anchor_generator': AnchorGeneratorConfig,
+            'rpn': RPNConfig,
             'roi_heads': ROIHeadsConfig,
+            'mask_head': MaskHeadConfig,
         },
     },
     'mask_rcnn_R_50_DC5_1x': {
@@ -269,7 +511,9 @@ MODELS = {
         'tasks': ['instance-segmentation'],
         'model_parameters': {
             'anchor_generator': AnchorGeneratorConfig,
+            'rpn': RPNConfig,
             'roi_heads': ROIHeadsConfig,
+            'mask_head': MaskHeadConfig,
         },
     },
     'mask_rcnn_R_50_FPN_1x': {
@@ -277,7 +521,9 @@ MODELS = {
         'tasks': ['instance-segmentation'],
         'model_parameters': {
             'anchor_generator': AnchorGeneratorConfig,
+            'rpn': RPNConfig,
             'roi_heads': ROIHeadsConfig,
+            'mask_head': MaskHeadConfig,
         },
     },
     'mask_rcnn_R_50_C4_3x': {
@@ -285,7 +531,9 @@ MODELS = {
         'tasks': ['instance-segmentation'],
         'model_parameters': {
             'anchor_generator': AnchorGeneratorConfig,
+            'rpn': RPNConfig,
             'roi_heads': ROIHeadsConfig,
+            'mask_head': MaskHeadConfig,
         },
     },
     'mask_rcnn_R_50_DC5_3x': {
@@ -293,7 +541,9 @@ MODELS = {
         'tasks': ['instance-segmentation'],
         'model_parameters': {
             'anchor_generator': AnchorGeneratorConfig,
+            'rpn': RPNConfig,
             'roi_heads': ROIHeadsConfig,
+            'mask_head': MaskHeadConfig,
         },
     },
     'mask_rcnn_R_50_FPN_3x': {
@@ -301,7 +551,9 @@ MODELS = {
         'tasks': ['instance-segmentation'],
         'model_parameters': {
             'anchor_generator': AnchorGeneratorConfig,
+            'rpn': RPNConfig,
             'roi_heads': ROIHeadsConfig,
+            'mask_head': MaskHeadConfig,
         },
     },
     'mask_rcnn_R_101_C4_3x': {
@@ -309,7 +561,9 @@ MODELS = {
         'tasks': ['instance-segmentation'],
         'model_parameters': {
             'anchor_generator': AnchorGeneratorConfig,
+            'rpn': RPNConfig,
             'roi_heads': ROIHeadsConfig,
+            'mask_head': MaskHeadConfig,
         },
     },
     'mask_rcnn_R_101_DC5_3x': {
@@ -317,7 +571,9 @@ MODELS = {
         'tasks': ['instance-segmentation'],
         'model_parameters': {
             'anchor_generator': AnchorGeneratorConfig,
+            'rpn': RPNConfig,
             'roi_heads': ROIHeadsConfig,
+            'mask_head': MaskHeadConfig,
         },
     },
     'mask_rcnn_R_101_FPN_3x': {
@@ -325,7 +581,9 @@ MODELS = {
         'tasks': ['instance-segmentation'],
         'model_parameters': {
             'anchor_generator': AnchorGeneratorConfig,
+            'rpn': RPNConfig,
             'roi_heads': ROIHeadsConfig,
+            'mask_head': MaskHeadConfig,
         },
     },
     'mask_rcnn_X_101_32x8d_FPN_3x': {
@@ -333,17 +591,20 @@ MODELS = {
         'tasks': ['instance-segmentation'],
         'model_parameters': {
             'anchor_generator': AnchorGeneratorConfig,
+            'rpn': RPNConfig,
             'roi_heads': ROIHeadsConfig,
+            'mask_head': MaskHeadConfig,
         },
     },
 }
 
 MODEL_PARAMETERS_MAP = {
     'anchor_generator': AnchorGeneratorConfig,
+    'rpn': RPNConfig,
     'roi_heads': ROIHeadsConfig,
+    'box_head': BoxHeadConfig,
+    'mask_head': MaskHeadConfig,
 }
-
-# TODO: implement model-specific parameters
 
 class GinjinnModelConfiguration: #pylint: disable=too-few-public-methods
     '''A class representing GinJinn model configurations.
@@ -368,7 +629,7 @@ class GinjinnModelConfiguration: #pylint: disable=too-few-public-methods
     InvalidModelConfigurationError
         Raised if invalid model name is passed.
     '''
-    def __init__( #pylint: disable=too-many-arguments
+    def __init__( #pylint: disable=too-many-arguments,dangerous-default-value
         self,
         name: str,
         initial_weights: str,
@@ -433,6 +694,11 @@ class GinjinnModelConfiguration: #pylint: disable=too-few-public-methods
         GinjinnModelConfiguration
             GinjinnModelConfiguration constructed with the configuration
             given in config.
+
+        Raises
+        ------
+        InvalidModelConfigurationError
+            Raised if unknown model_parameters entry in config dict.
         '''
 
         default_config = {

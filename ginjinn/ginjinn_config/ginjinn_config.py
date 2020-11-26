@@ -191,6 +191,6 @@ class GinjinnConfiguration: #pylint: disable=too-many-arguments,too-many-instanc
 
         model_tasks = MODELS[self.model.name]['tasks']
         if not self.task in model_tasks:
-            err_msg = f'Task "{self.task}" is incompatible with model' +\
+            err_msg = f'Task "{self.task}" is incompatible with model ' +\
                 f'"{self.model.name}" (available tasks: {", ".join(model_tasks)}).'
             raise InvalidGinjinnConfigurationError(err_msg)
