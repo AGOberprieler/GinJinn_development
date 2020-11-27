@@ -6,10 +6,6 @@ import copy
 import os
 from .config_error import InvalidModelConfigurationError
 
-# TODO
-# implement model-specific configs:
-# - ROIMaskHeadConfig
-
 class AnchorGeneratorConfig: #pylint: disable=too-few-public-methods
     '''AnchorGeneratorConfig
 
