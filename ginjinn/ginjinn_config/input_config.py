@@ -308,6 +308,6 @@ class GinjinnInputConfiguration: #pylint: disable=too-few-public-methods
             train_img_path = config['train']['image_path'],
             test_ann_path = config['test']['annotation_path'],
             test_img_path = config['test']['image_path'],
-            val_ann_path = config['val']['annotation_path'],
-            val_img_path = config['val']['image_path'],
+            val_ann_path = config['validation']['annotation_path'],
+            val_img_path = config['validation']['image_path'],
         )
