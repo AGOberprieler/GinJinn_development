@@ -58,7 +58,7 @@ def build_coco_annotation( #pylint: disable=too-many-arguments
     category_id : int
         Category ID
     bbox : List[float]
-        xmin, ymin, xmax, ymax
+        xmin, ymin, width, height
     segmentation : List[float]
         x1, y1, x2, y2, ..., xn, yn
     area : float

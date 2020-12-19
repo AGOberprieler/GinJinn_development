@@ -92,7 +92,7 @@ def generate_simple_shapes_coco( #pylint: disable=too-many-arguments,too-many-lo
 
     for i in range(n_images):
         w, h = np.random.randint(min_w, max_w + 1), np.random.randint(min_h, max_h + 1)
-        img = np.full((w, h, 3), (0.8, 0.8, 0.8))
+        img = np.full((h, w, 3), (0.8, 0.8, 0.8))
 
         img_id = i + 1
         file_name = os.path.join(img_dir, f'img_{img_id}.jpg')
@@ -114,6 +114,7 @@ def generate_simple_shapes_coco( #pylint: disable=too-many-arguments,too-many-lo
                 )
                 category = 'triangle'
             bbox = np.array([*np.min(contour, 0), *np.max(contour, 0)])
+            bbox = np.array([bbox[0], bbox[1], bbox[2] - bbox[0], bbox[3] - bbox[1]])
             area = polygon_area(contour[:,0], contour[:,1])
             cat_id = category_map[category]
 
