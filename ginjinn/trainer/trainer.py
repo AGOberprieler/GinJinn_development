@@ -60,6 +60,26 @@ class Trainer(DefaultTrainer):
                 augmentations=augs
             )
         )
+
+    @classmethod
+    def from_ginjinn_config(cls, gj_cfg):
+        '''from_ginjinn_config
+
+        Build ValTrainer object from GinjinnConfiguration instead of
+        detectron2 configuration.
+
+        Parameters
+        ----------
+        gj_cfg
+            GinjinnConfiguration object.
+        '''
+
+        cls.set_augmentations(gj_cfg.augmentation.to_detectron2_augmentations())
+
+        detectron2_cfg = gj_cfg.to_detectron2_config()
+
+        return cls(detectron2_cfg)
+
     ##alternative:
     #@classmethod
     #def build_train_loader(cls, cfg):

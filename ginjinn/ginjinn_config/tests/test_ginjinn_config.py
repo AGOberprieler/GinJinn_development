@@ -62,7 +62,7 @@ def config_dicts(tmp_input_paths):
         'task': 'bbox-detection',
         'input': {
             'type': 'PVOC',
-            'train': {
+            'training': {
                 'annotation_path': tmp_input_paths['pvoc_ann_path_train'],
                 'image_path': tmp_input_paths['img_path_train'],
             },
@@ -148,46 +148,46 @@ def test_from_config_file_simple(config_file_examples):
     simple_config_file_0 = config_file_examples[0]
     simple_config_dict_0 = read_config_file(simple_config_file_0)
 
-    if not os.path.exists(simple_config_dict_0['input']['train']['annotation_path']):
-        os.mkdir(simple_config_dict_0['input']['train']['annotation_path'])
-    if not os.path.exists(simple_config_dict_0['input']['train']['image_path']):
-        os.mkdir(simple_config_dict_0['input']['train']['image_path'])
+    if not os.path.exists(simple_config_dict_0['input']['training']['annotation_path']):
+        os.mkdir(simple_config_dict_0['input']['training']['annotation_path'])
+    if not os.path.exists(simple_config_dict_0['input']['training']['image_path']):
+        os.mkdir(simple_config_dict_0['input']['training']['image_path'])
 
     simple_config_0 = GinjinnConfiguration.from_config_file(simple_config_file_0)
     assert simple_config_0.task == simple_config_dict_0['task'] and\
         simple_config_0.project_dir == simple_config_dict_0['project_dir'] and\
-        simple_config_0.input.train.annotation_path == simple_config_dict_0['input']['train']['annotation_path'] and\
-        simple_config_0.input.train.image_path == simple_config_dict_0['input']['train']['image_path'],\
+        simple_config_0.input.train.annotation_path == simple_config_dict_0['input']['training']['annotation_path'] and\
+        simple_config_0.input.train.image_path == simple_config_dict_0['input']['training']['image_path'],\
         'GinjinnConfig was not successfully constructed from simple configuration file.'
     
     assert simple_config_0.model.name == simple_config_dict_0['model']['name']
     assert simple_config_0.training.learning_rate == simple_config_dict_0['training']['learning_rate']
 
-    os.rmdir(simple_config_dict_0['input']['train']['annotation_path'])
-    os.rmdir(simple_config_dict_0['input']['train']['image_path'])
+    os.rmdir(simple_config_dict_0['input']['training']['annotation_path'])
+    os.rmdir(simple_config_dict_0['input']['training']['image_path'])
 
 
     simple_config_file_1 = config_file_examples[1]
     simple_config_dict_1 = read_config_file(simple_config_file_1)
 
-    if not os.path.exists(simple_config_dict_1['input']['train']['annotation_path']):
-        with open(simple_config_dict_1['input']['train']['annotation_path'], 'w') as f:
+    if not os.path.exists(simple_config_dict_1['input']['training']['annotation_path']):
+        with open(simple_config_dict_1['input']['training']['annotation_path'], 'w') as f:
             f.write('')
-    if not os.path.exists(simple_config_dict_1['input']['train']['image_path']):
-        os.mkdir(simple_config_dict_1['input']['train']['image_path'])
+    if not os.path.exists(simple_config_dict_1['input']['training']['image_path']):
+        os.mkdir(simple_config_dict_1['input']['training']['image_path'])
 
     simple_config_1 = GinjinnConfiguration.from_config_file(simple_config_file_1)
     assert simple_config_1.task == simple_config_dict_1['task'] and\
         simple_config_1.project_dir == simple_config_dict_1['project_dir'] and\
-        simple_config_1.input.train.annotation_path == simple_config_dict_1['input']['train']['annotation_path'] and\
-        simple_config_1.input.train.image_path == simple_config_dict_1['input']['train']['image_path'],\
+        simple_config_1.input.train.annotation_path == simple_config_dict_1['input']['training']['annotation_path'] and\
+        simple_config_1.input.train.image_path == simple_config_dict_1['input']['training']['image_path'],\
         'GinjinnConfig was not successfully constructed from simple configuration file.'
     
     assert simple_config_1.model.name == simple_config_dict_1['model']['name']
     assert simple_config_1.training.learning_rate == simple_config_dict_1['training']['learning_rate']
 
-    os.remove(simple_config_dict_1['input']['train']['annotation_path'])
-    os.rmdir(simple_config_dict_1['input']['train']['image_path'])
+    os.remove(simple_config_dict_1['input']['training']['annotation_path'])
+    os.rmdir(simple_config_dict_1['input']['training']['image_path'])
 
 
 def test_invalid_task(config_dicts):

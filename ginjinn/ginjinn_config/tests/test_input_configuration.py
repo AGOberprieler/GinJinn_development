@@ -79,7 +79,7 @@ def automatic_split_inputs():
 def config_dicts(tmp_input_paths):
     simple_config = {
         'type': 'PVOC',
-        'train': {
+        'training': {
             'annotation_path': tmp_input_paths['pvoc_ann_path_train'],
             'image_path': tmp_input_paths['img_path_train'],
         },
@@ -166,9 +166,9 @@ def test_constructor_custom_split(basic_inputs, custom_split_inputs_pvoc):
         val_ann_path=val_ann_path,
         val_img_path=val_img_path
     )
-    assert input_configuration_1.validation.annotation_path == val_ann_path,\
+    assert input_configuration_1.val.annotation_path == val_ann_path,\
         'validation annotation path not set correctly'
-    assert input_configuration_1.validation.image_path == val_img_path,\
+    assert input_configuration_1.val.image_path == val_img_path,\
         'validation image path not set correctly'
 
     # test-validation split
@@ -184,9 +184,9 @@ def test_constructor_custom_split(basic_inputs, custom_split_inputs_pvoc):
         'test annotation path not set correctly (test-val)'
     assert input_configuration_2.test.image_path == test_img_path,\
         'test image path not set correctly (test-val)'
-    assert input_configuration_2.validation.annotation_path == val_ann_path,\
+    assert input_configuration_2.val.annotation_path == val_ann_path,\
         'validation annotation path not set correctly (test-val)'
-    assert input_configuration_2.validation.image_path == val_img_path,\
+    assert input_configuration_2.val.image_path == val_img_path,\
         'validation image path not set correctly (test-val)'
 
 def test_invalid_annotation_type(basic_inputs):
@@ -241,32 +241,32 @@ def test_from_dictionary(config_dicts, tmp_input_paths):
 
     input_configuration_0 = GinjinnInputConfiguration.from_dictionary(simple_config)
     assert input_configuration_0.type == simple_config['type'] and\
-        input_configuration_0.train.annotation_path == simple_config['train']['annotation_path'] and\
-        input_configuration_0.train.image_path == simple_config['train']['image_path'],\
+        input_configuration_0.train.annotation_path == simple_config['training']['annotation_path'] and\
+        input_configuration_0.train.image_path == simple_config['training']['image_path'],\
         'Simple configuration from dictionary not successful.'
 
     input_configuration_1 = GinjinnInputConfiguration.from_dictionary(test_custom_config_0)
     assert input_configuration_1.type == test_custom_config_0['type'] and\
-        input_configuration_1.train.annotation_path == test_custom_config_0['train']['annotation_path'] and\
-        input_configuration_1.train.image_path == test_custom_config_0['train']['image_path'] and\
+        input_configuration_1.train.annotation_path == test_custom_config_0['training']['annotation_path'] and\
+        input_configuration_1.train.image_path == test_custom_config_0['training']['image_path'] and\
         input_configuration_1.test.annotation_path == test_custom_config_0['test']['annotation_path'] and\
         input_configuration_1.test.image_path == test_custom_config_0['test']['image_path'],\
         'Custom test configuration from dictionary not successful.'
 
     input_configuration_2 = GinjinnInputConfiguration.from_dictionary(val_custom_config_0)
     assert input_configuration_2.type == test_custom_config_0['type'] and\
-        input_configuration_2.train.annotation_path == val_custom_config_0['train']['annotation_path'] and\
-        input_configuration_2.train.image_path == val_custom_config_0['train']['image_path'] and\
-        input_configuration_2.validation.annotation_path == val_custom_config_0['validation']['annotation_path'] and\
-        input_configuration_2.validation.image_path == val_custom_config_0['validation']['image_path'],\
+        input_configuration_2.train.annotation_path == val_custom_config_0['training']['annotation_path'] and\
+        input_configuration_2.train.image_path == val_custom_config_0['training']['image_path'] and\
+        input_configuration_2.val.annotation_path == val_custom_config_0['validation']['annotation_path'] and\
+        input_configuration_2.val.image_path == val_custom_config_0['validation']['image_path'],\
         'Custom validation configuration from dictionary not successful.'
 
     input_configuration_3 = GinjinnInputConfiguration.from_dictionary(test_val_custom_config_0)
     assert input_configuration_3.type == test_val_custom_config_0['type'] and\
-        input_configuration_3.train.annotation_path == test_val_custom_config_0['train']['annotation_path'] and\
-        input_configuration_3.train.image_path == test_val_custom_config_0['train']['image_path'] and\
-        input_configuration_3.validation.annotation_path == test_val_custom_config_0['validation']['annotation_path'] and\
-        input_configuration_3.validation.image_path == test_val_custom_config_0['validation']['image_path'] and\
+        input_configuration_3.train.annotation_path == test_val_custom_config_0['training']['annotation_path'] and\
+        input_configuration_3.train.image_path == test_val_custom_config_0['training']['image_path'] and\
+        input_configuration_3.val.annotation_path == test_val_custom_config_0['validation']['annotation_path'] and\
+        input_configuration_3.val.image_path == test_val_custom_config_0['validation']['image_path'] and\
         input_configuration_3.test.annotation_path == test_val_custom_config_0['test']['annotation_path'] and\
         input_configuration_3.test.image_path == test_val_custom_config_0['test']['image_path'],\
         'Custom test-validation configuration from dictionary not successful.'
@@ -274,7 +274,7 @@ def test_from_dictionary(config_dicts, tmp_input_paths):
 
     input_configuration_5 = GinjinnInputConfiguration.from_dictionary({
         'type': 'COCO',
-            'train': {
+            'training': {
                 'annotation_path': tmp_input_paths['coco_ann_path_train'],
                 'image_path': tmp_input_paths['img_path_train']
             },
@@ -292,7 +292,7 @@ def test_invalid_paths(tmp_input_paths):
     with pytest.raises(InvalidInputConfigurationError):
         input_dict = {
             'type': 'PVOC',
-            'train': {
+            'training': {
                 'annotation_path': tmp_input_paths['coco_ann_path_train'],
                 'image_path': tmp_input_paths['img_path_train']
             }
@@ -303,7 +303,7 @@ def test_invalid_paths(tmp_input_paths):
     with pytest.raises(InvalidInputConfigurationError):
         input_dict = {
             'type': 'COCO',
-            'train': {
+            'training': {
                 'annotation_path': tmp_input_paths['pvoc_ann_path_train'],
                 'image_path': tmp_input_paths['img_path_train']
             }
@@ -314,7 +314,7 @@ def test_invalid_paths(tmp_input_paths):
     with pytest.raises(InvalidInputConfigurationError):
         input_dict = {
             'type': 'COCO',
-            'train': {
+            'training': {
                 'annotation_path': tmp_input_paths['coco_ann_path_train'],
                 
                 # just using this here to have file instead of a directory
@@ -327,7 +327,7 @@ def test_invalid_paths(tmp_input_paths):
 def test_SplitConfig():
     sc_0 = SplitConfig(0.2, 0.3)
     assert sc_0.test == 0.2
-    assert sc_0.validation == 0.3
+    assert sc_0.val == 0.3
 
     with pytest.raises(InvalidInputConfigurationError):
         SplitConfig(0.0, 0.3)

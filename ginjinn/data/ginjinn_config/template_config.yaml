@@ -3,7 +3,7 @@ task: "ENTER TASK"
 # Input data options
 input:
   type: "ENTER ANNOTATION TYPE"
-  train:
+  training:
     annotation_path: "ENTER TRAINING ANNOATION PATH"
     image_path: "ENTER TRAINING IMAGES"
   validation:

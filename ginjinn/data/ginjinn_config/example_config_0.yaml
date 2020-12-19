@@ -3,7 +3,7 @@ task: "bbox-detection"
 # Input data options
 input:
   type: "PVOC"
-  train:
+  training:
     annotation_path: "annotations_xyz"
     image_path: "images_xyz"
 # Model options

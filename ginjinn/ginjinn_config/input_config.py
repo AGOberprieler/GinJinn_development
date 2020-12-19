@@ -47,7 +47,7 @@ class SplitConfig: #pylint: disable=too-few-public-methods
         validation_split: Optional[float] = None,
     ):
         self.test = test_split
-        self.validation = validation_split
+        self.val = validation_split
 
         self._check()
 
@@ -64,13 +64,13 @@ class SplitConfig: #pylint: disable=too-few-public-methods
                 raise InvalidInputConfigurationError(
                     'The proportion of the test split must be greater than 0.0 and less than 1.0.' #pylint: disable=line-too-long
                 )
-        if not self.validation is None:
-            if self.validation <= 0.0 or self.validation >= 1.0:
+        if not self.val is None:
+            if self.val <= 0.0 or self.val >= 1.0:
                 raise InvalidInputConfigurationError(
                     'The proportion of the validation split must be greater than 0.0 and less than 1.0.' #pylint: disable=line-too-long
                 )
-        if (not self.test is None) and (not self.validation is None):
-            proportion = self.test + self.validation
+        if (not self.test is None) and (not self.val is None):
+            proportion = self.test + self.val
             if proportion >= 1.0 or proportion <= 0.0:
                 raise InvalidInputConfigurationError(
                     'The sum of test and validation split proportions must be greater than 0.0 and less than 1.0.' #pylint: disable=line-too-long
@@ -129,7 +129,7 @@ class GinjinnInputConfiguration: #pylint: disable=too-few-public-methods
         self.train = InputPaths(train_ann_path, train_img_path)
 
         self.test = None
-        self.validation = None
+        self.val = None
 
         # type
         if not self.type in ANNOTATION_TYPES:
@@ -153,7 +153,7 @@ class GinjinnInputConfiguration: #pylint: disable=too-few-public-methods
                     'If any of "val_ann_path" and "val_img_path" is passed, ' \
                     'the other must be passed too.'
                 )
-            self.validation = InputPaths(val_ann_path, val_img_path)
+            self.val = InputPaths(val_ann_path, val_img_path)
 
         # check for file path validity
         # TODO: think about whether this should be checked here or later
@@ -175,7 +175,7 @@ class GinjinnInputConfiguration: #pylint: disable=too-few-public-methods
         if not is_test:
             if self.train:
                 cfg.DATASETS.TRAIN = ('train', )
-            if self.validation:
+            if self.val:
                 cfg.DATASETS.TEST = ('val', )
         else:
             if self.test:
@@ -251,21 +251,21 @@ class GinjinnInputConfiguration: #pylint: disable=too-few-public-methods
             self._check_pvoc_annotation_path(self.train.annotation_path)
             if not self.test is None:
                 self._check_pvoc_annotation_path(self.test.annotation_path)
-            if not self.validation is None:
-                self._check_pvoc_annotation_path(self.validation.annotation_path)
+            if not self.val is None:
+                self._check_pvoc_annotation_path(self.val.annotation_path)
         elif self.type == 'COCO':
             self._check_coco_annotation_path(self.train.annotation_path)
             if not self.test is None:
                 self._check_coco_annotation_path(self.test.annotation_path)
-            if not self.validation is None:
-                self._check_coco_annotation_path(self.validation.annotation_path)
+            if not self.val is None:
+                self._check_coco_annotation_path(self.val.annotation_path)
 
         # check if image directory exists
         self._check_image_path(self.train.image_path)
         if not self.test is None:
             self._check_image_path(self.test.image_path)
-        if not self.validation is None:
-            self._check_image_path(self.validation.image_path)
+        if not self.val is None:
+            self._check_image_path(self.val.image_path)
 
     @classmethod
     def from_dictionary(cls, config: dict):
@@ -304,8 +304,8 @@ class GinjinnInputConfiguration: #pylint: disable=too-few-public-methods
 
         return cls(
             ann_type = config['type'],
-            train_ann_path = config['train']['annotation_path'],
-            train_img_path = config['train']['image_path'],
+            train_ann_path = config['training']['annotation_path'],
+            train_img_path = config['training']['image_path'],
             test_ann_path = config['test']['annotation_path'],
             test_img_path = config['test']['image_path'],
             val_ann_path = config['validation']['annotation_path'],

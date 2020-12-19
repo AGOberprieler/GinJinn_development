@@ -46,8 +46,8 @@ def example_config(tmp_dir, simulate_coco):
     with open(example_config_1_path) as config_f:
         config = yaml.load(config_f)
 
-    config['input']['train']['annotation_path'] = ann_path
-    config['input']['train']['image_path'] = img_dir
+    config['input']['training']['annotation_path'] = ann_path
+    config['input']['training']['image_path'] = img_dir
 
     config_dir = os.path.join(tmp_dir, 'example_config')
     os.mkdir(config_dir)

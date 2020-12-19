@@ -3,7 +3,7 @@ task: "instance-segmentation"
 # Input data options
 input:
   type: "COCO"
-  train:
+  training:
     annotation_path: "annotations_xyz.json"
     image_path: "images_xyz"
 # Model options
