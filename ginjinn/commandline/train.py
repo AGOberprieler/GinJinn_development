@@ -5,6 +5,7 @@ import os
 from ginjinn.ginjinn_config import GinjinnConfiguration
 import ginjinn.ginjinn_config.config_error as config_error
 from ginjinn.data_reader.load_datasets import load_train_val_sets
+from ginjinn.trainer import ValTrainer, Trainer
 
 def ginjinn_train(args):
     '''ginjinn_train
@@ -50,3 +51,15 @@ def ginjinn_train(args):
     load_train_val_sets(config)
 
     # TODO implement training
+    if config.input.val:
+        trainer = ValTrainer.from_ginjinn_config(config)
+    else:
+        trainer = Trainer.from_ginjinn_config(config)
+
+    print(trainer)
+    print('args.resume:', args.resume)
+    resume = args.resume if not args.resume is None else config.options.resume
+    print(resume)
+
+    trainer.resume_or_load(resume=resume)
+    trainer.train()
