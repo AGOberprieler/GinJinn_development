@@ -15,7 +15,7 @@ model:
       batch_size_per_image: 256
 # Options for model training
 training:
-  learning_rate: 0.002
+  learning_rate: 0.000125
   batch_size: 1
   max_iter: 10000
 # Options for image augmentation

@@ -18,7 +18,7 @@ model:
   weights: "precomputed"
 # Options for model training
 training:
-  learning_rate: 0.002
+  learning_rate: 0.000125
   batch_size: 1
   max_iter: 40000
 # Options for image augmentation

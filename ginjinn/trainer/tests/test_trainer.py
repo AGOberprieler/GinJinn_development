@@ -71,7 +71,7 @@ def example_config(tmp_dir, simulate_coco_train, simulate_coco_validation):
     config['augmentation'] = [aug for aug in config['augmentation'] if not 'crop' in list(aug.keys())[0]]
     # config['augmentation'] = [config['augmentation'][0]]
 
-    config['training']['maxiter'] = 10
+    config['training']['max_iter'] = 100
 
     config_dir = os.path.join(tmp_dir, 'example_config')
     os.mkdir(config_dir)
