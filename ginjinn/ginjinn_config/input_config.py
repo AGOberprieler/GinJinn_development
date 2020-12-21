@@ -177,6 +177,8 @@ class GinjinnInputConfiguration: #pylint: disable=too-few-public-methods
                 cfg.DATASETS.TRAIN = ('train', )
             if self.val:
                 cfg.DATASETS.TEST = ('val', )
+            else:
+                cfg.DATASETS.TEST = ()
         else:
             if self.test:
                 cfg.DATASETS.TEST = ('test', )
