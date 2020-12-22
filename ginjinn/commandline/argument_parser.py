@@ -74,6 +74,21 @@ def _setup_train_parser(subparsers):
             Path to GinJinn project directory.
         '''
     )
+    # parser.add_argument(
+    #     '-nr', '--no_resume',
+    #     type = bool,
+    #     help = '''
+    #         Do not resume training. If this option is set, training will
+    #         start from scratch, discarding previous training checkpoints
+    #         PERMANENTLY.
+    #     ''',
+    #     # action='store_true',
+    #     default=None,
+    # )
+
+    parser.add_argument('-r', '--resume', dest='resume', action='store_true')
+    parser.add_argument('-nr', '--no-resume', dest='resume', action='store_false')
+    parser.set_defaults(resume=None)
 
     return parser
 
