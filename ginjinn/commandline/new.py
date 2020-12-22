@@ -36,6 +36,7 @@ def ginjinn_new(args):
             sys.exit()
 
     os.mkdir(project_dir)
+    os.mkdir(os.path.join(project_dir, 'outputs'))
 
     config_path = os.path.join(project_dir, 'ginjinn_config.yaml')
 

@@ -6,6 +6,7 @@ A module for managing the representation of GinJinn configurations.
 # import copy
 # from typing import Optional
 import yaml
+import os
 from .config_error import InvalidGinjinnConfigurationError
 from .input_config import GinjinnInputConfiguration
 from .model_config import GinjinnModelConfiguration, MODELS
@@ -104,7 +105,7 @@ class GinjinnConfiguration: #pylint: disable=too-many-arguments,too-many-instanc
         self.detectron_config.update_detectron2_config(config)
 
         # detectron2 output dir
-        config.OUTPUT_DIR = self.project_dir
+        config.OUTPUT_DIR = os.path.join(self.project_dir, 'outputs')
 
         return config
 
