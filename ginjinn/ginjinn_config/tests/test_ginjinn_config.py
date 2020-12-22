@@ -49,6 +49,7 @@ def tmp_input_paths():
         'img_path_train': img_path_train,
         'img_path_test': img_path_test,
         'img_path_validation': img_path_validation,
+        'project_dir': tmpdir.name,
     }
 
     tmpdir.cleanup()
@@ -57,8 +58,7 @@ def tmp_input_paths():
 @pytest.fixture
 def config_dicts(tmp_input_paths):
     simple_config = {
-        'project_name': 'example_project_0',
-        'project_dir': 'dir/to/example_project_0',
+        'project_dir': tmp_input_paths['project_dir'],
         'task': 'bbox-detection',
         'input': {
             'type': 'PVOC',
@@ -156,8 +156,8 @@ def test_from_config_file_simple(config_file_examples):
     simple_config_0 = GinjinnConfiguration.from_config_file(simple_config_file_0)
     assert simple_config_0.task == simple_config_dict_0['task'] and\
         simple_config_0.project_dir == simple_config_dict_0['project_dir'] and\
-        simple_config_0.input.train.annotation_path == simple_config_dict_0['input']['training']['annotation_path'] and\
-        simple_config_0.input.train.image_path == simple_config_dict_0['input']['training']['image_path'],\
+        simple_config_0.input.train.annotation_path == os.path.abspath(simple_config_dict_0['input']['training']['annotation_path']) and\
+        simple_config_0.input.train.image_path ==  os.path.abspath(simple_config_dict_0['input']['training']['image_path']),\
         'GinjinnConfig was not successfully constructed from simple configuration file.'
     
     assert simple_config_0.model.name == simple_config_dict_0['model']['name']
@@ -169,7 +169,6 @@ def test_from_config_file_simple(config_file_examples):
 
     simple_config_file_1 = config_file_examples[1]
     simple_config_dict_1 = read_config_file(simple_config_file_1)
-
     if not os.path.exists(simple_config_dict_1['input']['training']['annotation_path']):
         with open(simple_config_dict_1['input']['training']['annotation_path'], 'w') as f:
             f.write('')
@@ -179,8 +178,8 @@ def test_from_config_file_simple(config_file_examples):
     simple_config_1 = GinjinnConfiguration.from_config_file(simple_config_file_1)
     assert simple_config_1.task == simple_config_dict_1['task'] and\
         simple_config_1.project_dir == simple_config_dict_1['project_dir'] and\
-        simple_config_1.input.train.annotation_path == simple_config_dict_1['input']['training']['annotation_path'] and\
-        simple_config_1.input.train.image_path == simple_config_dict_1['input']['training']['image_path'],\
+        simple_config_1.input.train.annotation_path ==  os.path.abspath(simple_config_dict_1['input']['training']['annotation_path']) and\
+        simple_config_1.input.train.image_path ==  os.path.abspath(simple_config_dict_1['input']['training']['image_path']),\
         'GinjinnConfig was not successfully constructed from simple configuration file.'
     
     assert simple_config_1.model.name == simple_config_dict_1['model']['name']

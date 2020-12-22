@@ -1,4 +1,4 @@
-project_dir: "example_project_0"
+project_dir: "."
 task: "bbox-detection"
 # Input data options
 input:

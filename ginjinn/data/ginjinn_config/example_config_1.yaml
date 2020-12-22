@@ -1,4 +1,4 @@
-project_dir: "example_project_0"
+project_dir: "."
 task: "instance-segmentation"
 # Input data options
 input:

@@ -108,6 +108,8 @@ class GinjinnInputConfiguration: #pylint: disable=too-few-public-methods
         Path to the annotation file for "COCO".
     val_img_path : Optional[str], optional
         Path to the directory containing the images.
+    project_dir : str
+        GinJinn project directory.
 
     Raises
     ------
@@ -124,12 +126,19 @@ class GinjinnInputConfiguration: #pylint: disable=too-few-public-methods
         test_img_path: Optional[str] = None,
         val_ann_path: Optional[str] = None,
         val_img_path: Optional[str] = None,
+        project_dir: str = '',
     ):
+        self.project_dir = project_dir
         self.type = ann_type
-        self.train = InputPaths(train_ann_path, train_img_path)
+        self.train = InputPaths(
+            self._rel_to_project(train_ann_path),
+            self._rel_to_project(train_img_path)
+        )
 
         self.test = None
         self.val = None
+
+
 
         # type
         if not self.type in ANNOTATION_TYPES:
@@ -144,7 +153,10 @@ class GinjinnInputConfiguration: #pylint: disable=too-few-public-methods
                     'If any of "test_ann_path" and "test_img_path" is passed, ' \
                     'the other must be passed too.'
                 )
-            self.test = InputPaths(test_ann_path, test_img_path)
+            self.test = InputPaths(
+                self._rel_to_project(test_ann_path),
+                self._rel_to_project(test_img_path),
+            )
 
         # validation
         if (not val_ann_path is None) or (not val_img_path is None):
@@ -153,7 +165,10 @@ class GinjinnInputConfiguration: #pylint: disable=too-few-public-methods
                     'If any of "val_ann_path" and "val_img_path" is passed, ' \
                     'the other must be passed too.'
                 )
-            self.val = InputPaths(val_ann_path, val_img_path)
+            self.val = InputPaths(
+                self._rel_to_project(val_ann_path),
+                self._rel_to_project(val_img_path),
+            )
 
         # check for file path validity
         # TODO: think about whether this should be checked here or later
@@ -268,14 +283,15 @@ class GinjinnInputConfiguration: #pylint: disable=too-few-public-methods
             self._check_image_path(self.val.image_path)
 
     @classmethod
-    def from_dictionary(cls, config: dict):
+    def from_dictionary(cls, config: dict, project_dir: str =''):
         '''Build GinjinnInputConfiguration from a dictionary object.
 
         Parameters
         ----------
         config : dict
             Dictionary object containing the input configuration.
-
+        project_dir : str
+            GinJinn project directory.
         Returns
         -------
         GinjinnInputConfiguration
@@ -310,4 +326,29 @@ class GinjinnInputConfiguration: #pylint: disable=too-few-public-methods
             test_img_path = config['test']['image_path'],
             val_ann_path = config['validation']['annotation_path'],
             val_img_path = config['validation']['image_path'],
+            project_dir = project_dir,
+        )
+
+    def _rel_to_project(self, file_path: str) -> str:
+        '''_rel_to_project
+
+        Set root of relative file path to self.project_dir instead
+        of the current shell root.
+
+        Parameters
+        ----------
+        file_path : str
+            File path to correct.
+
+        Returns
+        -------
+        str
+            Corrected file path
+        '''
+
+        if os.path.isabs(file_path):
+            return file_path
+
+        return os.path.abspath(
+            os.path.join(self.project_dir, file_path)
         )

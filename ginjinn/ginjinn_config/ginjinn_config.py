@@ -124,8 +124,11 @@ class GinjinnConfiguration: #pylint: disable=too-many-arguments,too-many-instanc
             given in config.
         '''
 
+        project_dir = config['project_dir']
+
         input_configuration = GinjinnInputConfiguration.from_dictionary(
-            config['input']
+            config['input'],
+            project_dir=project_dir,
         )
         model_configuration = GinjinnModelConfiguration.from_dictionary(
             config['model']
@@ -144,7 +147,7 @@ class GinjinnConfiguration: #pylint: disable=too-many-arguments,too-many-instanc
         )
 
         return cls(
-            project_dir=config['project_dir'],
+            project_dir=project_dir,
             task=config['task'],
             input_configuration=input_configuration,
             model_configuration=model_configuration,
