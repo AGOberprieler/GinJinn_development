@@ -537,7 +537,7 @@ def save_split_coco(
         img_dir = os.path.split(dicts_split[key][0]["file_name"])[0]
         img_ids = [record["image_id"] for record in dicts_split[key]]
 
-        annotations_part = [ann for ann in annotations if ann["id"] in img_ids]
+        annotations_part = [ann for ann in annotations if ann["image_id"] in img_ids]
         images_part = [img for img in images if img["id"] in img_ids]
 
         json_new = os.path.join(split_dir, "annotations", key + ".json")
