@@ -17,19 +17,23 @@ class GinjinnTrainingConfiguration: #pylint: disable=too-few-public-methods
         batch size for model training and evaluation.
     max_iter: int
         maximum number of training iterations.
+    warmup_iter: int
+        number of warmup iterations.
     momentum: float
-        momentum for solver
+        momentum for solver.
     '''
     def __init__( #pylint: disable=too-many-arguments
         self,
         learning_rate: float,
         batch_size: int,
         max_iter: int,
+        warmup_iter: int = 1000,
         momentum: float = 0.9,
     ):
         self.learning_rate = learning_rate
         self.batch_size = batch_size
         self.max_iter = max_iter
+        self.warmup_iter = warmup_iter
         self.momentum = momentum
 
         self._check_config()
@@ -48,6 +52,7 @@ class GinjinnTrainingConfiguration: #pylint: disable=too-few-public-methods
         cfg.SOLVER.IMS_PER_BATCH = self.batch_size
         cfg.SOLVER.BASE_LR = self.learning_rate
         cfg.SOLVER.MAX_ITER = self.max_iter
+        cfg.SOLVER.WARMUP_ITERS = self.warmup_iter
         cfg.SOLVER.MOMENTUM = self.momentum
 
     @classmethod
@@ -70,6 +75,7 @@ class GinjinnTrainingConfiguration: #pylint: disable=too-few-public-methods
             'learning_rate': 0.001,
             'batch_size': 1,
             'max_iter': 40000,
+            'warmup_iter': 1000,
             'momentum': 0.9,
         }
 
@@ -81,6 +87,7 @@ class GinjinnTrainingConfiguration: #pylint: disable=too-few-public-methods
             learning_rate=config['learning_rate'],
             batch_size=config['batch_size'],
             max_iter=config['max_iter'],
+            warmup_iter=config['warmup_iter'],
             momentum=config['momentum'],
         )
 
@@ -121,6 +128,19 @@ class GinjinnTrainingConfiguration: #pylint: disable=too-few-public-methods
         if self.max_iter < 1:
             raise InvalidTrainingConfigurationError(
                 'max_iter must be greater than or equal to 1'
+            )
+
+    def _check_warmup_iter(self):
+        ''' Check warmup iter config
+
+        Raises
+        ------
+        InvalidTrainingConfigurationError
+            Raised for invalid warmup iter values.
+        '''
+        if self.warmup_iter < 1:
+            raise InvalidTrainingConfigurationError(
+                'warmup_iter must be greater than or equal to 1'
             )
 
     def _check_momentum(self):

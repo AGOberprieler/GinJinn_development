@@ -75,6 +75,7 @@ def example_config(tmp_dir, simulate_coco_train, simulate_coco_validation):
 
     config_dir = os.path.join(tmp_dir, 'example_config')
     os.mkdir(config_dir)
+    os.mkdir(os.path.join(config_dir, 'outputs'))
     config['project_dir'] = os.path.abspath(config_dir)
 
     config_file = os.path.join(config_dir, 'ginjinn_config.yaml')

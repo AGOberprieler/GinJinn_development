@@ -64,7 +64,9 @@ def example_project(tmp_dir, example_config):
     config, _ = example_config
 
     project_dir = os.path.join(tmp_dir, 'example_project')
+    config['project_dir'] = project_dir
     os.mkdir(project_dir)
+    os.mkdir(os.path.join(project_dir, 'outputs'))
 
     config_file = os.path.join(project_dir, 'ginjinn_config.yaml')
     with open(config_file, 'w') as config_f:
