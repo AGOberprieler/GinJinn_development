@@ -10,7 +10,7 @@ def build_pvoc_annotation( #pylint: disable=too-many-arguments
     path: str,
     img_size: List[int],
     category: str,
-    bbox: List[float],
+    bbox: List[int],
     segmented: int = 0,
     truncated: int = 0,
     difficult: int = 0,
@@ -34,7 +34,7 @@ def build_pvoc_annotation( #pylint: disable=too-many-arguments
         List (or np.array) of [width, height, depth].
     category : str
         Object category.
-    bbox : List[float]
+    bbox : List[int]
         List (or np.array) of [xmin, ymin, xmax, ymax].
     segmented : int, optional
         Whether the object is segmented, by default 0. Ignored by GinJinn.
