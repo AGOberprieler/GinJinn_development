@@ -238,7 +238,9 @@ def generate_simple_shapes_pvoc( #pylint: disable=too-many-arguments,too-many-lo
                     img, min_r, max_r, rot_min=min_rot, rot_max=max_rot, col=col
                 )
                 category = 'triangle'
-            bbox = np.array([*np.clip(np.min(contour, 0), 0, w-1), *np.clip(np.max(contour, 0), 0, h-1)])
+            bbox = np.array(
+                [*np.clip(np.min(contour, 0), 0, w-1), *np.clip(np.max(contour, 0), 0, h-1)]
+            )
             bbox = np.array(bbox)
 
             annotations.append(build_pvoc_annotation(
