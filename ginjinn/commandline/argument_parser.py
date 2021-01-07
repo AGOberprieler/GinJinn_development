@@ -297,7 +297,7 @@ def _setup_simulate_parser(subparsers):
         ''',
         description = '''
             Simulate datasets.
-        '''
+        ''',
     )
     simulate_parsers = parser.add_subparsers(
         dest='simulate_subcommand',
@@ -309,12 +309,15 @@ def _setup_simulate_parser(subparsers):
         'shapes',
         help = '''
             Simulate a simple segmentation dataset with COCO annotations,
+            or a simple bounding-box dataset with PVOC annotations,
             containing two classes: circles and triangles.
         ''',
         description = '''
             Simulate a simple segmentation dataset with COCO annotations,
+            or a simple bounding-box dataset with PVOC annotations,
             containing two classes: circles and triangles.
-        '''
+        ''',
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     required = shapes_parser.add_argument_group('required arguments')
     required.add_argument(
@@ -327,6 +330,15 @@ def _setup_simulate_parser(subparsers):
     )
 
     optional = shapes_parser.add_argument_group('optional arguments')
+    optional.add_argument(
+        '-a', '--ann_type',
+        type = str,
+        help = '''
+            Type of annotations to simulate.
+        ''',
+        choices=['COCO', 'PVOC'],
+        default='COCO',
+    )
     optional.add_argument(
         '-n', '--n_images',
         type = int,
@@ -480,7 +492,7 @@ class GinjinnArgumentParser():
 
     def __init__(self):
         self.parser = argparse.ArgumentParser(
-            description=self._description
+            description=self._description,
         )
         self.parser.add_argument(
             '-d', '--debug',
