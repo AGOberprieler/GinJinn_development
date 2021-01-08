@@ -178,6 +178,40 @@ def test_splitting(tmp_dir, simulate_coco):
     with mock.patch('builtins.input', lambda *args: 'n'):
         splitter.ginjinn_split(args)
 
+def test_splitting_pvoc(tmp_dir, simulate_pvoc):
+    img_dir, ann_dir = simulate_pvoc
+
+
+    split_dir = os.path.join(tmp_dir, 'test_splitting_pvoc_0')
+    os.mkdir(split_dir)
+
+    args = argument_parser.GinjinnArgumentParser().parse_args(
+        [
+            'split',
+            '-i', img_dir,
+            '-a', ann_dir,
+            '-o', split_dir,
+            '-d', 'bbox-detection',
+            '-k', 'PVOC'
+        ]
+    )
+
+    def y_gen():
+        while True:
+            yield 'y'
+    y_it = y_gen()
+
+    def y(*args, **kwargs):
+        return next(y_it)
+    
+    with mock.patch('builtins.input', y):
+        splitter.ginjinn_split(args)
+
+    with mock.patch('builtins.input', y):
+        splitter.ginjinn_split(args)
+    
+    with mock.patch('builtins.input', lambda *args: 'n'):
+        splitter.ginjinn_split(args)
 
 def test_simulate(tmp_dir):
     simulate_dir = os.path.join(tmp_dir, 'test_simulate_0')
