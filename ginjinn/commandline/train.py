@@ -5,8 +5,6 @@ import os
 import sys
 from ginjinn.ginjinn_config import GinjinnConfiguration
 import ginjinn.ginjinn_config.config_error as config_error
-from ginjinn.data_reader.load_datasets import load_train_val_sets
-from ginjinn.trainer import ValTrainer, Trainer
 
 def ginjinn_train(args):
     '''ginjinn_train
@@ -19,6 +17,11 @@ def ginjinn_train(args):
         Parsed GinJinn commandline arguments for the ginjinn train
         subcommand.
     '''
+
+    # import here to reduce startup time when train is not called.
+    from ginjinn.data_reader.load_datasets import load_train_val_sets
+    from ginjinn.trainer import ValTrainer, Trainer
+
     project_dir = args.project_dir
     config_file = os.path.join(project_dir, 'ginjinn_config.yaml')
 
