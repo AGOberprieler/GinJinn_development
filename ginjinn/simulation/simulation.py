@@ -13,7 +13,7 @@ import numpy as np
 from .coco_utils import \
     build_coco_annotation, build_coco_category, build_coco_dataset,\
     build_coco_image, build_coco_info, build_coco_license
-from .pvoc_utils import build_pvoc_annotation
+from .pvoc_utils import build_pvoc_annotation, build_pvoc_object
 from .shapes import add_random_circle, add_random_triangle
 from .utils import polygon_area
 
@@ -215,9 +215,9 @@ def generate_simple_shapes_pvoc( #pylint: disable=too-many-arguments,too-many-lo
     annotations = []
     images = []
 
-    ann_id = 0
-
     for i in range(n_images):
+        objects = []
+
         w, h = np.random.randint(min_w, max_w + 1), np.random.randint(min_h, max_h + 1)
         img = np.full((h, w, 3), (0.8, 0.8, 0.8))
 
@@ -226,8 +226,6 @@ def generate_simple_shapes_pvoc( #pylint: disable=too-many-arguments,too-many-lo
         images.append(file_name)
 
         for _ in range(np.random.randint(min_n_shapes, max_n_shapes)):
-            ann_id +=1
-
             if np.random.uniform() > triangle_prob:
                 col = np.clip(np.random.normal(circle_col, scale=col_var), 0, 1)
                 contour, *_ = add_random_circle(img, min_r, max_r, col=col)
@@ -243,20 +241,24 @@ def generate_simple_shapes_pvoc( #pylint: disable=too-many-arguments,too-many-lo
             ).astype(np.int)
             bbox = np.array(bbox)
 
-            annotations.append(build_pvoc_annotation(
-                folder='images',
-                file_name=os.path.basename(file_name),
-                path=os.path.abspath(file_name),
-                img_size=np.array([w, h, 3]),
+            objects.append(build_pvoc_object(
                 category=category,
                 bbox=bbox,
-                segmented=0,
                 truncated=0,
                 difficult=0,
-                pose='Unspecified',
-                database_source='Unknown',
-                verified='yes',
+                pose='unspecified'
             ))
+
+        annotations.append(build_pvoc_annotation(
+            folder='images',
+            file_name=os.path.basename(file_name),
+            path=os.path.abspath(file_name),
+            img_size=np.array([w, h, 3]),
+            objects=objects,
+            segmented=0,
+            database_source='Unknown',
+            verified='yes',
+        ))
 
         # add noise
         img = skimage.filters.gaussian(img, sigma=1, multichannel=True)
@@ -267,11 +269,11 @@ def generate_simple_shapes_pvoc( #pylint: disable=too-many-arguments,too-many-lo
         skimage.io.imsave(file_name, img)
 
     for ann_id, ann in enumerate(annotations):
-        file_name = os.path.join(ann_dir, f'ann_{ann_id}.xml')
+        file_name = os.path.join(ann_dir, f'img_{ann_id + 1}.xml')
 
         with open(file_name, 'w') as xml_f:
             xml_f.write(
                 minidom.parseString(
-                    ET.tostring(ann, encoding='utf-8')
+                    ET.tostring(ann, encoding=encoding)
                 ).toprettyxml(indent='  ')
             )
