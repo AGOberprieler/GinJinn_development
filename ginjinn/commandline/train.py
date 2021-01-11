@@ -66,10 +66,7 @@ def ginjinn_train(args):
     else:
         trainer = Trainer.from_ginjinn_config(config)
 
-    print(trainer)
-    print('args.resume:', args.resume)
     resume = args.resume if not args.resume is None else config.options.resume
-    print(resume)
 
     trainer.resume_or_load(resume=resume)
     trainer.train()
