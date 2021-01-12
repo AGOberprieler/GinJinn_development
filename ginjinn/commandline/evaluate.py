@@ -18,9 +18,6 @@ def ginjinn_evaluate(args):
         subcommand.
     '''
 
-    # import here to reduce startup time when train is not called.
-    from ginjinn.data_reader.load_datasets import load_train_val_sets
-
     project_dir = args.project_dir
     config_file = os.path.join(project_dir, 'ginjinn_config.yaml')
 
@@ -56,6 +53,11 @@ def ginjinn_evaluate(args):
         except Exception as any_e:
             raise any_e
 
-    # TODO register dataset(s) globally
+    # import here to reduce startup time when train is not called.
+    from ginjinn.evaluation import evaluate
+    from ginjinn.data_reader.load_datasets import load_test_set
 
-    # TODO implement evaluation
+    # register data set globally
+    load_test_set(config)
+
+    evaluate(config)

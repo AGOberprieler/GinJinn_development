@@ -6,13 +6,13 @@ from detectron2.config import CfgNode
 from detectron2.data import build_detection_test_loader
 from detectron2.evaluation import COCOEvaluator, inference_on_dataset
 from detectron2.modeling import build_model
+from ginjinn.ginjinn_config import GinjinnConfiguration
 
-
-def evaluate(
+def evaluate_detectron(
     cfg: CfgNode,
     task: str,
     dataset: str = "test"
-    ):
+):
     """Evaluate registered test dataset using COCOEvaluator
 
     Parameters
@@ -50,3 +50,25 @@ def evaluate(
     test_loader = build_detection_test_loader(cfg, dataset)
     eval_results = inference_on_dataset(model, test_loader, evaluator)
     return eval_results
+
+def evaluate(
+    cfg: GinjinnConfiguration,
+):
+    """Evaluate registered test dataset using COCOEvaluator
+
+    Parameters
+    ----------
+    cfg : GinjinnConfiguration
+        Ginjinn configuration object.
+
+    Returns
+    -------
+    eval_results : OrderedDict
+        AP values
+    """
+
+    return evaluate_detectron(
+        cfg.to_detectron2_config(is_test=True),
+        task = cfg.task,
+        dataset = 'test',
+    )
