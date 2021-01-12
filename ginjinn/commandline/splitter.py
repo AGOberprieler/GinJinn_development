@@ -3,7 +3,7 @@
 
 import pandas as pd
 
-from .utils import confirmation_cancel
+from ginjinn.utils import confirmation_cancel
 
 def on_split_dir_exists(split_dir: str) -> bool:
     '''on_split_dir_exists

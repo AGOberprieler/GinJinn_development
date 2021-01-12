@@ -1,28 +1,41 @@
-''' Utilities for the commandline application
+''' Module for the ginjinn utils subcommand.
 '''
 
-import sys
+def ginjinn_utils(args):
+    '''ginjinn_utils
 
-def confirmation_cancel(question: str) -> bool:
-    '''Ask question expecting 'yes' or 'no'.
+    GinJinn utils command.
 
     Parameters
     ----------
-    question : str
-        Question to be printed
-
-    Returns
-    -------
-    bool
-        True or False for 'yes' or 'no', respectively
+    args
+        Parsed GinJinn commandline arguments for the ginjinn utils
+        subcommand.
     '''
-    valid = {'yes': True, 'y': True, 'no': False, 'n': False}
-    cancel = ['c', 'cancel', 'quit', 'q']
 
-    while True:
-        choice = input(question + ' [y(es)/n(o)/c(ancel)]\n').strip().lower()
-        if choice in valid.keys():
-            return valid[choice]
-        elif choice in cancel:
-            sys.exit()
-        print('Please type "yes" or "no" (or "cancel")\n')
+    if args.utils_subcommand == 'merge':
+        utils_merge(args)
+    else:
+        err = f'Unknown utils subcommand "{args.utils_subcommand}".'
+        raise Exception(err)
+
+def utils_merge(args):
+    '''ginjinn_utils_merge
+
+    GinJinn utils merge command.
+
+    Parameters
+    ----------
+    args
+        Parsed GinJinn commandline arguments for the ginjinn utils merge
+        subcommand.
+    '''
+
+    print(args)
+
+    image_dirs = [x[0] for x in args.image_dir]
+    ann_paths = [x[0] for x in args.ann_path]
+
+    print(image_dirs)
+    print(ann_paths)
+    # TODO implement!

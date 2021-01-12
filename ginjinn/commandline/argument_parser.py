@@ -475,6 +475,100 @@ def _setup_simulate_parser(subparsers):
 
     return parser
 
+def _setup_utils_parser(subparsers):
+    '''_setup_utils_parser
+
+    Setup parser for the ginjinn utils subcommand.
+
+    Parameters
+    ----------
+    subparsers
+        An object returned by argparse.ArgumentParser.add_subparsers()
+
+    Returns
+    -------
+    parser
+        An argparse ArgumentParser, registered for the utils subcommand.
+    '''
+
+    parser = subparsers.add_parser(
+        'utils',
+        help = '''
+            Utility commands.
+        ''',
+        description = '''
+            Utility commands.
+        ''',
+    )
+
+    utils_parsers = parser.add_subparsers(
+        dest='utils_subcommand',
+        help='Utility commands.'
+    )
+
+    # == merge
+    merge_parser = utils_parsers.add_parser(
+        'merge',
+        help = '''
+            Merge multiple data sets.
+        ''',
+        description = '''
+            Merge multiple data sets.
+        ''',
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
+
+    # required
+    required = merge_parser.add_argument_group('required arguments')
+
+    required.add_argument(
+        '-o', '--out_dir',
+        type = str,
+        help = '''
+            Path to directory, which the merged data set should be written to.
+        ''',
+        required=True,
+    )
+
+    required.add_argument(
+        '-i', '--image_dir',
+        type = str,
+        help = '''
+            Path to a single image directory.
+        ''',
+        required=True,
+        nargs='+',
+        action='append',
+    )
+
+    required.add_argument(
+        '-a', '--ann_path',
+        type = str,
+        help = '''
+            Path to a single annotation file (COCO) or annotations directory (PVOC).
+        ''',
+        required=True,
+        nargs='+',
+        action='append',
+    )
+
+    # optional
+    optional = merge_parser.add_argument_group('optional arguments')
+    optional.add_argument(
+        '-t', '--ann_type',
+        type = str,
+        help = '''
+            Annotation type of the data set.
+        ''',
+        choices=['COCO', 'PVOC'],
+        default='COCO',
+    )
+
+    # == other utils
+    # ...
+
+    return parser
+
 # Note: It is a deliberate decision not to subclass argparse.ArgumentParser.
 #       It might be preferable to work with composition instead of inheritance,
 #       since it might be desirable to include postprocessing steps after argparse
@@ -538,5 +632,6 @@ class GinjinnArgumentParser():
         _setup_predict_parser(self._subparsers)
         _setup_split_parser(self._subparsers)
         _setup_simulate_parser(self._subparsers)
+        _setup_utils_parser(self._subparsers)
 
         # TODO: implement

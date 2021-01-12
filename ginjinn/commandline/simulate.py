@@ -5,7 +5,7 @@ import os
 import sys
 import shutil
 
-from .utils import confirmation_cancel
+from ginjinn.utils import confirmation_cancel
 from ginjinn.simulation import generate_simple_shapes_coco, generate_simple_shapes_pvoc
 
 

@@ -7,7 +7,7 @@ import os
 
 import pkg_resources
 
-from .utils import confirmation_cancel
+from ginjinn.utils import confirmation_cancel
 
 def ginjinn_new(args):
     '''ginjinn_new

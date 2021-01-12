@@ -6,6 +6,7 @@ from .splitter import ginjinn_split
 from .simulate import ginjinn_simulate
 from .new import ginjinn_new
 from .train import ginjinn_train
+from .utils import ginjinn_utils
 
 class GinjinnCommandlineApplication():
     '''GinjinnCommandlineApplication
@@ -38,6 +39,8 @@ class GinjinnCommandlineApplication():
             self._run_simulate()
         elif self.args.subcommand == 'train':
             self._run_train()
+        elif self.args.subcommand == 'utils':
+            self._run_utils()
 
     def _run_split(self):
         '''_run_split
@@ -66,3 +69,10 @@ class GinjinnCommandlineApplication():
         '''
 
         ginjinn_train(self.args)
+
+    def _run_utils(self):
+        '''_run_utils
+        Run the GinJinn utils command.
+        '''
+
+        ginjinn_utils(self.args)
