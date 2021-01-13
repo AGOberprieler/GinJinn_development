@@ -6,6 +6,20 @@ import sys
 from ginjinn.ginjinn_config import GinjinnConfiguration
 import ginjinn.ginjinn_config.config_error as config_error
 
+def write_training(
+    train_res: dict,
+    file_path: str,
+):
+    '''write_training [summary]
+
+    Parameters
+    ----------
+    train_res : dict
+        [description]
+    file_path : str
+        [description]
+    '''
+
 def ginjinn_train(args):
     '''ginjinn_train
 
@@ -69,4 +83,6 @@ def ginjinn_train(args):
     resume = args.resume if not args.resume is None else config.options.resume
 
     trainer.resume_or_load(resume=resume)
-    trainer.train()
+    train_res = trainer.train()
+
+    print(train_res)

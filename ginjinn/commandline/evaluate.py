@@ -3,10 +3,14 @@
 
 import os
 import sys
+import pandas as pd
 from ginjinn.ginjinn_config import GinjinnConfiguration
 import ginjinn.ginjinn_config.config_error as config_error
 
-def write_evaluation(eval_res: dict):
+def write_evaluation(
+    eval_res: dict,
+    file_path: str,
+):
     '''write_evaluation
 
     Write evaluation results.
@@ -15,7 +19,14 @@ def write_evaluation(eval_res: dict):
     ----------
     eval_res : dict
         Dictionary containing the evalaution results
+    file_path : str
+        Path the evaluation results should be written to.
     '''
+
+    res_df = pd.DataFrame.from_dict(eval_res)
+    res_df.to_csv(file_path)
+
+
 
 def ginjinn_evaluate(args):
     '''ginjinn_evaluate
@@ -71,5 +82,10 @@ def ginjinn_evaluate(args):
     # register data set globally
     load_test_set(config)
 
+    # evaluate
     res = evaluate(config)
-    print(res)
+
+    # write evaluation results
+    eval_res_file = os.path.join(config.project_dir, 'evaluation.csv')
+    write_evaluation(res, eval_res_file)
+    print(f'Evaluation results written to "{eval_res_file}".')
