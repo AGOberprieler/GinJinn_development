@@ -74,7 +74,10 @@ def ginjinn_train(args):
     # register dataset(s) globally
     load_train_val_sets(config)
 
-    # TODO implement training
+    # overwrite max_iter if passed as commandline argument
+    if not args.n_iter is None:
+        config.training.max_iter = args.n_iter
+
     if config.input.val:
         trainer = ValTrainer.from_ginjinn_config(config)
     else:

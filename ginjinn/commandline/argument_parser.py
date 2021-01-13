@@ -56,8 +56,6 @@ def _setup_train_parser(subparsers):
         An argparse ArgumentParser, registered for the train subcommand.
     '''
 
-    # TODO: implement
-
     parser = subparsers.add_parser(
         'train',
         help = '''
@@ -85,6 +83,13 @@ def _setup_train_parser(subparsers):
     #     # action='store_true',
     #     default=None,
     # )
+
+    parser.add_argument(
+        '-n', '--n_iter',
+        type = int,
+        help = 'Number of iterations.',
+        default = None,
+    )
 
     parser.add_argument('-r', '--resume', dest='resume', action='store_true')
     parser.add_argument('-nr', '--no-resume', dest='resume', action='store_false')
@@ -504,6 +509,26 @@ def _setup_utils_parser(subparsers):
     utils_parsers = parser.add_subparsers(
         dest='utils_subcommand',
         help='Utility commands.'
+    )
+
+    # == cleanup
+    cleanup_parser = utils_parsers.add_parser(
+        'cleanup',
+        help = '''
+            Cleanup GinJinn project directory, removing the outputs directory and evaluation an training results.
+        ''',
+        description = '''
+            Cleanup GinJinn project directory, removing the outputs directory and evaluation an training results.
+        ''',
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
+
+    cleanup_parser.add_argument(
+        'project_dir',
+        type = str,
+        help = '''
+            GinJinn project directory to be cleaned up.
+        ''',
     )
 
     # == merge
