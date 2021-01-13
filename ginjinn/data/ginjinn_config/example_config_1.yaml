@@ -18,6 +18,7 @@ training:
   learning_rate: 0.000125
   batch_size: 1
   max_iter: 100
+  eval_period: 50
 # Options for image augmentation
 augmentation:
   - horizontal_flip:
