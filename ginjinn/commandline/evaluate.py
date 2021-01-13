@@ -60,4 +60,5 @@ def ginjinn_evaluate(args):
     # register data set globally
     load_test_set(config)
 
-    evaluate(config)
+    res = evaluate(config)
+    print(res)
