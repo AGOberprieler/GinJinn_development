@@ -53,7 +53,7 @@ def get_class_names_pvoc(ann_dirs: List[str]) -> List[str]:
 
     class_names = class_names.pop()
 
-    return class_names
+    return list(class_names)
 
 
 def get_class_names_coco(ann_files: List[str]) -> List[str]:
@@ -91,7 +91,7 @@ def get_class_names_coco(ann_files: List[str]) -> List[str]:
 
     class_names = class_names.pop()
 
-    return class_names
+    return list(class_names)
 
 
 def save_class_names(
