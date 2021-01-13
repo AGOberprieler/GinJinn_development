@@ -6,6 +6,17 @@ import sys
 from ginjinn.ginjinn_config import GinjinnConfiguration
 import ginjinn.ginjinn_config.config_error as config_error
 
+def write_evaluation(eval_res: dict):
+    '''write_evaluation
+
+    Write evaluation results.
+
+    Parameters
+    ----------
+    eval_res : dict
+        Dictionary containing the evalaution results
+    '''
+
 def ginjinn_evaluate(args):
     '''ginjinn_evaluate
 
