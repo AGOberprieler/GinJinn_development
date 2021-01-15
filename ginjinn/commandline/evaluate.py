@@ -10,6 +10,7 @@ import ginjinn.ginjinn_config.config_error as config_error
 def write_evaluation(
     eval_res: dict,
     file_path: str,
+    sep=',',
 ):
     '''write_evaluation
 
@@ -24,7 +25,7 @@ def write_evaluation(
     '''
 
     res_df = pd.DataFrame.from_dict(eval_res)
-    res_df.to_csv(file_path)
+    res_df.to_csv(file_path, sep=sep)
 
 
 

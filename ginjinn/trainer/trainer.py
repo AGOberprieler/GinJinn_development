@@ -13,12 +13,13 @@ from detectron2.data import build_detection_train_loader, build_detection_test_l
 from detectron2.data import DatasetMapper
 from detectron2.data import detection_utils
 from detectron2.data import transforms as T
+from detectron2.config import CfgNode
 from detectron2.engine.defaults import DefaultTrainer
 from detectron2.engine.hooks import HookBase
 from detectron2.evaluation import COCOEvaluator
 from detectron2.utils.logger import log_every_n_seconds
 from detectron2.utils import comm
-
+from ginjinn.ginjinn_config import GinjinnConfiguration
 
 class Trainer(DefaultTrainer):
     """Trainer class which allows to set the applied augmentations at runtime.
@@ -37,8 +38,13 @@ class Trainer(DefaultTrainer):
         cls._augmentations = augmentations
 
     @classmethod
-    def build_train_loader(cls, cfg):
+    def build_train_loader(cls, cfg: CfgNode):
         """Build data loader for training.
+
+        Parameters
+        ----------
+        cfg : CfgNode
+            Detectron2 config.
 
         Returns
         ----------
@@ -62,7 +68,7 @@ class Trainer(DefaultTrainer):
         )
 
     @classmethod
-    def from_ginjinn_config(cls, gj_cfg):
+    def from_ginjinn_config(cls, gj_cfg : GinjinnConfiguration) -> CfgNode:
         '''from_ginjinn_config
 
         Build ValTrainer object from GinjinnConfiguration instead of
@@ -70,8 +76,12 @@ class Trainer(DefaultTrainer):
 
         Parameters
         ----------
-        gj_cfg
+        gj_cfg : GinjinnConfiguration
             GinjinnConfiguration object.
+
+        Returns
+        -------
+        CfgNode
         '''
 
         cls.set_augmentations(gj_cfg.augmentation.to_detectron2_augmentations())
@@ -108,13 +118,15 @@ class ValTrainer(Trainer):
     """This trainer class evaluates validation data during training.
     """
     @classmethod
-    def build_evaluator(cls, cfg, dataset_name):
+    def build_evaluator(cls, cfg: CfgNode, dataset_name: str):
         """Builds COCO evaluator for a given dataset.
 
         Parameters
         ----------
+        cfg : CfgNode
+            Detectron2 config.
         dataset_name : str
-        output_folder : str
+            Name of the evaluation data set.
 
         Returns
         ----------
@@ -146,7 +158,7 @@ class ValTrainer(Trainer):
         return hooks
 
 
-def mapper_train(dataset_dict, augmentations):
+def mapper_train(dataset_dict: dict, augmentations: list):
     """
     This basic mapper function takes a dataset dictionary in Detectron2 format,
     and maps it to a format used by the model.
@@ -157,7 +169,7 @@ def mapper_train(dataset_dict, augmentations):
         Annotations for one image in Detectron2 format
     augmentations : list
         Augmentations and transformations to be applied
-    
+
     Returns
     -------
     dict
@@ -182,23 +194,22 @@ def mapper_train(dataset_dict, augmentations):
 
 
 class LossEvalHook(HookBase):
+    # pylint: disable=E1101
     """
     This hook allows periodic loss calculation for the validation data set.
     It is executed every ``eval_period`` iterations and after the last iteration.
+
+    Parameters
+    ----------
+    eval_period : int
+        Period to calculate losses. If set to 0, they are only calculated after the
+        last iteration.
+    model : torch.nn.Module
+        Model to be used
+    data_loader : iterable
+        produces data to be run by `model(data)`
     """
-    # pylint: disable=E1101
-    def __init__(self, eval_period, model, data_loader):
-        """
-        Parameters
-        ----------
-        eval_period : int
-            Period to calculate losses. If set to 0, they are only calculated after the
-            last iteration.
-        model : torch.nn.Module
-            Model to be used
-        data_loader : iterable
-            produces data to be run by `model(data)`
-        """
+    def __init__(self, eval_period: int, model: torch.nn.Module, data_loader):
         self._model = model
         self._period = eval_period
         self._data_loader = data_loader
