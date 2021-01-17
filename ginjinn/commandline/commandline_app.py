@@ -8,6 +8,7 @@ from .new import ginjinn_new
 from .train import ginjinn_train
 from .utils import ginjinn_utils
 from .evaluate import ginjinn_evaluate
+from .predict import ginjinn_predict
 
 class GinjinnCommandlineApplication():
     '''GinjinnCommandlineApplication
@@ -44,6 +45,8 @@ class GinjinnCommandlineApplication():
             self._run_utils()
         elif self.args.subcommand == 'evaluate':
             self._run_evaluate()
+        elif self.args.subcommand == 'predict':
+            self._run_predict()
 
     def _run_split(self):
         '''_run_split
@@ -86,3 +89,10 @@ class GinjinnCommandlineApplication():
         '''
 
         ginjinn_evaluate(self.args)
+
+    def _run_predict(self):
+        '''_run_predict
+        Run the GinJinn predict command.
+        '''
+
+        ginjinn_predict(self.args)

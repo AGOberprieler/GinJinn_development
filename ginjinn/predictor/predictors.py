@@ -30,7 +30,7 @@ class GinjinnPredictor(DefaultPredictor):
         replicates: int = 1
     ):
         super().__init__(cfg)
-        self.replicates = replicates # TODO: thin about whether we need this
+        self.replicates = replicates # TODO: think about whether we need this
 
 
 def predict_and_save(
@@ -60,7 +60,7 @@ def predict_and_save(
     task : str
         "bbox-detection" or "instance-segmentation"
     predictor : object
-        e.g. detecton2's dafult predictor
+        e.g. detecton2's dafault predictor
     save_cropped : bool
         If true, bounding boxes for each predicted instance above threshold are cropped
         and saved as images. In case of instance segmentation, segmentation masks are

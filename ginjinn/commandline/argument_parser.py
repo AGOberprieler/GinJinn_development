@@ -160,7 +160,8 @@ def _setup_predict_parser(subparsers):
         ''',
         description = '''
             Predict from a trained GinJinn model.
-        '''
+        ''',
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     parser.add_argument(
         'project_dir',
@@ -168,6 +169,57 @@ def _setup_predict_parser(subparsers):
         help = '''
             Path to GinJinn project directory.
         '''
+    )
+
+    # Required
+    required = parser.add_argument_group('required arguments')
+    required.add_argument(
+        '-i', '--image_path',
+        type = str,
+        help = '''
+            Either path to an image directory or to a single image.
+        ''',
+        required=True,
+    )
+
+    # Optional
+    optional = parser.add_argument_group('optional arguments')
+    optional.add_argument(
+        '-o', '--out_dir',
+        type = str,
+        help = '''
+            Output directory. If None, output will be written to
+            "<project_dir>/prediction".
+        ''',
+        default = None,
+    )
+
+    optional.add_argument(
+        '-c', '--save_cropped',
+        dest = 'save_cropped',
+        action = 'store_true',
+        help = '''
+            Save cropped bounding-boxes or segmentation masks.
+        '''
+    )
+    parser.set_defaults(save_cropped = False)
+
+    optional.add_argument(
+        '-t', '--threshold',
+        type = float,
+        help = '''
+            Prediction threshold. Only predictions with scores >= threshold are saved.
+        ''',
+        default = 0.75
+    )
+
+    optional.add_argument(
+        '-p', '--padding',
+        type = int,
+        help = '''
+            Padding for cropping bounding boxes.
+        ''',
+        default = 0
     )
 
     return parser
