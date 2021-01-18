@@ -82,7 +82,9 @@ def ginjinn_predict(args):
 
     # predictor
     from detectron2.engine.defaults import DefaultPredictor
-    predictor = DefaultPredictor(config.to_detectron2_config())
+    d2_cfg = config.to_detectron2_config()
+    d2_cfg.MODEL.WEIGHTS = os.path.join(d2_cfg.OUTPUT_DIR, 'model_final.pth')
+    predictor = DefaultPredictor(d2_cfg)
 
     # other
     save_cropped = args.save_cropped

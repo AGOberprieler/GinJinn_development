@@ -15,7 +15,7 @@ def test_simple_():
     args = p.parse_args(['evaluate', 'my_project_dir'])
 
     # predict
-    args = p.parse_args(['predict', 'my_project_dir'])
+    args = p.parse_args(['predict', 'my_project_dir', '-i', 'test'])
 
     # split
     args = p.parse_args([
