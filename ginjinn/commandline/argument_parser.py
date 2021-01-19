@@ -641,6 +641,70 @@ def _setup_utils_parser(subparsers):
         default='COCO',
     )
 
+    # == flatten
+    flatten_parser = utils_parsers.add_parser(
+        'flatten',
+        help = '''
+            Flatten a COCO data set (move all images in same directory).
+        ''',
+        description = '''
+            Flatten a COCO data set (move all images in same directory).
+        ''',
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
+
+    # required
+    flatten_required = flatten_parser.add_argument_group('required arguments')
+
+    flatten_required.add_argument(
+        '-o', '--out_dir',
+        type = str,
+        help = '''
+            Path to directory, which the flattened data set should be written to.
+        ''',
+        required=True,
+    )
+
+    flatten_required.add_argument(
+        '-i', '--image_root_dir',
+        type = str,
+        help = '''
+            Path to root image directory. For COCO this is generally the "images" directory
+            within the COCO data set directory.
+        ''',
+        required=True,
+    )
+
+    flatten_required.add_argument(
+        '-a', '--ann_path',
+        type = str,
+        help = '''
+            Path to the JSON annotation file.
+        ''',
+        required=True,
+    )
+
+    # optional
+    flatten_optional = flatten_parser.add_argument_group('optional arguments')
+    flatten_optional.add_argument(
+        '-s', '--seperator',
+        type = str,
+        help = '''
+            Seperator for the image path flattening.
+        ''',
+        default='~',
+    )
+    flatten_optional.add_argument(
+        '-c', '--custom_id',
+        dest = 'custom_id',
+        action = 'store_true',
+        help = '''
+            Replace image file names with a custom id. An ID mapping file
+            will be written if this option is set.
+        '''
+    )
+    parser.set_defaults(custom_id = False)
+
     # == other utils
     # ...
 
