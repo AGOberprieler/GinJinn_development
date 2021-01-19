@@ -96,32 +96,38 @@ class GinjinnPredictor():
         img_names: List[str] = [],
         output_options: Iterable[str] = ("COCO", "cropped", "visualization"),
         padding: int = 0,
+        threshold: Union[float, int] = 0.8,
         seg_refinement: bool = False,
         refinement_device: str = "cuda:0",
         refinement_method: str = "full"
     ):
         """
-        img_names : list of str
+        img_names : list of str, default=[]
             File names of images to be used as input. By default, all images within self.img_dir
             will be used.
-        output_options : iterable of str
+        output_options : iterable of str, default=("COCO", "cropped", "visualization")
             Available output formats:
                 "COCO": Write predictions to COCO json file.
                 "cropped": Save cropped images and segmentation masks (if available).
                            In case of instance segmentation, an additional COCO json file with
                            annotations referring to the cropped images will be written.
                 "visualization": Saves input images overlaid with object predictions.
-        padding : int = 0
+        padding : int, default=0
             This option allows to increase the cropping range beyond the predicted bounding box.
             If possible, each side of the latter is shifted by the same number of pixels.
-        seg_refinement : bool = False
+        threshold : float or int, default=0.8
+            Minimum score of predicted instances
+        seg_refinement : bool, default=False
             If true, predictions are postprocessed with CascadePSP.
             This option only works for instance segmentation.
-        refinement_device : str
+        refinement_device : str, default="cuda:0"
             CPU or CUDA device for refinement with CascadePSP
-        refinement_method : str = "full"
+        refinement_method : str, default="full"
             If set to "fast", the local refinement step will be skipped.
         """
+        self.d2_cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = threshold
+        self.d2_cfg.MODEL.RETINANET.SCORE_THRESH_TEST = threshold
+
         self._clear_coco("annotations")
         self._clear_coco("annotations_cropped")
 
