@@ -55,9 +55,9 @@ class GinjinnPredictor():
         self._coco_annotations = dict()
         self._coco_images = dict()
 
-
+    @classmethod
     def from_ginjinn_config(
-        self,
+        cls,
         gj_cfg: GinjinnConfiguration,
         img_dir: str,
         outdir: str
@@ -82,7 +82,7 @@ class GinjinnPredictor():
         d2_cfg = gj_cfg.to_detectron2_config()
         d2_cfg.MODEL.WEIGHTS = os.path.join(d2_cfg.OUTPUT_DIR, "model_final.pth")
 
-        return self.__init__(
+        return cls(
             d2_cfg,
             get_class_names(gj_cfg.project_dir),
             img_dir,
