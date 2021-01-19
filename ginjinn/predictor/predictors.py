@@ -79,8 +79,11 @@ class GinjinnPredictor():
         GinjinnPredictor
         """
 
+        d2_cfg = gj_cfg.to_detectron2_config()
+        d2_cfg.MODEL.WEIGHTS = os.path.join(d2_cfg.OUTPUT_DIR, "model_final.pth")
+
         return self.__init__(
-            gj_cfg.to_detectron2_config(),
+            d2_cfg,
             get_class_names(gj_cfg.project_dir),
             img_dir,
             outdir,
