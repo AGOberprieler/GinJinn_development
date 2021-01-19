@@ -705,6 +705,16 @@ def _setup_utils_parser(subparsers):
     )
     parser.set_defaults(custom_id = False)
 
+    flatten_optional.add_argument(
+        '-x', '--annotated_only',
+        dest = 'annotated_only',
+        action = 'store_true',
+        help = '''
+            Whether only annotated images should be kept in the data set.
+        '''
+    )
+    parser.set_defaults(annotated_only = False)
+
     # == other utils
     # ...
 

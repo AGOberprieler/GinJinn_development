@@ -12,6 +12,7 @@ def flatten_coco(
     out_dir: str,
     sep: str = '~',
     custom_id: bool = False,
+    annotated_only: bool = False,
 ):
     '''flatten_coco
 
@@ -31,15 +32,22 @@ def flatten_coco(
         Seperator for path flattening, by default '~'
     custom_id : bool, optional
         Whether the new image name should be replaced with a custom id, by default False
+    annotated_only : bool, optional
+        Whether only annotated images should be kept in the data set.
     '''
-    with open(ann_file) as f:
-        annotations = json.load(f)
+    with open(ann_file) as ann_f:
+        annotations = json.load(ann_f)
 
     out_img_dir = os.path.join(out_dir, 'images')
     if not os.path.exists(out_img_dir):
         os.mkdir(out_img_dir)
 
+    if annotated_only:
+        img_ids = {ann['image_id'] for ann in annotations['annotations']}
+        annotations['images'] = [ann for ann in annotations['images'] if ann['id'] in img_ids]
+
     id_map = {}
+
     for i, img_ann in enumerate(annotations['images']):
         file_name = img_ann['file_name']
 

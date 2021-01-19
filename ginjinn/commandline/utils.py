@@ -22,9 +22,9 @@ def ginjinn_utils(args):
 
     if args.utils_subcommand == 'merge':
         utils_merge(args)
-    if args.utils_subcommand == 'cleanup':
+    elif args.utils_subcommand == 'cleanup':
         utils_cleanup(args)
-    if args.utils_subcommand == 'flatten':
+    elif args.utils_subcommand == 'flatten':
         utils_flatten(args)
     else:
         err = f'Unknown utils subcommand "{args.utils_subcommand}".'
@@ -99,6 +99,7 @@ def utils_flatten(args):
     ann_path = args.ann_path
     sep = args.seperator
     custom_id = args.custom_id
+    annotated_only = args.annotated_only
 
     if os.path.exists(out_dir):
         if confirmation_cancel(
@@ -117,6 +118,7 @@ def utils_flatten(args):
         out_dir=out_dir,
         sep=sep,
         custom_id=custom_id,
+        annotated_only=annotated_only,
     )
 
     print(f'Flattened data set written to {out_dir}.')
