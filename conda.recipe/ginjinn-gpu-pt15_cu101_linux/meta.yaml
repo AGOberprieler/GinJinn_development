@@ -27,7 +27,6 @@ requirements:
     - pycocotools
     - mock
     - imantics
-    - segmentation-refinement
 
 build:
   skip: true # [not linux]
