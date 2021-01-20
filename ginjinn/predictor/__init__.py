@@ -1,4 +1,4 @@
 ''' Predictor module
 '''
 
-from .predictors import GinjinnPredictor, predict_and_save
+from .predictors import GinjinnPredictor

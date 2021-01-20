@@ -17,7 +17,7 @@ from detectron2.data import MetadataCatalog
 from detectron2.engine.defaults import DefaultPredictor
 from detectron2.utils.visualizer import _create_text_labels, ColorMode, GenericMask
 from detectron2.utils.visualizer import VisImage, Visualizer
-import segmentation_refinement as refine
+import ginjinn.segmentation_refinement as refine
 import torch
 from ginjinn.data_reader.data_reader import get_class_names
 from ginjinn.ginjinn_config import GinjinnConfiguration

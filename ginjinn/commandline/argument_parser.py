@@ -199,7 +199,7 @@ def _setup_predict_parser(subparsers):
         dest = 'save_cropped',
         action = 'store_true',
         help = '''
-            Save cropped bounding-boxes or segmentation masks.
+            <INACTIVE> Save cropped bounding-boxes or segmentation masks.
         '''
     )
     parser.set_defaults(save_cropped = False)
@@ -208,7 +208,7 @@ def _setup_predict_parser(subparsers):
         '-t', '--threshold',
         type = float,
         help = '''
-            Prediction threshold. Only predictions with scores >= threshold are saved.
+            <INACTIVE> Prediction threshold. Only predictions with scores >= threshold are saved.
         ''',
         default = 0.75
     )
@@ -220,6 +220,36 @@ def _setup_predict_parser(subparsers):
             Padding for cropping bounding boxes.
         ''',
         default = 0
+    )
+
+    required.add_argument(
+        '-s', '--output_types',
+        help = '''
+            Output types.
+        ''',
+        choices=['COCO', 'cropped', 'visualization'],
+        nargs='+',
+        action='append',
+        default=['COCO'],
+    )
+
+    optional.add_argument(
+        '-r', '--seg_refinement',
+        dest = 'seg_refinement',
+        action = 'store_true',
+        help = '''
+            Apply segmentation refinement.
+        '''
+    )
+    parser.set_defaults(seg_refinement = False)
+
+    optional.add_argument(
+        '-m', '--refinement_method',
+        help = '''
+            Refinement method. Either "fast" or "full".
+        ''',
+        choices=['fast', 'full'],
+        default='full',
     )
 
     return parser

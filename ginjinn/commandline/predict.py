@@ -57,7 +57,7 @@ def ginjinn_predict(args):
 
     # input
     img_dir = None
-    img_names = None
+    img_names = []
     if os.path.isdir(image_path):
         img_dir = image_path
     else:
@@ -73,35 +73,27 @@ def ginjinn_predict(args):
         if not os.path.exists(out_dir):
             os.mkdir(out_dir)
 
-    # class_names
-    from ginjinn.data_reader.data_reader import get_class_names
-    class_names = get_class_names(config.project_dir)
-
-    # task
-    task = config.task
-
-    # predictor
-    from detectron2.engine.defaults import DefaultPredictor
-    d2_cfg = config.to_detectron2_config()
-    d2_cfg.MODEL.WEIGHTS = os.path.join(d2_cfg.OUTPUT_DIR, 'model_final.pth')
-    predictor = DefaultPredictor(d2_cfg)
-
     # other
     save_cropped = args.save_cropped
     threshold = args.threshold
     padding = args.padding
+    seg_refinement = args.seg_refinement
+    refinement_method = args.refinement_method
 
-    from ginjinn.predictor import predict_and_save
-    predict_and_save(
+    output_options = args.output_types
+    output_options = list({x if not isinstance(x, list) else x[0] for x in output_options})
+
+    from ginjinn.predictor import GinjinnPredictor
+    predictor = GinjinnPredictor.from_ginjinn_config(
+        gj_cfg=config,
         img_dir=img_dir,
         outdir=out_dir,
-        class_names=class_names,
-        task=task,
-        predictor=predictor,
-        save_cropped=save_cropped,
-        threshold=threshold,
-        crop_margin=padding,
-        img_names=img_names,
     )
-
-    # TODO implement prediction
+    predictor.predict(
+        img_names=img_names,
+        output_options=output_options,
+        padding=padding,
+        seg_refinement=seg_refinement,
+        refinement_device='CUDA',
+        refinement_method=refinement_method,
+    )
