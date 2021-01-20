@@ -13,6 +13,7 @@ def flatten_coco(
     sep: str = '~',
     custom_id: bool = False,
     annotated_only: bool = False,
+    link_images: bool = True
 ):
     '''flatten_coco
 
@@ -34,6 +35,8 @@ def flatten_coco(
         Whether the new image name should be replaced with a custom id, by default False
     annotated_only : bool, optional
         Whether only annotated images should be kept in the data set.
+    link_images : bool, optional
+        If true, images won't be copied but hard-linked instead.
     '''
     with open(ann_file) as ann_f:
         annotations = json.load(ann_f)
@@ -58,14 +61,16 @@ def flatten_coco(
             new_file_name = file_name.replace('/', sep)
 
         img_ann['file_name'] = new_file_name
-        # os.symlink(
-        #     os.path.join(img_root_dir, file_name),
-        #     os.path.join(out_img_dir, new_file_name)
-        # )
-        shutil.copy(
-            os.path.join(img_root_dir, file_name),
-            os.path.join(out_img_dir, new_file_name)
-        )
+        if link_images:
+            os.link(
+                os.path.join(img_root_dir, file_name),
+                os.path.join(out_img_dir, new_file_name)
+            )
+        else:
+            shutil.copy(
+                os.path.join(img_root_dir, file_name),
+                os.path.join(out_img_dir, new_file_name)
+            )
 
     out_ann_file = os.path.join(out_dir, 'annotations.json')
     with open(out_ann_file, 'w') as ann_f:
