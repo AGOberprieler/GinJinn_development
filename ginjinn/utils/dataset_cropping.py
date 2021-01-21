@@ -111,6 +111,8 @@ def crop_seg_from_coco(
 
             # crop image
             image_cropped = image[y1:y2, x1:x2]
+            if image_cropped.size == 0:
+                continue
 
             outpath = os.path.join(
                 outdir,
