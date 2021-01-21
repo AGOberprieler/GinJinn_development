@@ -671,6 +671,16 @@ def _setup_utils_parser(subparsers):
         default='COCO',
     )
 
+    optional.add_argument(
+        '-l', '--link_images',
+        dest = 'link_images',
+        action = 'store_true',
+        help = '''
+            Create hard links instead of copying images.
+        '''
+    )
+    parser.set_defaults(link_images = False)
+
     # == flatten
     flatten_parser = utils_parsers.add_parser(
         'flatten',
