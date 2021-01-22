@@ -755,6 +755,63 @@ def _setup_utils_parser(subparsers):
     )
     parser.set_defaults(annotated_only = False)
 
+    # == crop
+    crop_parser = utils_parsers.add_parser(
+        'crop',
+        help = '''
+            Crop COCO data set bounding boxes as single images.
+            This is useful for multi-step models, e.g. training a bbox model
+            and a segmentation model on the cropped bboxes.
+        ''',
+        description = '''
+            Crop COCO data set bounding boxes as single images.
+            This is useful for multi-step models, e.g. training a bbox model
+            and a segmentation model on the cropped bboxes.
+        ''',
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
+
+    # required
+    crop_required = crop_parser.add_argument_group('required arguments')
+
+    crop_required.add_argument(
+        '-o', '--out_dir',
+        type = str,
+        help = '''
+            Path to directory, which the cropped data set should be written to.
+        ''',
+        required=True,
+    )
+
+    crop_required.add_argument(
+        '-i', '--image_dir',
+        type = str,
+        help = '''
+            Path to image directory.
+        ''',
+        required=True,
+    )
+
+    crop_required.add_argument(
+        '-a', '--ann_path',
+        type = str,
+        help = '''
+            Path to the JSON annotation file.
+        ''',
+        required=True,
+    )
+
+    # optional
+    crop_optional = crop_parser.add_argument_group('optional arguments')
+    crop_optional.add_argument(
+        '-p', '--padding',
+        type = int,
+        help = '''
+            Padding for bbox cropping.
+        ''',
+        default=5,
+    )
+
     # == other utils
     # ...
 

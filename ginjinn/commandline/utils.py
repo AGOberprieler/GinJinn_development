@@ -26,6 +26,8 @@ def ginjinn_utils(args):
         utils_cleanup(args)
     elif args.utils_subcommand == 'flatten':
         utils_flatten(args)
+    elif args.utils_subcommand == 'crop':
+        utils_crop(args)
     else:
         err = f'Unknown utils subcommand "{args.utils_subcommand}".'
         raise Exception(err)
@@ -99,7 +101,7 @@ def utils_cleanup(args):
     print(f'Project "{project_dir}" cleaned up.')
 
 def utils_flatten(args):
-    '''utils_clutils_flatteneanup
+    '''utils_flatten
 
     GinJinn utils flatten command.
 
@@ -138,3 +140,24 @@ def utils_flatten(args):
     )
 
     print(f'Flattened data set written to {out_dir}.')
+
+def utils_crop(args):
+    '''utils_crop
+
+    GinJinn utils crop command.
+
+    Parameters
+    ----------
+    args
+        Parsed GinJinn commandline arguments for the ginjinn utils crop
+        subcommand.
+    '''
+
+    from ginjinn.utils import crop_seg_from_coco
+
+    crop_seg_from_coco(
+        ann_file=args.ann_path,
+        img_dir=args.image_dir,
+        outdir=args.out_dir,
+        padding=args.padding,
+    )

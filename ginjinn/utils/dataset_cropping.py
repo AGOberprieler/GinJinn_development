@@ -32,10 +32,15 @@ def crop_seg_from_coco(
         Directory containing JPG images
     outdir : str
         Directory to which the output is written
-    padding : int, default=0
+    padding : int
         This option allows to increase the cropping range beyond the borders of a segmented object.
         If possible, each side of the corresponding bounding box is shifted by the same number of
         pixels.
+
+    Raises
+    ------
+    TypeError
+        Raised for unsupported segmentation format.
     """
 
     os.makedirs(os.path.join(outdir, "images_cropped"), exist_ok=True)
