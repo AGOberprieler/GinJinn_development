@@ -590,7 +590,8 @@ def _setup_utils_parser(subparsers):
 
     utils_parsers = parser.add_subparsers(
         dest='utils_subcommand',
-        help='Utility commands.'
+        help='Utility commands.',
+        required=True,
     )
 
     # == cleanup
