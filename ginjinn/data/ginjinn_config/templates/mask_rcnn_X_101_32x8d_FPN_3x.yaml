@@ -1,0 +1,29 @@
+project_dir: "ENTER PROJECT DIR HERE"
+task: "instance-segmentation"
+# Input data options
+input:
+  type: "COCO"
+  training:
+    annotation_path: "ENTER ANNOTATION FILE HERE"
+    image_path: "ENTER IMAGE DIR HERE"
+# Model options
+model:
+  name: "mask_rcnn_X_101_32x8d_FPN_3x"
+  weights: "precomputed"
+# Options for model training
+training:
+  learning_rate: 0.02
+  batch_size: 1
+  max_iter: 5000
+  eval_period: 250
+# Options for image augmentation
+augmentation:
+  - horizontal_flip:
+      probability: 0.25
+  - vertical_flip:
+      probability: 0.25
+
+# Additional options
+options:
+  n_threads: 1
+  resume: True

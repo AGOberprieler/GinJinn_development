@@ -214,6 +214,10 @@ class ROIHeadsConfig: #pylint: disable=too-few-public-methods
         default_config = {
         }
 
+        if config['iou_threshold']:
+            if not isinstance(config['iou_threshold'], list):
+                config['iou_threshold'] = [config['iou_threshold']]
+
         default_config.update(config)
         config = copy.deepcopy(default_config)
 
