@@ -8,7 +8,7 @@ input:
     image_path: "ENTER IMAGE DIR HERE"
 # Model options
 model:
-  name: "mask_rcnn_R_50_DC5_3x"
+  name: "mask_rcnn_R_101_DC5_3x"
   weights: "precomputed"
 # Options for model training
 training:
