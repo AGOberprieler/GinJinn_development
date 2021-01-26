@@ -195,22 +195,12 @@ def _setup_predict_parser(subparsers):
     )
 
     optional.add_argument(
-        '-c', '--save_cropped',
-        dest = 'save_cropped',
-        action = 'store_true',
-        help = '''
-            <INACTIVE> Save cropped bounding-boxes or segmentation masks.
-        '''
-    )
-    parser.set_defaults(save_cropped = False)
-
-    optional.add_argument(
         '-t', '--threshold',
         type = float,
         help = '''
-            <INACTIVE> Prediction threshold. Only predictions with scores >= threshold are saved.
+            Prediction threshold. Only predictions with scores >= threshold are saved.
         ''',
-        default = 0.75
+        default = 0.8
     )
 
     optional.add_argument(

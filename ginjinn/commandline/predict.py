@@ -74,7 +74,6 @@ def ginjinn_predict(args):
             os.mkdir(out_dir)
 
     # other
-    save_cropped = args.save_cropped
     threshold = args.threshold
     padding = args.padding
     seg_refinement = args.seg_refinement
@@ -96,4 +95,5 @@ def ginjinn_predict(args):
         seg_refinement=seg_refinement,
         refinement_device='CUDA',
         refinement_method=refinement_method,
+        threshold=threshold,
     )
