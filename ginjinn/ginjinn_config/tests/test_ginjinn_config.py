@@ -69,7 +69,7 @@ def config_dicts(tmp_input_paths):
         },
         'model': {
             'name': 'faster_rcnn_R_50_FPN_3x',
-            'weights': 'random',
+            'weights': '',
             'model_parameters': {
                 'roi_heads': {
                     'batch_size_per_image': 4096,
@@ -147,7 +147,7 @@ def test_from_dictionary_simple(config_dicts):
 def test_from_config_file_simple(config_file_examples):
     simple_config_file_0 = config_file_examples[0]
     simple_config_dict_0 = read_config_file(simple_config_file_0)
-
+    print(simple_config_dict_0)
     if not os.path.exists(simple_config_dict_0['input']['training']['annotation_path']):
         os.mkdir(simple_config_dict_0['input']['training']['annotation_path'])
     if not os.path.exists(simple_config_dict_0['input']['training']['image_path']):
@@ -169,6 +169,7 @@ def test_from_config_file_simple(config_file_examples):
 
     simple_config_file_1 = config_file_examples[1]
     simple_config_dict_1 = read_config_file(simple_config_file_1)
+    print(simple_config_dict_1)
     if not os.path.exists(simple_config_dict_1['input']['training']['annotation_path']):
         with open(simple_config_dict_1['input']['training']['annotation_path'], 'w') as f:
             f.write('')

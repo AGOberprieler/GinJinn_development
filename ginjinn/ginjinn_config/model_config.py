@@ -613,12 +613,12 @@ class GinjinnModelConfiguration: #pylint: disable=too-few-public-methods
     ----------
     name : str
         model name/identifier.
-    initial_weights : str
+    weights : str
         Determines the initialization of the model weights.
         One of
-            - 'random', meaning random weights initialization
+            - '', meaning random weights initialization
             - 'pretrained', meaning pretrained weights from the Detectron2 model zoo, if available
-        or the file path of a weights file.
+            - the file path of a weights file.
     classification_threshold: float
         Classification threshold for training.
     model_parameters: dict
@@ -632,7 +632,7 @@ class GinjinnModelConfiguration: #pylint: disable=too-few-public-methods
     def __init__( #pylint: disable=too-many-arguments,dangerous-default-value
         self,
         name: str,
-        initial_weights: str,
+        weights: str,
         classification_threshold: float,
         model_parameters: dict = {},
     ):
@@ -642,7 +642,7 @@ class GinjinnModelConfiguration: #pylint: disable=too-few-public-methods
 
         self.detectron2_config_name = MODELS[self.name]['config_file']
 
-        self.initial_weights = initial_weights
+        self.weights = weights
         self.classification_threshold = classification_threshold
 
         self.model_parameters = model_parameters
@@ -669,11 +669,11 @@ class GinjinnModelConfiguration: #pylint: disable=too-few-public-methods
         model_config_file = get_config_file(self.detectron2_config_name)
         cfg.merge_from_file(model_config_file)
 
-        if self.initial_weights == 'pretrained':
+        if self.weights == 'pretrained':
             model_url = get_checkpoint_url(self.detectron2_config_name)
             cfg.MODEL.WEIGHTS = model_url
         else:
-            cfg.MODEL.WEIGHTS = ''
+            cfg.MODEL.WEIGHTS = self.weights
 
         for model_param in self.model_parameters.values():
             model_param.update_detectron2_config(cfg)
@@ -702,7 +702,7 @@ class GinjinnModelConfiguration: #pylint: disable=too-few-public-methods
         '''
 
         default_config = {
-            'initial_weights': 'random',
+            'weights': '',
             'classification_threshold': 0.5,
             'model_parameters': {},
         }
@@ -723,25 +723,25 @@ class GinjinnModelConfiguration: #pylint: disable=too-few-public-methods
 
         return cls(
             name=config['name'],
-            initial_weights=config['initial_weights'],
+            weights=config['weights'],
             classification_threshold=config['classification_threshold'],
             model_parameters=config['model_parameters'],
         )
 
-    def _check_initial_weights(self):
-        '''Check initial_weights option
+    def _check_weights(self):
+        '''Check weights option
 
         Raises
         ------
         InvalidModelConfigurationError
-            Raised if an invalid initial_weights option is passed.
+            Raised if an invalid weights option is passed.
         '''
 
-        if self.initial_weights != 'random' and self.initial_weights != 'pretrained':
-            print(self.initial_weights)
-            if not os.path.isfile(self.initial_weights):
+        if self.weights != '' and self.weights != 'pretrained':
+            print(self.weights)
+            if not os.path.isfile(self.weights):
                 raise InvalidModelConfigurationError(
-                    'initial_weights must be either "random", "pretrained", or a valid weights file path.' #pylint: disable=line-too-long
+                    'weights must be either "", "pretrained", or a valid weights file path.' #pylint: disable=line-too-long
                 )
 
     def _check_classification_threshold(self):
@@ -783,6 +783,6 @@ class GinjinnModelConfiguration: #pylint: disable=too-few-public-methods
 
         Check model configuration.
         '''
-        self._check_initial_weights()
+        self._check_weights()
         self._check_classification_threshold()
         self._check_model_parameters()

@@ -9,7 +9,7 @@ input:
 # Model options
 model:
   name: "faster_rcnn_X_101_32x8d_FPN_3x"
-  weights: "precomputed"
+  weights: "pretrained"
 # Options for model training
 training:
   learning_rate: 0.02

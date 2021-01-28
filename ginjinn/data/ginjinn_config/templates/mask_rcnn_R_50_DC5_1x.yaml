@@ -9,7 +9,7 @@ input:
 # Model options
 model:
   name: "mask_rcnn_R_50_C4_1x"
-  weights: "precomputed"
+  weights: "pretrained"
 # Options for model training
 training:
   learning_rate: 0.02

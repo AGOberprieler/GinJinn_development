@@ -22,44 +22,44 @@ def tmp_input_path():
 
 def test_simple_model(tmp_input_path):
     name = list(MODELS.keys())[0]
-    initial_weights = 'random'
+    weights = ''
 
     model = GinjinnModelConfiguration(
         name=name,
-        initial_weights=initial_weights,
+        weights=weights,
         classification_threshold=0.5,
     )
 
     assert model.name == name
-    assert model.initial_weights == initial_weights
+    assert model.weights == weights
 
-    initial_weights = 'pretrained'
+    weights = 'pretrained'
     model = GinjinnModelConfiguration(
         name=name,
-        initial_weights=initial_weights,
+        weights=weights,
         classification_threshold=0.5,
     )
 
     assert model.name == name
-    assert model.initial_weights == initial_weights
+    assert model.weights == weights
 
 def test_invalid_model():
     name = 'some_invalid_name'
-    initial_weights = 'random'
+    weights = ''
 
     with pytest.raises(InvalidModelConfigurationError):
         model = GinjinnModelConfiguration(
             name=name,
-            initial_weights = 'random',
+            weights = '',
             classification_threshold=0.5,
         )
     
     valid_name = list(MODELS.keys())[0]
     with pytest.raises(InvalidModelConfigurationError):
-        GinjinnModelConfiguration(name=valid_name, initial_weights='xyz', classification_threshold=0.5,)
+        GinjinnModelConfiguration(name=valid_name, weights='xyz', classification_threshold=0.5,)
 
     with pytest.raises(InvalidModelConfigurationError):
-        GinjinnModelConfiguration(name=valid_name, initial_weights='random', classification_threshold=-0.1,)
+        GinjinnModelConfiguration(name=valid_name, weights='', classification_threshold=-0.1,)
     
     with pytest.raises(InvalidModelConfigurationError):
-        GinjinnModelConfiguration(name=valid_name, initial_weights='random', classification_threshold=1.1,)
+        GinjinnModelConfiguration(name=valid_name, weights='', classification_threshold=1.1,)
