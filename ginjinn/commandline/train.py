@@ -108,6 +108,7 @@ def ginjinn_train(args):
             *glob.glob(os.path.join(outputs_dir, 'test_*')),
             *glob.glob(os.path.join(outputs_dir, 'instances_predictions.pth')),
             *glob.glob(os.path.join(outputs_dir, 'coco_instances_results.json')),
+            *glob.glob(os.path.join(outputs_dir, 'metrics.pdf')),
         ]
         if len(other_output_files) > 0:
             if force or confirmation_cancel(
