@@ -97,3 +97,5 @@ def ginjinn_predict(args):
         refinement_method=refinement_method,
         threshold=threshold,
     )
+
+    print('Predictions written to {out_dir}.')

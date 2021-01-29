@@ -236,7 +236,7 @@ def _setup_predict_parser(subparsers):
         dest = 'seg_refinement',
         action = 'store_true',
         help = '''
-            Apply segmentation refinement.
+            <EXPERIMENTAL> Apply segmentation refinement.
         '''
     )
     parser.set_defaults(seg_refinement = False)
