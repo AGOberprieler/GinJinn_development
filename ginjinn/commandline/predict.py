@@ -93,7 +93,7 @@ def ginjinn_predict(args):
         output_options=output_options,
         padding=padding,
         seg_refinement=seg_refinement,
-        refinement_device='CUDA',
+        refinement_device='cuda:0',
         refinement_method=refinement_method,
         threshold=threshold,
     )
