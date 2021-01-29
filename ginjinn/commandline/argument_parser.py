@@ -95,6 +95,14 @@ def _setup_train_parser(subparsers):
     parser.add_argument('-nr', '--no-resume', dest='resume', action='store_false')
     parser.set_defaults(resume=None)
 
+    parser.add_argument(
+        '-f', '--force',
+        dest='force',
+        action='store_true',
+        help='Force removal of existing outputs when resume is set to False.'
+    )
+    parser.set_defaults(force=False)
+
     return parser
 
 def _setup_evaluate_parser(subparsers):
