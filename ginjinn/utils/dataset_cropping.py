@@ -14,18 +14,19 @@ from pycocotools import mask
 
 
 # pylint: disable=C0103
-def crop_seg_annotations(
+def crop_annotations(
     annotations: List,
     img_width: int,
     img_height: int,
     cropping_range: Sequence[int],
-    start_id: int
+    start_id: int,
+    task: str
 ) -> Tuple:
-    """Crop annotated segmentation instances.
+    """Crop object annotations.
 
     This function transforms a list of object annotations in COCO format, such that the resulting
     annotations refer to a cropped version of the original image. The output only contains objects
-    with valid, non-empty segmentation.
+    with valid, non-empty bounding boxes or segmentations, depending on the specified task.
 
     Parameters
     ----------
@@ -39,6 +40,8 @@ def crop_seg_annotations(
         (x0, x1, y0, y1) slices segmentation masks by x0:x1 (horizontally) and y0:y1 (vertically).
     start_id : int
         Object ID to start output annotations with.
+    task : str
+        Either "bbox-detection" or "instance-segmentation"
 
     Returns
     -------
@@ -69,48 +72,78 @@ def crop_seg_annotations(
         else:
             img_id = annotation["image_id"]
 
-        # read segmentation
-        seg_orig = annotation.get("segmentation")
-        if seg_orig:
-            if isinstance(seg_orig, dict):
-                # rle to mask
-                imask = imantics.Mask(mask.decode(seg_orig).astype("bool"))
-            elif isinstance(seg_orig, list):
-                # polygon to mask
-                ipolygons = imantics.Polygons(seg_orig)
-                imask = ipolygons.mask(img_width, img_height)
+        if task == "bbox-detection":
+            # get bounding box
+            bbox_orig = annotation.get("bbox")
+            if bbox_orig:
+                if not isinstance(bbox_orig, list) or len(bbox_orig) != 4:
+                    raise TypeError(
+                        "Unknown bbox format, list of length 4 expected."
+                    )
             else:
-                raise TypeError(
-                    "Unknown segmentation format, polygons or RLE expected"
-                )
-        else:
-            # skip instances without segmentation
-            continue
+                # skip instance
+                continue
 
-        # crop segmentation
-        imask_cropped = imantics.Mask(imask.array[y_start:y_end, x_start:x_end])
-        seg_cropped = imask_cropped.polygons().segmentation
+            # transform box
+            x1, y1, x2, y2 = (round(coord) for coord in bbox_orig)
+            X1, X2 = np.clip((x1 - x_start, x2 - x_start), 0, x_end - x_start - 1).tolist()
+            Y1, Y2 = np.clip((y1 - y_start, y2 - y_start), 0, y_end - y_start - 1).tolist()
+            area = (X2 - X1) * (Y2 - Y1)
 
-        if seg_cropped:
-            # calculate bounding box
-            x_any = imask_cropped.array.any(axis=0)
-            y_any = imask_cropped.array.any(axis=1)
-            x = np.where(x_any)[0].tolist()
-            y = np.where(y_any)[0].tolist()
-            x1, y1, x2, y2 = (x[0], y[0], x[-1] + 1, y[-1] + 1)
-            bbox_coco = [ x1, y1, x2 - x1, y2 - y1 ]
+            if area > 0:
+                # create object annotation
+                annotations_cropped.append({
+                    "area": area,
+                    "bbox": [X1, Y1, X2, Y2],
+                    "image_id": img_id,
+                    "id": i_ann,
+                    "category_id": annotation.get("category_id")
+                })
+                i_ann += 1
 
-            # create object annotation
-            annotations_cropped.append({
-                "area": (x2 - x1) * (y2 - y1),
-                "bbox": bbox_coco,
-                "segmentation": seg_cropped,
-                "iscrowd": 0,
-                "image_id": img_id,
-                "id": i_ann,
-                "category_id": annotation["category_id"]
-            })
-            i_ann += 1
+        elif task == "instance-segmentation":
+            # read segmentation
+            seg_orig = annotation.get("segmentation")
+            if seg_orig:
+                if isinstance(seg_orig, dict):
+                    # rle to mask
+                    imask = imantics.Mask(mask.decode(seg_orig).astype("bool"))
+                elif isinstance(seg_orig, list):
+                    # polygon to mask
+                    ipolygons = imantics.Polygons(seg_orig)
+                    imask = ipolygons.mask(img_width, img_height)
+                else:
+                    raise TypeError(
+                        "Unknown segmentation format, polygons or RLE expected"
+                    )
+            else:
+                # skip instances without segmentation
+                continue
+
+            # crop segmentation
+            imask_cropped = imantics.Mask(imask.array[y_start:y_end, x_start:x_end])
+            seg_cropped = imask_cropped.polygons().segmentation
+
+            if seg_cropped:
+                # calculate bounding box
+                x_any = imask_cropped.array.any(axis=0)
+                y_any = imask_cropped.array.any(axis=1)
+                x = np.where(x_any)[0].tolist()
+                y = np.where(y_any)[0].tolist()
+                x1, y1, x2, y2 = (x[0], y[0], x[-1] + 1, y[-1] + 1)
+                bbox_coco = [ x1, y1, x2 - x1, y2 - y1 ]
+
+                # create object annotation
+                annotations_cropped.append({
+                    "area": (x2 - x1) * (y2 - y1),
+                    "bbox": bbox_coco,
+                    "segmentation": seg_cropped,
+                    "iscrowd": 0,
+                    "image_id": img_id,
+                    "id": i_ann,
+                    "category_id": annotation.get("category_id")
+                })
+                i_ann += 1
 
     return i_ann, annotations_cropped
 
