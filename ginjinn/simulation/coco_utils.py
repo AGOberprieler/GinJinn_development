@@ -45,7 +45,7 @@ def build_coco_annotation( #pylint: disable=too-many-arguments
     bbox: List[float],
     segmentation: List[float],
     area: float,
-    is_crowd: int = 0
+    iscrowd: int = 0
 ):
     '''Construct COCO annotation dictionary.
 
@@ -63,7 +63,7 @@ def build_coco_annotation( #pylint: disable=too-many-arguments
         x1, y1, x2, y2, ..., xn, yn
     area : float
         Annotated area.
-    is_crowd : int, optional
+    iscrowd : int, optional
         Whether the annotation is a crowd, by default 0
 
     Returns
@@ -78,7 +78,7 @@ def build_coco_annotation( #pylint: disable=too-many-arguments
         'segmentation': segmentation,
         'category_id': int(category_id),
         'area': float(area),
-        'is_crowd': int(is_crowd)
+        'iscrowd': int(iscrowd)
     }
 
 def build_coco_category(
