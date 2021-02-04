@@ -314,7 +314,7 @@ def crop_seg_from_coco(
         )
 
 # TODO: this should be reworked and improved
-def sliding_window_idcs(l: int, n: int, overlapp: float = 0.5) -> Tuple:
+def sliding_window_idcs(l: int, n: int, overlap: float = 0.5) -> Tuple:
     '''sliding_window_idcs
 
     >EXPERIMENTAL< Generate sliding window start and stop indices.
@@ -325,8 +325,8 @@ def sliding_window_idcs(l: int, n: int, overlapp: float = 0.5) -> Tuple:
         length
     n : int
         number of non-sliding windows
-    overlapp : float, optional
-        Overlapp between sliding-windows, by default 0.5
+    overlap : float, optional
+        overlap between sliding-windows, by default 0.5
 
     Returns
     -------
@@ -334,7 +334,7 @@ def sliding_window_idcs(l: int, n: int, overlapp: float = 0.5) -> Tuple:
         Tuple of start indices and stop indices
     '''
     window = l / n
-    stride = window * (1-overlapp)
+    stride = window * (1-overlap)
     starts = np.arange(0, l, stride)[:-1].astype(int)
     stops = (starts + window).astype(int)
 
@@ -343,7 +343,7 @@ def sliding_window_idcs(l: int, n: int, overlapp: float = 0.5) -> Tuple:
 def sliding_window_idcs_2d(
     x: int, y: int,
     n_x: int, n_y: int,
-    overlapp: float = 0.5,
+    overlap: float = 0.5,
 ) -> Tuple:
     '''sliding_window_idcs_2d
 
@@ -359,8 +359,8 @@ def sliding_window_idcs_2d(
         number of non-sliding windows in x
     n_y : int
         number of non-sliding windows in y
-    overlapp : float, optional
-        Overlapp between sliding-windows, by default 0.5
+    overlap : float, optional
+        overlap between sliding-windows, by default 0.5
 
     Returns
     -------
@@ -368,14 +368,14 @@ def sliding_window_idcs_2d(
         Tuple of start and stop indices, i.e. ((start_x, stop_x), (start_y, stop_y)).
     '''
     return (
-        sliding_window_idcs(x, n_x, overlapp),
-        sliding_window_idcs(y, n_y, overlapp),
+        sliding_window_idcs(x, n_x, overlap),
+        sliding_window_idcs(y, n_y, overlap),
     )
 
 def sliding_window_grid_2d(
     x: int, y: int,
     n_x: int, n_y: int,
-    overlapp: float = 0.5
+    overlap: float = 0.5
 ):
     '''sliding_window_grid_2d
 
@@ -391,8 +391,8 @@ def sliding_window_grid_2d(
         number of non-sliding windows in x
     n_y : int
         number of non-sliding windows in y
-    overlapp : float, optional
-        Overlapp between sliding-windows, by default 0.5
+    overlap : float, optional
+        overlap between sliding-windows, by default 0.5
 
     Returns
     -------
@@ -402,7 +402,7 @@ def sliding_window_grid_2d(
     '''
     (x_0, x_1), (y_0, y_1) = sliding_window_idcs_2d(
         x, y,
-        n_x, n_y, overlapp=overlapp
+        n_x, n_y, overlap=overlap
     )
     xxyy = np.array([[*x01, *y01] for x01 in zip(x_0, x_1) for y01 in zip(y_0, y_1)])
 
@@ -503,10 +503,39 @@ def sliding_window_crop_coco(
     ann_path_out: str,
     n_x: int,
     n_y: int,
+    overlap: float,
     img_id: int = 0,
     obj_id: int = 0,
     save_empty=True,
 ):
+    '''sliding_window_crop_coco
+
+    >Experimental< Crop sliding window subimages and corresponding
+    annotations from COCO annotated images.
+
+    Parameters
+    ----------
+    img_dir : str
+        Image directory.
+    ann_path : str
+        COCO annotation path.
+    img_dir_out : str
+        Output directory for images.
+    ann_path_out : str
+        Output path for COCO annotation.
+    n_x : int
+        number of non-sliding windows in x
+    n_y : int
+        number of non-sliding windows in y
+    overlap : float, optional
+        overlap between sliding-windows, by default 0.5
+    img_id : int, optional
+        Start image ID for new COCO images, by default 0
+    obj_id : int, optional
+        Start image ID for new COCO object annotations, by default 0
+    save_empty : bool, optional
+        Whether images without annotations should be saved, by default True
+    '''
     ann = load_coco_ann(ann_path)
     img_anns = ann['images']
 
@@ -519,7 +548,7 @@ def sliding_window_crop_coco(
 
         xxyy = sliding_window_grid_2d(
             img.shape[1], img.shape[0],
-            n_x, n_y, overlapp=0.5
+            n_x, n_y, overlap=overlap
         )
 
         i_id, o_id = img_id, obj_id
