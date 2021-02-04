@@ -11,6 +11,8 @@ import numpy as np
 import cv2
 import imantics
 from pycocotools import mask
+from ginjinn.simulation import coco_utils
+from ginjinn.utils import load_coco_ann, get_obj_anns
 
 
 # pylint: disable=C0103
@@ -310,3 +312,243 @@ def crop_seg_from_coco(
             indent = 2,
             sort_keys = True
         )
+
+# TODO: this should be reworked and improved
+def sliding_window_idcs(l: int, n: int, overlapp: float = 0.5) -> Tuple:
+    '''sliding_window_idcs
+
+    >EXPERIMENTAL< Generate sliding window start and stop indices.
+
+    Parameters
+    ----------
+    l : int
+        length
+    n : int
+        number of non-sliding windows
+    overlapp : float, optional
+        Overlapp between sliding-windows, by default 0.5
+
+    Returns
+    -------
+    Tuple
+        Tuple of start indices and stop indices
+    '''
+    window = l / n
+    stride = window * (1-overlapp)
+    starts = np.arange(0, l, stride)[:-1].astype(int)
+    stops = (starts + window).astype(int)
+
+    return starts, stops
+
+def sliding_window_idcs_2d(
+    x: int, y: int,
+    n_x: int, n_y: int,
+    overlapp: float = 0.5,
+) -> Tuple:
+    '''sliding_window_idcs_2d
+
+    >EXPERIMENTAL< Generate sliding window start and stop indices.
+
+    Parameters
+    ----------
+    x : int
+        length in x
+    y : int
+        length in y
+    n_x : int
+        number of non-sliding windows in x
+    n_y : int
+        number of non-sliding windows in y
+    overlapp : float, optional
+        Overlapp between sliding-windows, by default 0.5
+
+    Returns
+    -------
+    Tuple
+        Tuple of start and stop indices, i.e. ((start_x, stop_x), (start_y, stop_y)).
+    '''
+    return (
+        sliding_window_idcs(x, n_x, overlapp),
+        sliding_window_idcs(y, n_y, overlapp),
+    )
+
+def sliding_window_grid_2d(
+    x: int, y: int,
+    n_x: int, n_y: int,
+    overlapp: float = 0.5
+):
+    '''sliding_window_grid_2d
+
+    >EXPERIMENTAL< Generate sliding window start and stop indices.
+
+    Parameters
+    ----------
+    x : int
+        length in x
+    y : int
+        length in y
+    n_x : int
+        number of non-sliding windows in x
+    n_y : int
+        number of non-sliding windows in y
+    overlapp : float, optional
+        Overlapp between sliding-windows, by default 0.5
+
+    Returns
+    -------
+    np.ndarray
+        2D numpy array, where each row consists of the four values
+        start_x, stop_x, start_y, stop_y.
+    '''
+    (x_0, x_1), (y_0, y_1) = sliding_window_idcs_2d(
+        x, y,
+        n_x, n_y, overlapp=overlapp
+    )
+    xxyy = np.array([[*x01, *y01] for x01 in zip(x_0, x_1) for y01 in zip(y_0, y_1)])
+
+    return xxyy
+
+def crop_ann_img(
+    img,
+    img_ann: dict,
+    obj_anns: dict,
+    xxyy,
+    obj_id: int,
+    img_id: int,
+    task: str = 'instance-segmentation',
+    return_empty: bool = True,
+) -> Tuple:
+    '''crop_ann_img [summary]
+
+    Parameters
+    ----------
+    img
+        Image as numpy array.
+    img_ann : dict
+        Image annotation as COCO dict.
+    obj_anns : dict
+        Object annotations as list of COCO dicts.
+    xxyy
+        2D numpy array, where each row consists of the four values
+        x0, x1, y0, y1 for cropping.
+    obj_id : int
+        Start object ID for new, cropped COCO object annotations.
+    img_id : int
+        Start object ID for new, cropped COCO images.
+    task : str, optional
+        Either 'instance-segmentation' or 'bbox-detection',by default 'instance-segmentation'.
+    return_empty : bool, optional
+        Whether images without annotation should be returned, by default True
+
+    Yields
+    -------
+    Tuple
+        Tuple of
+        (cropped_img, cropped_img_ann, cropped_img_name, cropped_obj_anns, img_id, obj_id).
+    '''
+    for cropping_range in xxyy:
+        obj_id, cropped_obj_anns = crop_annotations(
+            annotations=obj_anns,
+            img_width=img.shape[1],
+            img_height=img.shape[0],
+            cropping_range=list(cropping_range),
+            start_id=obj_id,
+            task=task,
+        )
+        if not return_empty:
+            if len(cropped_obj_anns) < 1:
+                continue
+
+        cropped_img = img[
+            cropping_range[2]:cropping_range[3],
+            cropping_range[0]:cropping_range[1],
+        ]
+
+        for ann in cropped_obj_anns:
+            ann['image_id'] = img_id
+
+        img_name = os.path.basename(img_ann['file_name']).split('.')[0]
+        # think about whether the name should contain the upper range
+        # inclusively or exclusively
+        cropped_img_name = '{}_{}-{}_{}-{}.jpg'.format(
+            img_name,
+            cropping_range[0], cropping_range[1],
+            cropping_range[2], cropping_range[3]
+        )
+        cropped_img_ann = coco_utils.build_coco_image(
+            image_id = img_id,
+            file_name = cropped_img_name,
+            width = cropped_img.shape[1],
+            height = cropped_img.shape[0],
+            license = img_ann.get('license', 0),
+            coco_url = img_ann.get('coco_url', ''),
+            date_captured = img_ann.get('date_captured', 0),
+            flickr_url = img_ann.get('flickr_url', ''),
+        )
+
+        img_id = img_id + 1
+        yield (
+            cropped_img,
+            cropped_img_ann,
+            cropped_img_name,
+            cropped_obj_anns,
+            img_id,
+            obj_id
+        )
+
+def sliding_window_crop_coco(
+    img_dir: str,
+    ann_path: str,
+    img_dir_out: str,
+    ann_path_out: str,
+    n_x: int,
+    n_y: int,
+    img_id: int = 0,
+    obj_id: int = 0,
+    save_empty=True,
+):
+    ann = load_coco_ann(ann_path)
+    img_anns = ann['images']
+
+    new_obj_anns = []
+    new_img_anns = []
+
+    for img_ann in img_anns:
+        img = cv2.imread(os.path.join(img_dir, img_ann['file_name']))
+        obj_anns = get_obj_anns(img_ann, ann)
+
+        xxyy = sliding_window_grid_2d(
+            img.shape[1], img.shape[0],
+            n_x, n_y, overlapp=0.5
+        )
+
+        i_id, o_id = img_id, obj_id
+        for c_img, c_img_ann, c_img_name, c_obj_anns, i_id, o_id in crop_ann_img(
+            img=img,
+            img_ann=img_ann,
+            obj_anns=obj_anns,
+            xxyy=xxyy,
+            obj_id=obj_id,
+            img_id=img_id,
+            return_empty=save_empty
+        ):
+            new_img_anns.append(c_img_ann)
+            new_obj_anns.extend(c_obj_anns)
+
+            cv2.imwrite(
+                os.path.join(img_dir_out, c_img_name),
+                c_img,
+            )
+
+        img_id, obj_id = i_id, o_id
+
+    new_ann = coco_utils.build_coco_dataset(
+        annotations = new_obj_anns,
+        images = new_img_anns,
+        categories = ann['categories'],
+        licenses = ann['licenses'],
+        info = ann['info'],
+    )
+
+    with open(ann_path_out, 'w') as ann_f:
+        json.dump(new_ann, ann_f)
