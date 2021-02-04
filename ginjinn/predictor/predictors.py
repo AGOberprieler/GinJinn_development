@@ -287,8 +287,8 @@ class GinjinnPredictor():
         for i_inst, bbox in enumerate(boxes):
 
             x1, y1, x2, y2 = [round(coord) for coord in bbox]
-            x1, x2 = np.clip((x1 - padding, x2 + padding), 0, width)
-            y1, y2 = np.clip((y1 - padding, y2 + padding), 0, height)
+            x1, x2 = np.clip((x1 - padding, x2 + padding), 0, width - 1)
+            y1, y2 = np.clip((y1 - padding, y2 + padding), 0, height - 1)
             image_cropped = image[y1:y2, x1:x2]
 
             outpath = os.path.join(

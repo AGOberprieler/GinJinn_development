@@ -247,8 +247,8 @@ def crop_seg_from_coco(
 
             # apply padding, clip values
             x1, y1, x2, y2 = (round(coord) for coord in bbox)
-            x1, x2 = np.clip((x1 - padding, x2 + padding), 0, width).tolist()
-            y1, y2 = np.clip((y1 - padding, y2 + padding), 0, height).tolist()
+            x1, x2 = np.clip((x1 - padding, x2 + padding), 0, width - 1).tolist()
+            y1, y2 = np.clip((y1 - padding, y2 + padding), 0, height - 1).tolist()
 
             # crop image
             image_cropped = image[y1:y2, x1:x2]
