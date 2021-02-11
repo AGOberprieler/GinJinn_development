@@ -418,7 +418,9 @@ def crop_ann_img(
     task: str = 'instance-segmentation',
     return_empty: bool = True,
 ) -> Tuple:
-    '''crop_ann_img [summary]
+    '''crop_ann_img
+
+    <EXPERIMENTAL> Crop sub-images and sub-annotations from an annotated image.
 
     Parameters
     ----------

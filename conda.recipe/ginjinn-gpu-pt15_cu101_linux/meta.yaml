@@ -27,6 +27,7 @@ requirements:
     - pycocotools
     - mock
     - imantics
+    - scikit-learn
 
 build:
   skip: true # [not linux]

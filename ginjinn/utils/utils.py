@@ -127,7 +127,7 @@ def get_obj_anns(img_ann, ann: dict) -> List[dict]:
     obj_anns = [obj_ann for obj_ann in ann['annotations'] if obj_ann['image_id'] == img_id]
     return obj_anns
 
-def plot_coco_annotated_img(img, obj_anns: dict, ax=None):
+def plot_coco_annotated_img(img, obj_anns: List[dict], ax=None):
     '''plot_coco_annotated_img
 
     Plot COCO annotations on image.
@@ -136,11 +136,16 @@ def plot_coco_annotated_img(img, obj_anns: dict, ax=None):
     ----------
     img
         Image, numpy array.
-    obj_anns : dict
+    obj_anns : List[dict]
         List of COCO object annotation dicts.
     ax
         pyplot axis to plot on, by default None.
+
+    Returns
+    -------
+    pyplot axis
     '''
+
     import matplotlib.pyplot as plt
     from matplotlib.patches import Rectangle, Polygon
 
@@ -148,6 +153,33 @@ def plot_coco_annotated_img(img, obj_anns: dict, ax=None):
         _, ax = plt.subplots()
 
     ax.imshow(img)
+    overlay_coco_annotations(obj_anns, ax)
+
+    return ax
+
+def overlay_coco_annotations(
+    obj_anns: List[dict],
+    ax
+):
+    '''overlay_coco_annotations
+
+    Overlay coco annotations.
+
+    Parameters
+    ----------
+    obj_anns : List[dict]
+        List of COCO object annotation dicts.
+    ax
+        pyplot axis to plot on.
+
+    Returns
+    -------
+    pyplot axis
+    '''
+
+    import matplotlib.pyplot as plt
+    from matplotlib.patches import Rectangle, Polygon
+
     for ann in obj_anns:
         print(ann)
         seg = ann.get('segmentation', None)
@@ -169,3 +201,5 @@ def plot_coco_annotated_img(img, obj_anns: dict, ax=None):
                 edgecolor='orange'
             )
             ax.add_patch(rect)
+
+    return ax
