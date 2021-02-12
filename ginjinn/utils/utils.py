@@ -6,11 +6,10 @@ import sys
 import json
 import glob
 import os
-from typing import List
-import numpy as np
 import xml
-
-from .dataset_cropping import get_pvoc_objects, get_pvoc_obj_bbox, bbox_size
+import xml.etree.ElementTree as et
+from typing import List, Sequence, Tuple
+import numpy as np
 
 def confirmation(question: str) -> bool:
     """Ask question expecting "yes" or "no".
@@ -272,3 +271,326 @@ def overlay_pvoc_ann(
         ax.add_patch(rect)
 
     return ax
+
+def load_pvoc_annotation(
+    ann_path: str,
+) -> xml.etree.ElementTree.ElementTree:
+    '''load_pvoc_annotation
+
+    Load PVOC annotations from file.
+
+    Parameters
+    ----------
+    ann_path : str
+        PVOC annotation XML file path
+
+    Returns
+    -------
+    xml.etree.ElementTree.ElementTree
+        PVOC annotation as ElementTree
+    '''
+    return et.parse(ann_path)
+
+def write_pvoc_annotation(
+    ann: xml.etree.ElementTree.ElementTree,
+    ann_file: str,
+):
+    '''write_pvoc_annotation
+
+    Write PVOC annotation in ElementTree format to XML file.
+
+    Parameters
+    ----------
+    ann : xml.etree.ElementTree.ElementTree
+        PVOC annotation as ElementTree
+    ann_file : str
+        Path to annotation XML file
+    '''
+    import xml.dom.minidom as minidom
+
+    root = ann.getroot()
+    xmlstr = minidom.parseString(et.tostring(root)).toprettyxml(indent='  ')
+    with open(ann_file, 'w') as ann_f:
+        ann_f.write(xmlstr)
+
+def clip_bbox(
+    bbox: Sequence[float],
+    clipping_range: Sequence[float],
+) -> Sequence[float]:
+    '''clip_bbox
+
+    Clip bounding box.
+
+    Parameters
+    ----------
+    bbox : Sequence[float]
+        Bounding-box in x0y0x1y1 format.
+    clipping_range : Sequence[float]
+        Clipping range in x0x1y0y1 format.
+
+    Returns
+    -------
+    Sequence[float]
+        Clipped bounding box in x0y0x1y1 format.
+    '''
+    xmn, xmx, ymn, ymx = clipping_range
+    bbox_clipped = np.clip(
+        bbox,
+        [xmn, ymn, xmn, ymn],
+        [xmx, ymx, xmx, ymx],
+    )
+    return bbox_clipped
+
+def crop_bbox(
+    bbox: Sequence[float],
+    cropping_range: Sequence[float],
+) -> Sequence[float]:
+    '''crop_bbox
+
+    Crop bounding box. Clips bbox and converts coordinates
+    to local coordinates in cropping range.
+
+    Parameters
+    ----------
+    bbox : Sequence[float]
+        Bounding-box in x0y0x1y1 format.
+    cropping_range : Sequence[float]
+        Cropping range in x0x1y0y1 format.
+
+    Returns
+    -------
+    Sequence[float]
+        Cropped bounding box in x0y0x1y1 format.
+    '''
+
+    bbox_clipped = clip_bbox(bbox, cropping_range)
+    bbox_cropped = [
+        bbox_clipped[0] - cropping_range[0],
+        bbox_clipped[1] - cropping_range[2],
+        bbox_clipped[2] - cropping_range[0],
+        bbox_clipped[3] - cropping_range[2],
+    ]
+
+    return bbox_cropped
+
+def bbox_size(
+    bbox: Sequence[float],
+) -> Tuple[float, float]:
+    '''bbox_size
+
+    Calculate bounding box size (width, height).
+
+    Parameters
+    ----------
+    bbox : Sequence[float]
+        Bounding-box in x0y0x1y1 format.
+
+    Returns
+    -------
+    Tuple[float, float]
+        Tuple of (width, height)
+    '''
+    return (
+        bbox[2] - bbox[0],
+        bbox[3] - bbox[1],
+    )
+
+def bbox_area(
+    bbox: Sequence[float],
+) -> float:
+    '''bbox_area
+
+    Calculate bounding-box area.
+
+    Parameters
+    ----------
+    bbox : Sequence[float]
+        Bounding-box in x0y0x1y1 format.
+
+    Returns
+    -------
+    float
+        Area of the bounding-box.
+    '''
+    w, h = bbox_size(bbox)
+    return w * h
+
+def get_pvoc_filename(
+    ann: xml.etree.ElementTree.ElementTree,
+) -> str:
+    '''get_pvoc_filename
+
+    Get image file name from PVOC annotation.
+
+    Parameters
+    ----------
+    ann : xml.etree.ElementTree.ElementTree
+        PVOC annotation as ElementTree
+
+    Returns
+    -------
+    str
+        Image file name.
+    '''
+    return ann.find('filename').text
+
+def set_pvoc_filename(
+    ann: xml.etree.ElementTree.ElementTree,
+    filename: str,
+):
+    '''set_pvoc_filename
+
+    Set image file name for PVCO annotation.
+
+    Parameters
+    ----------
+    ann : xml.etree.ElementTree.ElementTree
+        PVOC annotation as ElementTree
+    filename : str
+        Image file name
+    '''
+    ann.find('filename').text = filename
+
+def get_pvoc_size(
+    ann: xml.etree.ElementTree.ElementTree,
+) -> Sequence[int]:
+    '''get_pvoc_size
+
+    Get size of annotated image from PVOC annotation.
+
+    Parameters
+    ----------
+    ann : xml.etree.ElementTree.ElementTree
+        PVOC annotation as ElementTree
+
+    Returns
+    -------
+    Sequence[int]
+        Image size as Tuple (width, height, depth)
+    '''
+    size_node = ann.find('size')
+    return [
+        int(size_node.find('width').text),
+        int(size_node.find('height').text),
+        int(size_node.find('depth').text),
+    ]
+    
+def set_pvoc_size(
+    ann: xml.etree.ElementTree.ElementTree,
+    size: Sequence[int],
+):
+    '''set_pvoc_size
+
+    Set size value for PVOC annotation.
+
+    Parameters
+    ----------
+    ann : xml.etree.ElementTree.ElementTree
+        PVOC annotation as ElementTree
+    size : Sequence[int]
+        Size as sequence of width, height, depth.
+    '''
+    size_node = ann.find('size')
+    size_node.find('width').text = str(size[0])
+    size_node.find('height').text = str(size[1])
+    size_node.find('depth').text = str(size[2])
+    
+def get_pvoc_objects(
+    ann: xml.etree.ElementTree.ElementTree,
+) -> List[xml.etree.ElementTree.ElementTree]:
+    '''get_pvoc_objects
+
+    Get a list of PVCO annotation objects in ElementTree format.
+
+    Parameters
+    ----------
+    ann : xml.etree.ElementTree.ElementTree
+        PVOC annotation as ElementTree
+
+    Returns
+    -------
+    List[xml.etree.ElementTree.ElementTree]
+        List of PVOC objects as ElementTree
+    '''
+    return ann.findall('object')
+
+def add_pvoc_object(
+    ann: xml.etree.ElementTree.ElementTree,
+    obj: xml.etree.ElementTree.ElementTree,
+):
+    '''add_pvoc_object
+
+    Add PVOC object to PVOC annotation.
+
+    Parameters
+    ----------
+    ann : xml.etree.ElementTree.ElementTree
+        PVOC annotation as ElementTree
+    obj : xml.etree.ElementTree.ElementTree
+        PVOC object as ElementTree
+    '''
+    r = ann.getroot()
+    r.append(obj)
+
+def drop_pvoc_objects(
+    ann: xml.etree.ElementTree.ElementTree,
+):
+    '''drop_pvoc_objects
+
+    Remove all objects from PVOC annotation.
+
+    Parameters
+    ----------
+    ann : xml.etree.ElementTree.ElementTree
+        PVOC annotation as ElementTree
+    '''
+    r = ann.getroot()
+    for o in get_pvoc_objects(ann):
+        r.remove(o)
+
+def get_pvoc_obj_bbox(
+    obj: xml.etree.ElementTree.ElementTree,
+) -> Sequence[int]:
+    '''get_pvoc_obj_bbox
+
+    Get bounding-box from PVOC object.
+
+    Parameters
+    ----------
+    obj : xml.etree.ElementTree.ElementTree
+        PVOC object as ElementTree
+
+    Returns
+    -------
+    Sequence[int]
+        Bounding-box in x0y0x1y1 format.
+    '''
+    bbox_node = obj.find('bndbox')
+    bbox = [
+        int(bbox_node.find('xmin').text),
+        int(bbox_node.find('ymin').text),
+        int(bbox_node.find('xmax').text),
+        int(bbox_node.find('ymax').text),
+    ]
+    return bbox
+
+def set_pvoc_obj_bbox(
+    obj: xml.etree.ElementTree.ElementTree,
+    bbox: Sequence[int],
+):
+    '''set_pvoc_obj_bbox
+
+    Set bounding-box for PVOC object.
+
+    Parameters
+    ----------
+    obj : xml.etree.ElementTree.ElementTree
+        PVOC object as ElementTree
+    bbox : Sequence[int]
+        Bounding-box in x0y0x1y1 format.
+    '''
+    bbox_node = obj.find('bndbox')
+    bbox_node.find('xmin').text = str(bbox[0])
+    bbox_node.find('ymin').text = str(bbox[1])
+    bbox_node.find('xmax').text = str(bbox[2])
+    bbox_node.find('ymax').text = str(bbox[3])
