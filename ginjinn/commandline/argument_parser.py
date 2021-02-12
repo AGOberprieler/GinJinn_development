@@ -811,6 +811,107 @@ def _setup_utils_parser(subparsers):
         default=5,
     )
 
+    # == sliding_window
+    sliding_window_parser = utils_parsers.add_parser(
+        'sliding_window',
+        help = '''
+            <EXPERIMENTAL> Crop images and corresponding annotation into sliding windows.
+            Right now, this is only available for COCO annotated bounding-boxes.
+        ''',
+        description = '''
+            <EXPERIMENTAL> Crop images and corresponding annotation into sliding windows.
+            Right now, this is only available for COCO annotated bounding-boxes.
+        ''',
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
+
+    # required
+    sliding_window_required = sliding_window_parser.add_argument_group('required arguments')
+
+    sliding_window_required.add_argument(
+        '-o', '--out_dir',
+        type = str,
+        help = '''
+            Path to directory, which the sliding-window cropped data set should be written to.
+        ''',
+        required=True,
+    )
+
+    sliding_window_required.add_argument(
+        '-i', '--image_dir',
+        type = str,
+        help = '''
+            Path to image directory.
+        ''',
+        required=True,
+    )
+
+    sliding_window_required.add_argument(
+        '-a', '--ann_path',
+        type = str,
+        help = '''
+            Path to the JSON annotation file.
+        ''',
+        required=True,
+    )
+
+    # optional
+    sliding_window_optional = sliding_window_parser.add_argument_group('optional arguments')
+    sliding_window_optional.add_argument(
+        '-x', '--n_x',
+        type = int,
+        help = '''
+            Number of non-overlapping windows to divide the width into.
+            For example, an image of width 1000 would be divided into 
+            sub-images of width 500 if n_x is 2.
+        ''',
+        default=2,
+    )
+    sliding_window_optional.add_argument(
+        '-y', '--n_y',
+        type = int,
+        help = '''
+            Number of non-overlapping windows to divide the height into.
+            For example, an image of height 600 would be divided into 
+            sub-images of width 300 if n_x is 2.
+        ''',
+        default=2,
+    )
+    sliding_window_optional.add_argument(
+        '-p', '--overlap',
+        type = int,
+        help = '''
+            Overlap between sliding windows.
+        ''',
+        default=0.5,
+    )
+    sliding_window_optional.add_argument(
+        '-m', '--img_id',
+        type = int,
+        help = '''
+            Starting image ID for newly generated image annotations.
+        ''',
+        default=1,
+    )
+    sliding_window_optional.add_argument(
+        '-b', '--obj_id',
+        type = int,
+        help = '''
+            Starting object ID for newly generated object annotations.
+        ''',
+        default=1,
+    )
+    sliding_window_optional.add_argument(
+        '-r', '--remove_empty',
+        dest = 'remove_empty',
+        action = 'store_true',
+        help = '''
+            If this flag is set, cropped images without object annotation will
+            not be saved.
+        '''
+    )
+    parser.set_defaults(remove_empty = False)
+
     # == other utils
     # ...
 

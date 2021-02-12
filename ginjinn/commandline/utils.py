@@ -28,6 +28,8 @@ def ginjinn_utils(args):
         utils_flatten(args)
     elif args.utils_subcommand == 'crop':
         utils_crop(args)
+    elif args.utils_subcommand == 'sliding_window':
+        utils_sliding_window(args)
     else:
         err = f'Unknown utils subcommand "{args.utils_subcommand}".'
         raise Exception(err)
@@ -161,3 +163,57 @@ def utils_crop(args):
         outdir=args.out_dir,
         padding=args.padding,
     )
+
+def utils_sliding_window(args):
+    '''utils_crop
+
+    GinJinn utils sliding_window command.
+
+    Parameters
+    ----------
+    args
+        Parsed GinJinn commandline arguments for the ginjinn utils
+        sliding_window subcommand.
+    '''
+
+    from ginjinn.utils.dataset_cropping import sliding_window_crop_coco
+
+    if os.path.exists(args.out_dir):
+        msg = f'Directory "{args.out_dir} already exists. Should it be overwritten?"\n' +\
+            f'WARNING: This will remove "{args.out_dir}" and ALL SUBDIRECTORIES.\n'
+        should_remove = confirmation_cancel(msg)
+        if should_remove:
+            shutil.rmtree(args.out_dir)
+            os.mkdir(args.out_dir)
+    else:
+        os.mkdir(args.out_dir)
+
+    img_dir_out = os.path.join(args.out_dir, 'images')
+    if os.path.exists(img_dir_out):
+        msg = f'Directory "{img_dir_out} already exists. Should it be overwritten?"\n' +\
+            f'WARNING: This will remove "{img_dir_out}" and ALL SUBDIRECTORIES.\n'
+        should_remove = confirmation_cancel(msg)
+        if should_remove:
+            shutil.rmtree(img_dir_out)
+            os.mkdir(img_dir_out)
+    else:
+        os.mkdir(img_dir_out)
+
+    ann_path_out = os.path.join(args.out_dir, 'annotations.json')
+
+    sliding_window_crop_coco(
+        img_dir=args.image_dir,
+        ann_path=args.ann_path,
+        img_dir_out=img_dir_out,
+        ann_path_out=ann_path_out,
+        n_x=args.n_x,
+        n_y=args.n_y,
+        overlap=args.overlap,
+        img_id=args.img_id,
+        obj_id=args.obj_id,
+        save_empty=not args.remove_empty,
+    )
+
+    msg = f'Sliding-window cropped images written to {img_dir_out}. '+\
+        f'Sliding-window cropped annotation written to {ann_path_out}.'
+    print(msg)

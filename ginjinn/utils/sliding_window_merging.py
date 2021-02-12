@@ -285,8 +285,8 @@ def reconstruct_annotations_on_original(
         sub_obj_anns = [obj_ann for obj_ann in obj_anns if obj_ann['image_id'] == img_ann['id']]
         for obj_ann in sub_obj_anns:
             orig_obj_ann = copy.deepcopy(obj_ann)
-            orig_obj_ann['bbox'][0] = obj_ann['bbox'][0] + xxyy[2]
-            orig_obj_ann['bbox'][1] = obj_ann['bbox'][1] + xxyy[0]
+            orig_obj_ann['bbox'][0] = list(obj_ann['bbox'][0] + xxyy[2])
+            orig_obj_ann['bbox'][1] = list(obj_ann['bbox'][1] + xxyy[0])
             orig_obj_ann['image_id'] = img_anns[0]['id']
 
             orig_obj_anns.append(orig_obj_ann)
