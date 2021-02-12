@@ -8,6 +8,9 @@ import glob
 import os
 from typing import List
 import numpy as np
+import xml
+
+from .dataset_cropping import get_pvoc_objects, get_pvoc_obj_bbox, bbox_size
 
 def confirmation(question: str) -> bool:
     """Ask question expecting "yes" or "no".
@@ -147,7 +150,6 @@ def plot_coco_annotated_img(img, obj_anns: List[dict], ax=None):
     '''
 
     import matplotlib.pyplot as plt
-    from matplotlib.patches import Rectangle, Polygon
 
     if ax is None:
         _, ax = plt.subplots()
@@ -201,5 +203,72 @@ def overlay_coco_annotations(
                 edgecolor='orange'
             )
             ax.add_patch(rect)
+
+    return ax
+
+def plot_pvoc_annotated_img(
+    img: np.ndarray,
+    ann: xml.etree.ElementTree.ElementTree,
+    ax=None,
+):
+    '''plot_pvoc_annotated_img
+
+    Plot PVOC annotated image.
+
+    Parameters
+    ----------
+    img : np.ndarray
+        Image as numpy array
+    ann : xml.etree.ElementTree.ElementTree
+        PVOC annotation as ElementTree
+    ax
+        matplotlib axis, by default None
+
+    Returns
+    -------
+    matplotlib axis
+    '''
+    import matplotlib.pyplot as plt
+
+    if ax is None:
+        _, ax = plt.subplots()
+
+    ax.imshow(img)
+    overlay_pvoc_ann(ann, ax)
+
+    return ax
+
+def overlay_pvoc_ann(
+    ann: xml.etree.ElementTree.ElementTree,
+    ax,
+):
+    '''overlay_pvoc_ann
+
+    Plot PVOC annotation on ax.
+
+    Parameters
+    ----------
+    ann : xml.etree.ElementTree.ElementTree
+        PVOC annotation as ElementTree
+    ax
+        matplotlib axis
+
+    Returns
+    -------
+    matplotlib axis
+    '''
+    import matplotlib.pyplot as plt
+    from matplotlib.patches import Rectangle
+
+    for obj in get_pvoc_objects(ann):
+        bbox = get_pvoc_obj_bbox(obj)
+        w, h = bbox_size(bbox)
+        rect = Rectangle(
+            [bbox[0], bbox[1]], w, h,
+            facecolor=None,
+            fill=False,
+            edgecolor='orange'
+        )
+        ax.add_patch(rect)
 
     return ax
