@@ -176,7 +176,7 @@ def utils_sliding_window(args):
         sliding_window subcommand.
     '''
 
-    from ginjinn.utils.dataset_cropping import sliding_window_crop_coco
+    from ginjinn.utils.dataset_cropping import sliding_window_crop_coco, sliding_window_crop_pvoc
 
     if os.path.exists(args.out_dir):
         msg = f'Directory "{args.out_dir} already exists. Should it be overwritten?"\n' +\
@@ -199,21 +199,49 @@ def utils_sliding_window(args):
     else:
         os.mkdir(img_dir_out)
 
-    ann_path_out = os.path.join(args.out_dir, 'annotations.json')
+    if args.ann_type == 'COCO':
+        ann_path_out = os.path.join(args.out_dir, 'annotations.json')
 
-    sliding_window_crop_coco(
-        img_dir=args.image_dir,
-        ann_path=args.ann_path,
-        img_dir_out=img_dir_out,
-        ann_path_out=ann_path_out,
-        n_x=args.n_x,
-        n_y=args.n_y,
-        overlap=args.overlap,
-        img_id=args.img_id,
-        obj_id=args.obj_id,
-        save_empty=not args.remove_empty,
-    )
+        sliding_window_crop_coco(
+            img_dir=args.image_dir,
+            ann_path=args.ann_path,
+            img_dir_out=img_dir_out,
+            ann_path_out=ann_path_out,
+            n_x=args.n_x,
+            n_y=args.n_y,
+            overlap=args.overlap,
+            img_id=args.img_id,
+            obj_id=args.obj_id,
+            save_empty=not args.remove_empty,
+        )
 
-    msg = f'Sliding-window cropped images written to {img_dir_out}. '+\
-        f'Sliding-window cropped annotation written to {ann_path_out}.'
-    print(msg)
+        msg = f'Sliding-window cropped images written to {img_dir_out}. '+\
+            f'Sliding-window cropped annotation written to {ann_path_out}.'
+        print(msg)
+
+    elif args.ann_type == 'PVOC':
+        ann_dir_out = os.path.join(args.out_dir, 'annotations')
+        if os.path.exists(ann_dir_out):
+            msg = f'Directory "{ann_dir_out} already exists. Should it be overwritten?"\n' +\
+                f'WARNING: This will remove "{ann_dir_out}" and ALL SUBDIRECTORIES.\n'
+            should_remove = confirmation_cancel(msg)
+            if should_remove:
+                shutil.rmtree(ann_dir_out)
+                os.mkdir(ann_dir_out)
+        else:
+            os.mkdir(ann_dir_out)
+
+        sliding_window_crop_pvoc(
+            img_dir=args.image_dir,
+            ann_dir=args.ann_path,
+            img_dir_out=img_dir_out,
+            ann_dir_out=ann_dir_out,
+            n_x=args.n_x,
+            n_y=args.n_y,
+            overlap=args.overlap,
+            save_empty=not args.remove_empty,
+        )
+
+        msg = f'Sliding-window cropped images written to {img_dir_out}. '+\
+            f'Sliding-window cropped annotations written to {ann_dir_out}.'
+        print(msg)

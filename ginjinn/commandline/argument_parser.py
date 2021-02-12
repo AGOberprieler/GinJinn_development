@@ -836,7 +836,6 @@ def _setup_utils_parser(subparsers):
         ''',
         required=True,
     )
-
     sliding_window_required.add_argument(
         '-i', '--image_dir',
         type = str,
@@ -845,13 +844,22 @@ def _setup_utils_parser(subparsers):
         ''',
         required=True,
     )
-
     sliding_window_required.add_argument(
         '-a', '--ann_path',
         type = str,
         help = '''
-            Path to the JSON annotation file.
+            Path to the JSON annotation file for COCO annotations or
+            path to a directory containing XML annotations for PVOC annotations.
         ''',
+        required=True,
+    )
+    sliding_window_required.add_argument(
+        '-t', '--ann_type',
+        type = str,
+        help = '''
+            Annotation type.
+        ''',
+        choices = ['COCO', 'PVOC'],
         required=True,
     )
 
