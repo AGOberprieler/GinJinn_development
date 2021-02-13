@@ -491,7 +491,7 @@ def merge_sliding_window_predictions(
             [get_obj_anns(img_ann, ann) for img_ann in img_anns]
         ))
 
-        orig_img, *_ = merge_cropped_predictions(
+        orig_img, orig_img_ann, merged_obj_anns, _ = merge_cropped_predictions(
             img_anns,
             obj_anns,
             img_dir,
@@ -502,8 +502,8 @@ def merge_sliding_window_predictions(
         img_f = os.path.join(img_out_dir, f'{bname}.jpg')
         cv2.imwrite(img_f, orig_img)
 
-        new_img_anns.extend(img_anns)
-        new_obj_anns.extend(obj_anns)
+        new_img_anns.append(orig_img_ann)
+        new_obj_anns.extend(merged_obj_anns)
 
     new_ann = coco_utils.build_coco_dataset(
         annotations=new_obj_anns,
