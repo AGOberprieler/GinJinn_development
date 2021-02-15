@@ -887,7 +887,7 @@ def _setup_utils_parser(subparsers):
     )
     sliding_window_optional.add_argument(
         '-p', '--overlap',
-        type = int,
+        type = float,
         help = '''
             Overlap between sliding windows.
         ''',
@@ -919,6 +919,68 @@ def _setup_utils_parser(subparsers):
         '''
     )
     parser.set_defaults(remove_empty = False)
+
+    # == sw_merge
+    sw_merge_parser = utils_parsers.add_parser(
+        'sw_merge',
+        help = '''
+            <EXPERIMENTAL> Merge sliding-window cropped images and annotations.
+        ''',
+        description = '''
+            <EXPERIMENTAL> Merge sliding-window cropped images and annotations.
+        ''',
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
+
+    # required
+    sw_merge_required = sw_merge_parser.add_argument_group('required arguments')
+    sw_merge_required.add_argument(
+        '-o', '--out_dir',
+        type = str,
+        help = '''
+            Output directory. Will be created if it does not exist.
+        ''',
+        required=True,
+    )
+    sw_merge_required.add_argument(
+        '-i', '--image_dir',
+        type = str,
+        help = '''
+            Path to directory containing the sliding-window cropped images.
+        ''',
+        required=True,
+    )
+    sw_merge_required.add_argument(
+        '-a', '--ann_path',
+        type = str,
+        help = '''
+            Path to the JSON annotation file.
+        ''',
+        required=True,
+    )
+
+    # optional
+    sw_merge_optional = sw_merge_parser.add_argument_group('optional arguments')
+    sw_merge_optional.add_argument(
+        '-t', '--intersection_type',
+        type = str,
+        help = '''
+            Intersection type to use for merging:
+            - 'ios': intersection over smaller object
+            - 'iou': intersection over union
+        ''',
+        choices = ['ios', 'iou'],
+        default = 'ios',
+    )
+    sw_merge_optional.add_argument(
+        '-th', '--intersection_th',
+        type = float,
+        help = '''
+            Intersection threshold for merging. Only objects with an intersection
+            above intersection_th will be merged.
+        ''',
+        default=0.5,
+    )
 
     # == other utils
     # ...

@@ -30,6 +30,8 @@ def ginjinn_utils(args):
         utils_crop(args)
     elif args.utils_subcommand == 'sliding_window':
         utils_sliding_window(args)
+    elif args.utils_subcommand == 'sw_merge':
+        utils_sw_merge(args)
     else:
         err = f'Unknown utils subcommand "{args.utils_subcommand}".'
         raise Exception(err)
@@ -165,7 +167,7 @@ def utils_crop(args):
     )
 
 def utils_sliding_window(args):
-    '''utils_crop
+    '''utils_sliding_window
 
     GinJinn utils sliding_window command.
 
@@ -245,3 +247,42 @@ def utils_sliding_window(args):
         msg = f'Sliding-window cropped images written to {img_dir_out}. '+\
             f'Sliding-window cropped annotations written to {ann_dir_out}.'
         print(msg)
+
+def utils_sw_merge(args):
+    '''utils_sw_merge
+
+    GinJinn utils sw_merge command.
+
+    Parameters
+    ----------
+    args
+        Parsed GinJinn commandline arguments for the ginjinn utils
+        sw_merge subcommand.
+    '''
+
+    from ginjinn.utils.sliding_window_merging import merge_sliding_window_predictions
+
+    def on_out_dir_exists(out_dir):
+        return confirmation_cancel(
+            f'\nDirectory "{out_dir}" already exists.\nDo you want to overwrite it? ' + \
+            f'WARNING: this will delete "{out_dir}" and ALL SUBDIRECTORIES!\n'
+        )
+
+    def on_img_out_dir_exists(img_out_dir):
+        return confirmation_cancel(
+            f'\nDirectory "{img_out_dir}" already exists.\nDo you want to overwrite it? ' + \
+            f'WARNING: this will delete "{img_out_dir}" and ALL SUBDIRECTORIES!\n'
+        )
+
+    merge_sliding_window_predictions(
+        img_dir=args.image_dir,
+        ann_path=args.ann_path,
+        out_dir=args.out_dir,
+        intersection_type=args.intersection_type,
+        intersection_th=args.intersection_th,
+        on_out_dir_exists=on_out_dir_exists,
+        on_img_out_dir_exists=on_img_out_dir_exists,
+    )
+
+    msg = f'Merging results written to {args.out_dir}.'
+    print(msg)

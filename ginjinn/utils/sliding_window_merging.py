@@ -14,6 +14,18 @@ import cv2
 from ginjinn.simulation import coco_utils
 from ginjinn.utils import load_coco_ann, get_obj_anns
 
+# source: https://stackoverflow.com/a/52604722
+class NumpyEncoder(json.JSONEncoder):
+    """ Special json encoder for numpy types """
+    def default(self, obj):
+        if isinstance(obj, np.integer):
+            return int(obj)
+        elif isinstance(obj, np.floating):
+            return float(obj)
+        elif isinstance(obj, np.ndarray):
+            return obj.tolist()
+        return json.JSONEncoder.default(self, obj)
+
 def get_bname_from_fname(file_name: str) -> str:
     '''get_bname_from_fname
 
@@ -285,8 +297,8 @@ def reconstruct_annotations_on_original(
         sub_obj_anns = [obj_ann for obj_ann in obj_anns if obj_ann['image_id'] == img_ann['id']]
         for obj_ann in sub_obj_anns:
             orig_obj_ann = copy.deepcopy(obj_ann)
-            orig_obj_ann['bbox'][0] = list(obj_ann['bbox'][0] + xxyy[2])
-            orig_obj_ann['bbox'][1] = list(obj_ann['bbox'][1] + xxyy[0])
+            orig_obj_ann['bbox'][0] = obj_ann['bbox'][0] + xxyy[2]
+            orig_obj_ann['bbox'][1] = obj_ann['bbox'][1] + xxyy[0]
             orig_obj_ann['image_id'] = img_anns[0]['id']
 
             orig_obj_anns.append(orig_obj_ann)
@@ -352,8 +364,8 @@ def merge_bbox_annotations(
         new_ann = copy.deepcopy(obj_anns[cl_idcs[0]])
         bbox_xywh = xyxy_to_xywh(bbox_merged).flatten()
         new_ann['bbox'] = list(bbox_xywh)
-        new_ann['area'] = bbox_xywh[2] * bbox_xywh[3]
-        new_ann['image_id'] = img_id
+        new_ann['area'] = float(bbox_xywh[2] * bbox_xywh[3])
+        new_ann['image_id'] = int(img_id)
         new_anns.append(new_ann)
 
     return new_anns
@@ -400,13 +412,13 @@ def merge_cropped_predictions(
     orig_img = reconstruct_original_image(img_anns, img_dir)
     orig_obj_anns = reconstruct_annotations_on_original(img_anns, obj_anns)
     orig_img_ann = coco_utils.build_coco_image(
-        image_id=img_anns[0]['id'],
+        image_id=int(img_anns[0]['id']),
         file_name=f'{get_bname_from_fname(img_anns[0]["file_name"])}.jpg',
-        width=orig_img.shape[1],
-        height=orig_img.shape[0],
-        coco_url=img_anns[0].get('coco_url', ''),
-        date_captured=img_anns[0].get('date_captured', 0),
-        flickr_url=img_anns[0].get('flickr_url', ''),
+        width=int(orig_img.shape[1]),
+        height=int(orig_img.shape[0]),
+        coco_url=str(img_anns[0].get('coco_url', '')),
+        date_captured=str(img_anns[0].get('date_captured', 0)),
+        flickr_url=str(img_anns[0].get('flickr_url', '')),
     )
 
     merged_obj_anns = merge_bbox_annotations(
@@ -514,4 +526,4 @@ def merge_sliding_window_predictions(
     )
 
     with open(ann_out_file, 'w') as ann_f:
-        json.dump(new_ann, ann_f, indent=2)
+        json.dump(new_ann, ann_f, indent=2, cls=NumpyEncoder)
