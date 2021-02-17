@@ -98,4 +98,4 @@ def ginjinn_predict(args):
         threshold=threshold,
     )
 
-    print('Predictions written to {out_dir}.')
+    print(f'Predictions written to {out_dir}.')
