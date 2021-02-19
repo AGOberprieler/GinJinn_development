@@ -32,6 +32,8 @@ def ginjinn_utils(args):
         utils_sliding_window(args)
     elif args.utils_subcommand == 'sw_merge':
         utils_sw_merge(args)
+    elif args.utils_subcommand == 'filter':
+        utils_filter(args)
     else:
         err = f'Unknown utils subcommand "{args.utils_subcommand}".'
         raise Exception(err)
@@ -286,3 +288,29 @@ def utils_sw_merge(args):
 
     msg = f'Merging results written to {args.out_dir}.'
     print(msg)
+
+def utils_filter(args):
+    '''utils_filter
+
+    GinJinn utils filter command.
+
+    Parameters
+    ----------
+    args
+        Parsed GinJinn commandline arguments for the ginjinn utils
+        filter subcommand.
+    '''
+
+    from ginjinn.utils.data_prep import filter_categories_coco
+
+    filter = args.filter
+    drop = args.drop
+
+    filter_categories_coco(
+        ann_file = args.ann_file,
+        out_file = args.out_file,
+        drop = filter if drop else None,
+        keep = filter if not drop else None,
+    )
+
+    print(f'Filtered annotation written to "{args.out_file}".')

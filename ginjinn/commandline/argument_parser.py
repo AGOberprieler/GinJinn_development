@@ -982,6 +982,58 @@ def _setup_utils_parser(subparsers):
         default=0.5,
     )
 
+    # == filter
+    filter_parser = utils_parsers.add_parser(
+        'filter',
+        help = '''
+            Filter COCO annotation categories.
+        ''',
+        description = '''
+            Filter COCO annotation categories.
+        ''',
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
+
+    # required
+    filter_parser_required = filter_parser.add_argument_group('required arguments')
+    filter_parser_required.add_argument(
+        '-o', '--out_file',
+        type = str,
+        help = '''
+            Annotation file (JSON) the filtered annotations should be written to.
+        ''',
+        required=True,
+    )
+    filter_parser_required.add_argument(
+        '-a', '--ann_file',
+        type = str,
+        help = '''
+            Path to COCO annotation file (JSON).
+        ''',
+        required=True,
+    )
+    filter_parser_required.add_argument(
+        '-f', '--filter',
+        type = str,
+        help = '''
+            Names of categories to filter. Filtering depends on the drop parameter.
+            By default, the passed categories kept and the remaining are dropped.
+        ''',
+        action = 'append',
+        required = True,
+    )
+
+    # optional
+    filter_parser_optional = filter_parser.add_argument_group('optional arguments')
+    filter_parser_optional.add_argument(
+        '-d', '--drop',
+        action = 'store_true',
+        help = '''
+            Drop categories in filter instead of keeping them.
+        '''
+    )
+    parser.set_defaults(drop = False)
+
     # == other utils
     # ...
 
