@@ -81,7 +81,7 @@ def flatten_coco(
     if custom_id:
         id_map_file = os.path.join(out_dir, 'id_map.csv')
         id_map_df = pd.DataFrame.from_records(
-            id_map.items(),
+            list(id_map.items()),
             columns=['id', 'original_path']
         )
         id_map_df.to_csv(id_map_file, index=False)
