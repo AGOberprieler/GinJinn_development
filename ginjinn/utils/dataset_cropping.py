@@ -133,6 +133,7 @@ def crop_annotations(
             # crop segmentation
             imask_cropped = imantics.Mask(imask.array[y_start:y_end, x_start:x_end])
             seg_cropped = imask_cropped.polygons().segmentation
+            seg_cropped = [p for p in seg_cropped if len(p) >= 6]
 
             if seg_cropped:
                 # calculate bounding box
@@ -291,6 +292,7 @@ def crop_seg_from_coco(
             bbox_coco = [ x1, y1, x2 - x1, y2 - y1 ]
 
             polygons_cropped = imantics.Mask(mask_cropped).polygons().segmentation
+            polygons_cropped = [p for p in polygons_cropped if len(p) >= 6]
 
             annotations.append({
                 "area": (x2 - x1) * (y2 - y1),

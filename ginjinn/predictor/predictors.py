@@ -107,7 +107,9 @@ class GinjinnPredictor():
             will be used.
         output_options : iterable of str, default=("COCO", "cropped", "visualization")
             Available output formats:
-                "COCO": Write predictions to COCO json file.
+                "COCO": Write predictions to COCO json file. For better compatibility with external
+                        programs, the annotations do not contain polygons consisting of less than
+                        three points (i.e., tiny sub-objects consisting of only one or two pixels).
                 "cropped": Save cropped images and segmentation masks (if available).
                            In case of instance segmentation, an additional COCO json file with
                            annotations referring to the cropped images will be written.
@@ -370,7 +372,7 @@ class GinjinnPredictor():
             if self.task == "instance-segmentation":
                 imask = imantics.Mask(masks[i_inst])
                 ipoly = imask.polygons()
-                anno["segmentation"] = ipoly.segmentation
+                anno["segmentation"] = [p for p in ipoly.segmentation if len(p) >= 6]
 
             self._coco_annotations[name].append(anno)
 
