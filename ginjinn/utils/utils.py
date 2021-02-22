@@ -9,7 +9,82 @@ import os
 import xml
 import xml.etree.ElementTree as et
 from typing import List, Sequence, Tuple
+import imantics
 import numpy as np
+from pycocotools import mask as pmask
+
+def coco_seg_to_mask(seg, width, height):
+    """coco_seg_to_mask
+
+    Convert segmentation annotation (either list of polygons or COCO's compressed RLE)
+    to binary mask.
+
+    Parameters
+    ----------
+    seg : dict or list
+        Segmentation annotation
+    width : int
+        Image/mask width
+    height : int
+        Image/mask height
+
+    Returns
+    -------
+    seg_mask : np.ndarray
+        Boolean segmentation mask
+
+    Raises
+    ------
+    TypeError
+        Raised for unsupported annotation formats.
+    """
+    if isinstance(seg, dict):
+        # compressed rle to mask
+        seg_mask = pmask.decode(seg).astype("bool")
+    elif isinstance(seg, list):
+        # polygon to mask
+        polygons = imantics.Polygons(seg)
+        seg_mask = polygons.mask(width, height).array
+    else:
+        raise TypeError(
+            "Unknown segmentation format, polygons or compressed RLE expected"
+        )
+    return seg_mask
+
+def bbox_from_mask(mask: np.ndarray, fmt: str):
+    """Calculate bounding box from segmentation mask.
+
+    Parameters
+    ----------
+    mask : np.ndarray
+        Segmentation mask
+    fmt : str
+        Output format, either "xywh" (COCO-like) or "xyxy" (PascalVoc-like)
+
+    Returns
+    -------
+    np.ndarray
+        Bounding box
+
+    Raises
+    ------
+    ValueError
+        Raised for unsupported output formats.
+    """
+    x_any = mask.any(axis=0)
+    y_any = mask.any(axis=1)
+    x = np.where(x_any)[0].tolist()
+    y = np.where(y_any)[0].tolist()
+    x1, y1, x2, y2 = (x[0], y[0], x[-1] + 1, y[-1] + 1)
+    if fmt == "xywh":
+        bbox = ( x1, y1, x2 - x1, y2 - y1 )
+    elif fmt == "xyxy":
+        bbox = ( x1, y1, x2, y2 )
+    else:
+        raise ValueError(
+            f"Unknown bounding box format \"{fmt}\"."
+        )
+    return np.array(bbox)
 
 def confirmation(question: str) -> bool:
     """Ask question expecting "yes" or "no".
@@ -474,7 +549,7 @@ def get_pvoc_size(
         int(size_node.find('height').text),
         int(size_node.find('depth').text),
     ]
-    
+
 def set_pvoc_size(
     ann: xml.etree.ElementTree.ElementTree,
     size: Sequence[int],
@@ -494,7 +569,7 @@ def set_pvoc_size(
     size_node.find('width').text = str(size[0])
     size_node.find('height').text = str(size[1])
     size_node.find('depth').text = str(size[2])
-    
+
 def get_pvoc_objects(
     ann: xml.etree.ElementTree.ElementTree,
 ) -> List[xml.etree.ElementTree.ElementTree]:

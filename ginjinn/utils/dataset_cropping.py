@@ -15,11 +15,11 @@ import imantics
 from pycocotools import mask
 from ginjinn.simulation import coco_utils
 from .utils import load_coco_ann, get_obj_anns
-from .utils import get_pvoc_obj_bbox,\
+from .utils import get_pvoc_obj_bbox, bbox_from_mask,\
     crop_bbox, bbox_size, set_pvoc_obj_bbox,\
     drop_pvoc_objects, get_pvoc_filename, set_pvoc_filename,\
     get_pvoc_objects, add_pvoc_object, set_pvoc_size, get_pvoc_size,\
-    load_pvoc_annotation, write_pvoc_annotation
+    load_pvoc_annotation, write_pvoc_annotation, coco_seg_to_mask
 
 # pylint: disable=C0103
 def crop_annotations(
@@ -28,7 +28,8 @@ def crop_annotations(
     img_height: int,
     cropping_range: Sequence[int],
     start_id: int,
-    task: str
+    task: str,
+    keep_incomplete: bool = True
 ) -> Tuple:
     """Crop object annotations.
 
@@ -50,6 +51,9 @@ def crop_annotations(
         Object ID to start output annotations with.
     task : str
         Either "bbox-detection" or "instance-segmentation"
+    keep_incomplete : bool
+        If false, trimmed objects are discarded.
+
 
     Returns
     -------
@@ -61,7 +65,7 @@ def crop_annotations(
     Raises
     ------
     TypeError
-        Raised for unsupported segmentation format.
+        Raised for unsupported object annotations.
     ValueError
         Raised if input annotations refer to different images.
     """
@@ -96,68 +100,59 @@ def crop_annotations(
             x1, y1, w, h = bbox_orig
             x2, y2 = x1 + w, y1 + h
             x1, y1, x2, y2 = (round(coord) for coord in (x1, y1, x2, y2))
-            X1, X2 = np.clip((x1 - x_start, x2 - x_start), 0, x_end - x_start - 1).tolist()
-            Y1, Y2 = np.clip((y1 - y_start, y2 - y_start), 0, y_end - y_start - 1).tolist()
+            X1 = np.clip(x1 - x_start, 0, x_end - x_start - 1).tolist()
+            X2 = np.clip(x2 - x_start, 0, x_end - x_start).tolist()
+            Y1 = np.clip(y1 - y_start, 0, y_end - y_start - 1).tolist()
+            Y2 = np.clip(y2 - y_start, 0, y_end - y_start).tolist()
             area = (X2 - X1) * (Y2 - Y1)
 
             if area > 0:
-                # create object annotation
-                annotations_cropped.append({
-                    "area": area,
-                    "bbox": [X1, Y1, X2-X1, Y2-Y1],
-                    "image_id": img_id,
-                    "id": i_ann,
-                    "category_id": annotation.get("category_id")
-                })
-                i_ann += 1
+                if keep_incomplete or (X2-X1 >= x2-x1 and Y2-Y1 >= y2-y1):
+                    # create object annotation
+                    annotations_cropped.append({
+                        "area": area,
+                        "bbox": [X1, Y1, X2-X1, Y2-Y1],
+                        "image_id": img_id,
+                        "id": i_ann,
+                        "category_id": annotation.get("category_id")
+                    })
+                    i_ann += 1
 
         elif task == "instance-segmentation":
             # read segmentation
             seg_orig = annotation.get("segmentation")
             if seg_orig:
-                if isinstance(seg_orig, dict):
-                    # rle to mask
-                    imask = imantics.Mask(mask.decode(seg_orig).astype("bool"))
-                elif isinstance(seg_orig, list):
-                    # polygon to mask
-                    ipolygons = imantics.Polygons(seg_orig)
-                    imask = ipolygons.mask(img_width, img_height)
-                else:
-                    raise TypeError(
-                        "Unknown segmentation format, polygons or RLE expected"
-                    )
+                mask_orig = coco_seg_to_mask(seg_orig, img_width, img_height)
             else:
                 # skip instances without segmentation
                 continue
 
             # crop segmentation
-            imask_cropped = imantics.Mask(imask.array[y_start:y_end, x_start:x_end])
+            imask_cropped = imantics.Mask(mask_orig[y_start:y_end, x_start:x_end])
             seg_cropped = imask_cropped.polygons().segmentation
-            seg_cropped = [p for p in seg_cropped if len(p) >= 6]
 
             if seg_cropped:
-                # calculate bounding box
-                x_any = imask_cropped.array.any(axis=0)
-                y_any = imask_cropped.array.any(axis=1)
-                x = np.where(x_any)[0].tolist()
-                y = np.where(y_any)[0].tolist()
-                x1, y1, x2, y2 = (x[0], y[0], x[-1] + 1, y[-1] + 1)
-                bbox_coco = [ x1, y1, x2 - x1, y2 - y1 ]
+                # compare object boundaries
+                bbox_orig = bbox_from_mask(mask_orig, fmt="xywh").tolist()
+                bbox_cropped = bbox_from_mask(imask_cropped.array, fmt="xywh").tolist()
 
-                # create object annotation
-                annotations_cropped.append({
-                    "area": (x2 - x1) * (y2 - y1),
-                    "bbox": bbox_coco,
-                    "segmentation": seg_cropped,
-                    "iscrowd": 0,
-                    "image_id": img_id,
-                    "id": i_ann,
-                    "category_id": annotation.get("category_id")
-                })
-                i_ann += 1
+                if (
+                    keep_incomplete
+                    or (bbox_cropped[2] >= bbox_orig[2] and bbox_cropped[3] >= bbox_orig[3])
+                ):
+                    # create object annotation
+                    annotations_cropped.append({
+                        "area": bbox_cropped[2] * bbox_cropped[3],
+                        "bbox": bbox_cropped,
+                        "segmentation": seg_cropped,
+                        "iscrowd": 0,
+                        "image_id": img_id,
+                        "id": i_ann,
+                        "category_id": annotation.get("category_id")
+                    })
+                    i_ann += 1
 
     return i_ann, annotations_cropped
-
 
 # pylint: disable=C0103
 def crop_seg_from_coco(
@@ -660,7 +655,7 @@ def crop_pvoc_ann(
     '''
     cropped_ann = copy.deepcopy(ann)
     drop_pvoc_objects(cropped_ann)
-    
+
     if rename:
         nm, ext = os.path.splitext(
             os.path.basename(get_pvoc_filename(ann))
@@ -668,12 +663,12 @@ def crop_pvoc_ann(
         xmn, xmx, ymn, ymx = cropping_range
         new_name = f'{nm}_{xmn}-{xmx}_{ymn}-{ymx}{ext}'
         set_pvoc_filename(cropped_ann, new_name)
-    
+
     cropped_objs = [
         obj for obj in [
             crop_pvoc_obj(
                 obj, cropping_range, min_size
-            ) for obj in get_pvoc_objects(ann) 
+            ) for obj in get_pvoc_objects(ann)
         ] if not obj is None
     ]
 
@@ -687,7 +682,7 @@ def crop_pvoc_ann(
             get_pvoc_size(ann)[2],
         ]
     )
-    
+
     return cropped_ann
 
 def crop_image(
@@ -728,7 +723,7 @@ def sliding_window_crop_pvoc(
     '''sliding_window_crop_pvoc
 
     Sliding-window crop images and annotation from
-    PVOC annotated images. 
+    PVOC annotated images.
 
     Parameters
     ----------
