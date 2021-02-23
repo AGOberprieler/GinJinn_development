@@ -6,7 +6,10 @@ import os
 import shutil
 from typing import List
 import datetime
+import cv2
+import imantics
 import pandas as pd
+from .utils import bbox_from_mask, coco_seg_to_mask
 
 def flatten_coco(
     ann_file: str,
@@ -148,6 +151,122 @@ def filter_categories_coco(
     with open(out_file, 'w') as json_file:
         json.dump(
             anno,
+            json_file,
+            indent = 2,
+            sort_keys = True
+        )
+
+def filter_objects_by_size(
+    ann_file: str,
+    out_file: str,
+    task: str,
+    min_width: int = 0,
+    min_height: int = 0,
+    min_area: int = 0,
+    min_fragment_area: int = 0
+):
+    """filter_objects_by_size
+
+    Filter (sub)objects from a COCO annotation file by size.
+
+    Parameters
+    ----------
+    ann_file : str
+        Path to annotation (JSON) file
+    out_file : str
+        Output file name
+    task : str
+        Either 'bbox-detection' or 'instance-segmentation', determines whether filter criteria
+        are applied to bounding boxes or segmentations.
+    min_width : int
+        Min. object width (pixels)
+    min_height : int
+        Min. object height (pixels)
+    min_area : int
+        Min. object area (pixels)
+    min_fragment_area : int
+        Min. area of object parts (pixels).
+        If a segmentation instance consists of multiple disjunct parts, this option allows
+        to remove small subobjects without discarding the whole object.
+
+    Raises
+    ------
+    ValueError
+        Raised for invalid filter settings.
+    """
+    if (
+        max(min_width, min_height, min_area, min_fragment_area) < 1
+        or min(min_width, min_height, min_area, min_fragment_area) < 0
+    ):
+        raise ValueError(
+            "\"min_width\", \"min_height\", \"min_area\", and \"min_fragment_area\" have to be "\
+            "non-negative integers, at least one of which must be non-zero."
+        )
+
+    with open(ann_file, "rb") as f:
+        ann = json.load(f)
+
+    dict_images = {img_ann["id"]: img_ann for img_ann in ann.get("images")}
+    annotations_filtered = []
+
+    for annotation in ann.get("annotations"):
+        img_ann = dict_images[annotation["image_id"]]
+        img_width = img_ann["width"]
+        img_height = img_ann["height"]
+
+        if task == "bbox-detection":
+            obj_width, obj_height = annotation["bbox"][2:]
+            if (
+                obj_width >= min_width
+                and obj_height >= min_height
+                and obj_width * obj_height >= min_area
+            ):
+                annotations_filtered.append(annotation)
+
+        elif task == "instance-segmentation":
+            seg = annotation.get("segmentation")
+            if seg:
+                seg_mask = coco_seg_to_mask(seg, img_width, img_height)
+                if seg_mask.sum() < min_area:
+                    continue
+            else:
+                continue
+
+            # calculate width and height from segmentation
+            *_, obj_width, obj_height = bbox_from_mask(seg_mask, fmt="xywh").tolist()
+            if obj_width < min_width or obj_height < min_height:
+                continue
+
+            if min_fragment_area > 0:
+                n_labels, labels, stats, _ = cv2.connectedComponentsWithStats(
+                    seg_mask.astype("uint8"),
+                    connectivity = 8
+                )
+                sizes = stats[-1]
+                # 0th element: background
+                for i in range(1, n_labels):
+                    if sizes[i] < min_fragment_area:
+                        seg_mask[labels == i] = False
+                annotation["segmentation"] = imantics.Mask(seg_mask).polygons().segmentation
+                annotation["iscrowd"] = 0
+
+            if seg_mask.sum() > 0:
+                annotations_filtered.append(annotation)
+
+    ann["annotations"] = annotations_filtered
+    ann["info"] = {
+        "contributor" : "",
+        "date_created" : datetime.datetime.now().strftime("%Y/%m/%d"),
+        "description" : "",
+        "version" : "",
+        "url" : "",
+        "year" : ""
+    }
+
+    # write COCO json file
+    with open(out_file, 'w') as json_file:
+        json.dump(
+            ann,
             json_file,
             indent = 2,
             sort_keys = True
