@@ -75,7 +75,12 @@ def bbox_from_mask(mask: np.ndarray, fmt: str):
     y_any = mask.any(axis=1)
     x = np.where(x_any)[0].tolist()
     y = np.where(y_any)[0].tolist()
-    x1, y1, x2, y2 = (x[0], y[0], x[-1] + 1, y[-1] + 1)
+
+    if len(x) > 0 and len(y) > 0:
+        x1, y1, x2, y2 = (x[0], y[0], x[-1] + 1, y[-1] + 1)
+    else:
+        x1, y1, x2, y2 = (0, 0, 0, 0)
+
     if fmt == "xywh":
         bbox = ( x1, y1, x2 - x1, y2 - y1 )
     elif fmt == "xyxy":
