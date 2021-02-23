@@ -420,6 +420,7 @@ def crop_ann_img(
     img_id: int,
     task: str = 'instance-segmentation',
     return_empty: bool = True,
+    keep_incomplete: bool = True,
 ) -> Tuple:
     '''crop_ann_img
 
@@ -444,6 +445,8 @@ def crop_ann_img(
         Either 'instance-segmentation' or 'bbox-detection',by default 'instance-segmentation'.
     return_empty : bool, optional
         Whether images without annotation should be returned, by default True
+    keep_incomplete : bool
+        If false, trimmed object annotations are discarded.
 
     Yields
     -------
@@ -459,6 +462,7 @@ def crop_ann_img(
             cropping_range=list(cropping_range),
             start_id=obj_id,
             task=task,
+            keep_incomplete=keep_incomplete,
         )
         if not return_empty:
             if len(cropped_obj_anns) < 1:
@@ -512,6 +516,7 @@ def sliding_window_crop_coco(
     img_id: int = 0,
     obj_id: int = 0,
     save_empty=True,
+    keep_incomplete=True,
 ):
     '''sliding_window_crop_coco
 
@@ -540,6 +545,8 @@ def sliding_window_crop_coco(
         Start image ID for new COCO object annotations, by default 0
     save_empty : bool, optional
         Whether images without annotations should be saved, by default True
+    keep_incomplete : bool
+        If false, trimmed object annotations are discarded.
     '''
     ann = load_coco_ann(ann_path)
     img_anns = ann['images']
@@ -564,7 +571,8 @@ def sliding_window_crop_coco(
             xxyy=xxyy,
             obj_id=obj_id,
             img_id=img_id,
-            return_empty=save_empty
+            return_empty=save_empty,
+            keep_incomplete=keep_incomplete,
         ):
             new_img_anns.append(c_img_ann)
             new_obj_anns.extend(c_obj_anns)
@@ -591,6 +599,7 @@ def crop_pvoc_obj(
     obj: xml.etree.ElementTree.ElementTree,
     cropping_range: Sequence[int],
     min_size: Sequence[int] = [10, 10],
+    keep_incomplete: bool = True,
 ) -> Optional[xml.etree.ElementTree.ElementTree]:
     '''crop_pvoc_obj
 
@@ -605,6 +614,8 @@ def crop_pvoc_obj(
     min_size : Sequence[int], optional
         Minimum cropped bounding-box size (width, height),
         by default [10, 10].
+    keep_incomplete : bool
+        If false, trimmed object annotations are discarded.
 
     Returns
     -------
@@ -615,8 +626,14 @@ def crop_pvoc_obj(
     cropped_obj = copy.deepcopy(obj)
 
     bbox = get_pvoc_obj_bbox(obj)
+    w_orig, h_orig = bbox_size([int(x) for x in bbox])
+
     bbox_cropped = [int(x) for x in crop_bbox(bbox, cropping_range)]
     w, h = bbox_size(bbox_cropped)
+
+    if not keep_incomplete:
+        if not (w_orig == w and h_orig == h):
+            return None
 
     if w < min_size[0] or h < min_size[1]:
         return None
@@ -630,6 +647,7 @@ def crop_pvoc_ann(
     cropping_range: Sequence[int],
     min_size: Sequence[int] = [10, 10],
     rename: bool = True,
+    keep_incomplete: bool = True,
 ) -> xml.etree.ElementTree.ElementTree:
     '''crop_pvoc_ann
 
@@ -647,6 +665,8 @@ def crop_pvoc_ann(
     rename : bool, optional
         Whether the filename element text should be change to include
         the cropping coordinates, by default True
+    keep_incomplete : bool
+        If false, trimmed object annotations are discarded.
 
     Returns
     -------
@@ -667,7 +687,8 @@ def crop_pvoc_ann(
     cropped_objs = [
         obj for obj in [
             crop_pvoc_obj(
-                obj, cropping_range, min_size
+                obj, cropping_range, min_size,
+                keep_incomplete=keep_incomplete,
             ) for obj in get_pvoc_objects(ann)
         ] if not obj is None
     ]
@@ -718,7 +739,8 @@ def sliding_window_crop_pvoc(
     n_x: int,
     n_y: int,
     overlap: float,
-    save_empty=True,
+    save_empty: bool = True,
+    keep_incomplete: bool = True,
 ):
     '''sliding_window_crop_pvoc
 
@@ -744,6 +766,8 @@ def sliding_window_crop_pvoc(
     save_empty : bool, optional
         Whether cropped images without object annotations should be saved,
         by default True
+    keep_incomplete : bool
+        If false, trimmed object annotations are discarded.
     '''
     ann_files = glob.glob(os.path.join(ann_dir, '*.xml'))
 
@@ -759,7 +783,10 @@ def sliding_window_crop_pvoc(
         print(get_pvoc_filename(ann))
 
         for cropping_range in xxyy:
-            cropped_ann = crop_pvoc_ann(ann, cropping_range)
+            cropped_ann = crop_pvoc_ann(
+                ann, cropping_range,
+                keep_incomplete=keep_incomplete
+            )
 
             if not save_empty and len(get_pvoc_objects(cropped_ann)) < 1:
                 continue

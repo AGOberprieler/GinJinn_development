@@ -34,6 +34,8 @@ def ginjinn_utils(args):
         utils_sw_merge(args)
     elif args.utils_subcommand == 'filter':
         utils_filter(args)
+    elif args.utils_subcommand == 'filter_size':
+        utils_filter_size(args)
     else:
         err = f'Unknown utils subcommand "{args.utils_subcommand}".'
         raise Exception(err)
@@ -217,6 +219,7 @@ def utils_sliding_window(args):
             img_id=args.img_id,
             obj_id=args.obj_id,
             save_empty=not args.remove_empty,
+            keep_incomplete=not args.remove_incomplete,
         )
 
         msg = f'Sliding-window cropped images written to {img_dir_out}. '+\
@@ -244,6 +247,7 @@ def utils_sliding_window(args):
             n_y=args.n_y,
             overlap=args.overlap,
             save_empty=not args.remove_empty,
+            keep_incomplete=not args.remove_incomplete,
         )
 
         msg = f'Sliding-window cropped images written to {img_dir_out}. '+\
@@ -303,14 +307,37 @@ def utils_filter(args):
 
     from ginjinn.utils.data_prep import filter_categories_coco
 
-    filter = args.filter
-    drop = args.drop
-
     filter_categories_coco(
         ann_file = args.ann_file,
         out_file = args.out_file,
-        drop = filter if drop else None,
-        keep = filter if not drop else None,
+        drop = args.filter if args.drop else None,
+        keep = args.filter if not args.drop else None,
+    )
+
+    print(f'Filtered annotation written to "{args.out_file}".')
+
+def utils_filter_size(args):
+    '''utils_filter_size
+
+    GinJinn utils filter_size command.
+
+    Parameters
+    ----------
+    args
+        Parsed GinJinn commandline arguments for the ginjinn utils
+        filter_size subcommand.
+    '''
+
+    from ginjinn.utils.data_prep import filter_objects_by_size
+
+    filter_objects_by_size(
+        ann_file = args.ann_file,
+        out_file = args.out_file,
+        task = args.task,
+        min_width = args.min_width,
+        min_height = args.min_height,
+        min_area = args.min_area,
+        min_fragment_area = args.min_fragment_area,
     )
 
     print(f'Filtered annotation written to "{args.out_file}".')

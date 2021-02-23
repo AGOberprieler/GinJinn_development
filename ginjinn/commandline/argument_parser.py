@@ -919,6 +919,16 @@ def _setup_utils_parser(subparsers):
         '''
     )
     parser.set_defaults(remove_empty = False)
+    sliding_window_optional.add_argument(
+        '-c', '--remove_incomplete',
+        dest = 'remove_incomplete',
+        action = 'store_true',
+        help = '''
+            If this flag is set, object annotations that are touched (trimmed)
+            by a sliding-window edge are removed from the corresponding sliding-window images. 
+        '''
+    )
+    parser.set_defaults(remove_incomplete = False)
 
     # == sw_merge
     sw_merge_parser = utils_parsers.add_parser(
@@ -1033,6 +1043,85 @@ def _setup_utils_parser(subparsers):
         '''
     )
     parser.set_defaults(drop = False)
+
+    # == filter_size
+    filter_size_parser = utils_parsers.add_parser(
+        'filter_size',
+        help = '''
+            Filter COCO object annotations by size.
+        ''',
+        description = '''
+            Filter COCO object annotations by size.
+        ''',
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
+
+    # required
+    filter_size_parser_required = filter_size_parser.add_argument_group('required arguments')
+    filter_size_parser_required.add_argument(
+        '-o', '--out_file',
+        type = str,
+        help = '''
+            Annotation file (JSON) the filtered annotations should be written to.
+        ''',
+        required=True,
+    )
+    filter_size_parser_required.add_argument(
+        '-a', '--ann_file',
+        type = str,
+        help = '''
+            Path to COCO annotation file (JSON).
+        ''',
+        required=True,
+    )
+    filter_size_parser_required.add_argument(
+        '-d', '--task',
+        type = str,
+        choices = [
+            'instance-segmentation', 'bbox-detection'
+        ],
+        help = '''
+            Task, which the dataset will be used for.
+        ''',
+        required = True,
+    )
+
+    # optional
+    filter_size_parser_optional = filter_size_parser.add_argument_group(
+        'optional arguments'
+    )
+    filter_size_parser_optional.add_argument(
+        '-x', '--min_width',
+        type = int,
+        default = 5,
+        help = '''
+            Minimal total object width.
+        '''
+    )
+    filter_size_parser_optional.add_argument(
+        '-y', '--min_height',
+        type = int,
+        default = 5,
+        help = '''
+            Minimal total object height.
+        '''
+    )
+    filter_size_parser_optional.add_argument(
+        '-r', '--min_area',
+        type = int,
+        default = 25,
+        help = '''
+            Minimal total object area.
+        '''
+    )
+    filter_size_parser_optional.add_argument(
+        '-f', '--min_fragment_area',
+        type = int,
+        default = 25,
+        help = '''
+            Minimal object fragment area.
+        '''
+    )
 
     # == other utils
     # ...
