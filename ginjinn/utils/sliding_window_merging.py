@@ -6,13 +6,14 @@ import copy
 import shutil
 import json
 import itertools
-from typing import List, Tuple, Callable
-
-import numpy as np
+from operator import itemgetter
+from typing import Iterable, List, Tuple, Callable
 import cv2
-
+import imantics
+import numpy as np
+from scipy.sparse.csgraph import connected_components
 from ginjinn.simulation import coco_utils
-from ginjinn.utils import load_coco_ann, get_obj_anns
+from .utils import load_coco_ann, get_obj_anns, coco_seg_to_mask, bbox_from_mask
 
 # source: https://stackoverflow.com/a/52604722
 class NumpyEncoder(json.JSONEncoder):
@@ -63,8 +64,10 @@ def get_coords_from_fname(file_name: str) -> np.ndarray:
     '''
     fname, _ = os.path.splitext(file_name)
     fname_split = fname.split('_')
-    y0, y1 = [int(coord) for coord in fname_split[-2].split('-')]
-    x0, x1 = [int(coord) for coord in fname_split[-1].split('-')]
+    #y0, y1 = [int(coord) for coord in fname_split[-2].split('-')]
+    #x0, x1 = [int(coord) for coord in fname_split[-1].split('-')]
+    y0, y1 = [int(coord) for coord in fname_split[-1].split('-')]
+    x0, x1 = [int(coord) for coord in fname_split[-2].split('-')]
 
     return np.array([x0, x1, y0, y1])
 
@@ -83,8 +86,8 @@ def xywh_to_xyxy(xywh: np.ndarray) -> np.ndarray:
     np.ndarray
         bbox in x0y0x1y1 format
     '''
-    xyxy = np.array(xywh).reshape(-1, 4)
-    xyxy[:,2:4] = xyxy[:,0:2] + xyxy[:,2:4]
+    xyxy = np.array(xywh)
+    xyxy[2:4] = xyxy[0:2] + xyxy[2:4]
     return xyxy
 
 def xyxy_to_xywh(xyxy: np.ndarray) -> np.ndarray:
@@ -102,8 +105,8 @@ def xyxy_to_xywh(xyxy: np.ndarray) -> np.ndarray:
     np.ndarray
         bbox in x0y0wh format
     '''
-    xywh = np.array(xyxy).reshape(-1, 4)
-    xywh[:,2:4] = xywh[:,2:4] - xywh[:,0:2]
+    xywh = np.array(xyxy)
+    xywh[2:4] = xywh[2:4] - xywh[0:2]
     return xywh
 
 def intersection_bboxes(
@@ -257,16 +260,63 @@ def reconstruct_original_image(
     '''
     coords = np.array([get_coords_from_fname(img_ann['file_name']) for img_ann in img_anns])
 
-    orig_h, orig_w = coords.max(0)[[1, 3]]
+    orig_w, orig_h = coords.max(0)[[1, 3]]
     orig_img = np.zeros((orig_h, orig_w, 3), dtype=np.int)
 
     for img_ann in img_anns:
         sub_img = cv2.imread(os.path.join(img_dir, img_ann['file_name']))
 
         xxyy = get_coords_from_fname(img_ann['file_name'])
-        orig_img[xxyy[0]:xxyy[1], xxyy[2]:xxyy[3],:] = sub_img
+        orig_img[xxyy[2]:xxyy[3], xxyy[0]:xxyy[1], :] = sub_img
 
     return orig_img
+
+def merge_segmentations(
+    img_anns: List[dict],
+    obj_anns: List[dict]
+):
+    '''merge_segmentations
+
+    Merge objects from sliding-window predictions such that the output annotations refer
+    to the original image.
+
+    Parameters
+    ----------
+    img_anns : list of dict
+        List of COCO image annotations as dictionary.
+    obj_anns : list of dict
+        List of COCO object annotations as dictionary.
+
+    Returns
+    -------
+    polygons : list of list of float
+        Segmentation of merged object
+    bbox : np.ndarray
+        Corresponding bounding box (COCO format)
+    '''
+    coords = np.array([get_coords_from_fname(img_ann["file_name"]) for img_ann in img_anns])
+    dict_images = {ann["id"]: ann for ann in img_anns}
+
+    orig_w, orig_h = coords.max(0)[[1, 3]]
+    mask = np.zeros((orig_h, orig_w), dtype=np.bool_)
+
+    for obj_ann in obj_anns:
+        img_ann = dict_images[obj_ann["image_id"]]
+        sub_mask = coco_seg_to_mask(
+            obj_ann["segmentation"],
+            img_ann["width"],
+            img_ann["height"]
+        )
+        xxyy = get_coords_from_fname(img_ann["file_name"])
+        mask[xxyy[2]:xxyy[3], xxyy[0]:xxyy[1]] = np.logical_or(
+            mask[xxyy[2]:xxyy[3], xxyy[0]:xxyy[1]],
+            sub_mask
+        )
+
+    polygons = imantics.Mask(mask).polygons().segmentation
+    polygons = [p for p in polygons if len(p) >= 6]
+    bbox = bbox_from_mask(mask, fmt="xywh")
+    return polygons, bbox
 
 def reconstruct_annotations_on_original(
     img_anns: List[dict],
@@ -297,8 +347,8 @@ def reconstruct_annotations_on_original(
         sub_obj_anns = [obj_ann for obj_ann in obj_anns if obj_ann['image_id'] == img_ann['id']]
         for obj_ann in sub_obj_anns:
             orig_obj_ann = copy.deepcopy(obj_ann)
-            orig_obj_ann['bbox'][0] = obj_ann['bbox'][0] + xxyy[2]
-            orig_obj_ann['bbox'][1] = obj_ann['bbox'][1] + xxyy[0]
+            orig_obj_ann['bbox'][0] = obj_ann['bbox'][0] + xxyy[0]
+            orig_obj_ann['bbox'][1] = obj_ann['bbox'][1] + xxyy[2]
             orig_obj_ann['image_id'] = img_anns[0]['id']
 
             orig_obj_anns.append(orig_obj_ann)
@@ -370,72 +420,381 @@ def merge_bbox_annotations(
 
     return new_anns
 
-def merge_cropped_predictions(
-    img_anns: List[dict],
-    obj_anns: List[dict],
-    img_dir: str,
-    intersection_type: str = 'ios',
-    intersection_th: float = 0.60,
-) -> Tuple[np.ndarray, List[dict], List[dict], List[dict]]:
-    '''merge_cropped_predictions
+# source: itertools recipes
+def pairwise(iterable):
+    "s -> (s0,s1), (s1,s2), (s2, s3), ..."
+    a, b = itertools.tee(iterable)
+    next(b, None)
+    return zip(a, b)
 
-    Merge (sliding-window) cropped COCO annotations using hierarchical,
-    single-linkage clustering based on pair-wise bounding-box intersections.
+def merge_xyxy(boxes: Iterable):
+    """merge_xyxy
+
+    Merge bounding boxes in PascalVOC format.
 
     Parameters
     ----------
-    img_anns : List[dict]
-        List of COCO image annotations as dictionary.
-    obj_anns : List[dict]
-        List of COCO object annotations as dictionary.
-    img_dir : str
-        Directory containing the images, img_anns refer to.
-    intersection_type : str, optional
-        Type or intersection to calculate, by default 'ios'.
-
-        Possible types are:
-        - "simple": absolute intersection area
-        - "iou": intersection over union (intersection area / union area)
-        - "ios": intersection over smaller (intersection area / smaller bbox area)
-    intersection_th : float, optional
-        Intersection threshold for the clustering cut-off, by default 0.6
+    boxes : [iterable of] iterable of int or float
+        Bounding boxes in PascalVOC format, i.e., (x_min, y_min, x_max, y_max)
 
     Returns
     -------
-    Tuple[np.ndarray, List[dict], List[dict], List[dict]]
+    np.ndarray
+        Bounding box enclosing the input boxes (PascalVOC format)
+    """
+    if np.isscalar(boxes[0]) and len(boxes) == 4:
+        return np.array(boxes)
+    x0 = min(box[0] for box in boxes)
+    y0 = min(box[1] for box in boxes)
+    x1 = max(box[2] for box in boxes)
+    y1 = max(box[3] for box in boxes)
+    return np.array((x0, y0, x1, y1))
+
+def merge_window_predictions_bbox(
+    img_anns: List[dict],
+    obj_anns: List[dict],
+    img_dir: str,
+    iou_threshold: float = 0,
+    ios_threshold: float = 0,
+    intersection_threshold: float = 0
+) -> Tuple[np.ndarray, List[dict], List[dict]]:
+    """merge_window_predictions_bbox
+
+    Merge bounding boxes from sliding-window cropped COCO annotations. Two objects from different
+    windows are only merged if their intersection satisfies all specified conditions or if further
+    objects act as connectors.
+
+    Parameters
+    ----------
+    img_anns : list of dict
+        List of COCO image annotations as dictionary.
+    obj_anns : list of dict
+        List of COCO object annotations as dictionary.
+    img_dir : str
+        Directory containing the images, img_anns refer to.
+    iou_threshold : float
+        Min. intersection over union of two objects to be merged.
+    ios_threshold : float
+        Min. intersection over smaller area.
+    intersection_threshold : float
+        Min. absolute intersection.
+
+    Returns
+    -------
+    Tuple[np.ndarray, List[dict], List[dict]]
         Tuple containing the reconstructed original image as np.ndarray,
         a new COCO annotation dict for the reconstructed original image,
-        the merged  annotations in the coordinate system of the original image,
-        and unmerged annotations in the coordinate system of the original image.
-        i.e.: (orig_img, orig_img_ann, merged_obj_anns, orig_obj_anns)
-    '''
+        and the merged annotations in the coordinate system of the original image,
+        i.e.: (orig_img, orig_img_ann, merged_obj_anns)
+    """
+    # get position of each window on the original image
+    coord_list = []
+    for img_ann in img_anns:
+        x0, x1, y0, y1 = get_coords_from_fname(img_ann["file_name"]).tolist()
+        coord_list.append((x0, x1, y0, y1, img_ann["id"]))
+
+    obj_map = {ann["id"]: i for i, ann in enumerate(obj_anns)}
+    adj_mat = np.zeros((len(obj_anns), len(obj_anns)), dtype=np.bool_)
+
+    # find horizontal overlaps
+    coord_list.sort(key=itemgetter(2, 0))
+    for y0, row in itertools.groupby(coord_list, key=itemgetter(2)):
+        # process pairs of consecutive images
+        for coords1, coords2 in pairwise(row):
+            obj_anns_1 = [ann for ann in obj_anns if ann["image_id"] == coords1[4]]
+            obj_anns_2 = [ann for ann in obj_anns if ann["image_id"] == coords2[4]]
+
+            for ann1 in obj_anns_1:
+                for ann2 in obj_anns_2:
+                    if ann1["category_id"] != ann2["category_id"]:
+                        continue
+
+                    # bboxes -> coordinate system of orig. image
+                    bbox1 = copy.deepcopy(ann1["bbox"])
+                    bbox1[0] += coords1[0]
+                    bbox1[1] += coords1[2]
+                    bbox1 = xywh_to_xyxy(bbox1)
+
+                    bbox2 = copy.deepcopy(ann2["bbox"])
+                    bbox2[0] += coords2[0]
+                    bbox2[1] += coords2[2]
+                    bbox2 = xywh_to_xyxy(bbox2)
+
+                    # clip x coordinates to window overlap
+                    bbox1[0], bbox1[2] = np.clip((bbox1[0], bbox1[2]), coords2[0], coords1[1])
+                    bbox2[0], bbox2[2] = np.clip((bbox2[0], bbox2[2]), coords2[0], coords1[1])
+
+                    # evaluate object intersection
+                    if bbox1[2] - bbox1[0] > 0 and bbox2[2] - bbox2[0] > 0:
+                        IoU = intersection_bboxes(bbox1, bbox2, intersection_type="iou")
+                        IoS = intersection_bboxes(bbox1, bbox2, intersection_type="ios")
+                        intersection = intersection_bboxes(bbox1, bbox2, intersection_type="simple")
+
+                        # update adjacency matrix
+                        if (
+                            IoU >= iou_threshold
+                            and IoS >= ios_threshold
+                            and intersection >= intersection_threshold
+                        ):
+                            obj_ind_1 = obj_map[ann1["id"]]
+                            obj_ind_2 = obj_map[ann2["id"]]
+                            adj_mat[obj_ind_1, obj_ind_2] = 1
+                            adj_mat[obj_ind_2, obj_ind_1] = 1 # unnecessary (in connected_components(), connection defaults to "weak")
+
+    # find vertical overlaps
+    coord_list.sort(key=itemgetter(0, 2))
+    for x0, col in itertools.groupby(coord_list, key=itemgetter(0)):
+        # process pairs of consecutive images
+        for coords1, coords2 in pairwise(col):
+            obj_anns_1 = [ann for ann in obj_anns if ann["image_id"] == coords1[4]]
+            obj_anns_2 = [ann for ann in obj_anns if ann["image_id"] == coords2[4]]
+
+            for ann1 in obj_anns_1:
+                for ann2 in obj_anns_2:
+                    if ann1["category_id"] != ann2["category_id"]:
+                        continue
+
+                    # bboxes -> coordinate system of orig. image
+                    bbox1 = copy.deepcopy(ann1["bbox"])
+                    bbox1[0] += coords1[0]
+                    bbox1[1] += coords1[2]
+                    bbox1 = xywh_to_xyxy(bbox1)
+
+                    bbox2 = copy.deepcopy(ann2["bbox"])
+                    bbox2[0] += coords2[0]
+                    bbox2[1] += coords2[2]
+                    bbox2 = xywh_to_xyxy(bbox2)
+
+                    # clip y coordinates to window overlap
+                    bbox1[1], bbox1[3] = np.clip((bbox1[1], bbox1[3]), coords2[2], coords1[3])
+                    bbox2[1], bbox2[3] = np.clip((bbox2[1], bbox2[3]), coords2[2], coords1[3])
+
+                    # evaluate object intersection
+                    if bbox1[3] - bbox1[1] > 0 and bbox2[3] - bbox2[1] > 0:
+                        IoU = intersection_bboxes(bbox1, bbox2, intersection_type="iou")
+                        IoS = intersection_bboxes(bbox1, bbox2, intersection_type="ios")
+                        intersection = intersection_bboxes(bbox1, bbox2, intersection_type="simple")
+
+                        # update adjacency matrix
+                        if (
+                            IoU >= iou_threshold
+                            and IoS >= ios_threshold
+                            and intersection >= intersection_threshold
+                        ):
+                            obj_ind_1 = obj_map[ann1["id"]]
+                            obj_ind_2 = obj_map[ann2["id"]]
+                            adj_mat[obj_ind_1, obj_ind_2] = 1
+                            adj_mat[obj_ind_2, obj_ind_1] = 1 # unnecessary
+
     orig_img = reconstruct_original_image(img_anns, img_dir)
-    orig_obj_anns = reconstruct_annotations_on_original(img_anns, obj_anns)
     orig_img_ann = coco_utils.build_coco_image(
-        image_id=int(img_anns[0]['id']),
-        file_name=f'{get_bname_from_fname(img_anns[0]["file_name"])}.jpg',
-        width=int(orig_img.shape[1]),
-        height=int(orig_img.shape[0]),
-        coco_url=str(img_anns[0].get('coco_url', '')),
-        date_captured=str(img_anns[0].get('date_captured', 0)),
-        flickr_url=str(img_anns[0].get('flickr_url', '')),
+        image_id = int(img_anns[0]["id"]),
+        file_name = get_bname_from_fname(img_anns[0]["file_name"]) + ".jpg",
+        width = int(orig_img.shape[1]),
+        height = int(orig_img.shape[0]),
+        coco_url = str(img_anns[0].get("coco_url", "")),
+        date_captured = str(img_anns[0].get("date_captured", 0)),
+        flickr_url = str(img_anns[0].get("flickr_url", "")),
     )
 
-    merged_obj_anns = merge_bbox_annotations(
-        obj_anns=orig_obj_anns,
-        img_id=orig_img_ann['id'],
-        intersection_type=intersection_type,
-        intersection_th=intersection_th,
+    # identify groups of objects to be merged
+    n_comp, comp_labels = connected_components(adj_mat, directed=False)
+
+    merged_obj_anns = []
+    for i_comp in range(n_comp):
+        inds_merge = np.where(comp_labels == i_comp)[0].tolist()
+        obj_anns_merge = reconstruct_annotations_on_original(
+            img_anns,
+            [obj_anns[i] for i in inds_merge]
+        )
+        bbox = merge_xyxy([xywh_to_xyxy(ann["bbox"]) for ann in obj_anns_merge])
+        bbox = xyxy_to_xywh(bbox)
+        merged_obj_anns.append({
+            "area": bbox[2] * bbox[3],
+            "bbox": bbox,
+            "segmentation": [],
+            "iscrowd": 0,
+            "image_id": orig_img_ann["id"],
+            "id": obj_anns[inds_merge[0]]["id"],
+            "category_id": obj_anns[inds_merge[0]]["category_id"]
+        })
+
+    return orig_img, orig_img_ann, merged_obj_anns
+
+def merge_window_predictions_seg(
+    img_anns: List[dict],
+    obj_anns: List[dict],
+    img_dir: str,
+    iou_threshold: float = 0,
+    ios_threshold: float = 0,
+    intersection_threshold: float = 0
+) -> Tuple[np.ndarray, List[dict], List[dict]]:
+    """merge_window_predictions_seg
+
+    Merge instance segmentations from sliding-window cropped COCO annotations. Two objects from
+    different windows are only merged if their intersection satisfies all specified conditions or
+    if further objects act as connectors.
+
+    Parameters
+    ----------
+    img_anns : list of dict
+        List of COCO image annotations as dictionary.
+    obj_anns : list of dict
+        List of COCO object annotations as dictionary.
+    img_dir : str
+        Directory containing the images, img_anns refer to.
+    iou_threshold : float
+        Min. intersection over union of two objects to be merged.
+    ios_threshold : float
+        Min. intersection over smaller area.
+    intersection_threshold : float
+        Min. absolute intersection.
+
+    Returns
+    -------
+    Tuple[np.ndarray, List[dict], List[dict]]
+        Tuple containing the reconstructed original image as np.ndarray,
+        a new COCO annotation dict for the reconstructed original image,
+        and the merged annotations in the coordinate system of the original image,
+        i.e.: (orig_img, orig_img_ann, merged_obj_anns)
+    """
+    # get position of each window on the original image
+    coord_list = []
+    for img_ann in img_anns:
+        x0, x1, y0, y1 = get_coords_from_fname(img_ann["file_name"]).tolist()
+        coord_list.append((x0, x1, y0, y1, img_ann["id"]))
+
+    obj_map = {ann["id"]: i for i, ann in enumerate(obj_anns)}
+    adj_mat = np.zeros((len(obj_anns), len(obj_anns)), dtype=np.bool_)
+
+    # find horizontal overlaps
+    coord_list.sort(key=itemgetter(2, 0))
+    for y0, row in itertools.groupby(coord_list, key=itemgetter(2)):
+        # process pairs of consecutive images
+        for coords1, coords2 in pairwise(row):
+            obj_anns_1 = [ann for ann in obj_anns if ann["image_id"] == coords1[4]]
+            obj_anns_2 = [ann for ann in obj_anns if ann["image_id"] == coords2[4]]
+
+            for ann1 in obj_anns_1:
+                for ann2 in obj_anns_2:
+                    if ann1["category_id"] != ann2["category_id"]:
+                        continue
+
+                    mask1 = coco_seg_to_mask(
+                        ann1["segmentation"],
+                        coords1[1] - coords1[0],
+                        coords1[3] - coords1[2]
+                    )
+                    mask2 = coco_seg_to_mask(
+                        ann2["segmentation"],
+                        coords2[1] - coords2[0],
+                        coords2[3] - coords2[2]
+                    )
+
+                    # extract overlap
+                    mask1 = mask1[:, coords2[0] - coords1[0]:]
+                    mask2 = mask2[:, :coords1[1] - coords2[0]]
+
+                    # evaluate object intersection
+                    if mask1.sum() > 0 and mask2.sum() > 0:
+                        IoU = np.logical_and(mask1, mask2).sum() / np.logical_or(mask1, mask2).sum()
+                        IoS = np.logical_and(mask1, mask2).sum() / min(mask1.sum(), mask2.sum())
+                        intersection = np.logical_and(mask1, mask2).sum()
+
+                        # update adjacency matrix
+                        if (
+                            IoU >= iou_threshold
+                            and IoS >= ios_threshold
+                            and intersection >= intersection_threshold
+                        ):
+                            obj_ind_1 = obj_map[ann1["id"]]
+                            obj_ind_2 = obj_map[ann2["id"]]
+                            adj_mat[obj_ind_1, obj_ind_2] = 1
+                            adj_mat[obj_ind_2, obj_ind_1] = 1
+
+    # find vertical overlaps
+    coord_list.sort(key=itemgetter(0, 2))
+    for x0, col in itertools.groupby(coord_list, key=itemgetter(0)):
+        # process pairs of consecutive images
+        for coords1, coords2 in pairwise(col):
+            obj_anns_1 = [ann for ann in obj_anns if ann["image_id"] == coords1[4]]
+            obj_anns_2 = [ann for ann in obj_anns if ann["image_id"] == coords2[4]]
+
+            for ann1 in obj_anns_1:
+                for ann2 in obj_anns_2:
+                    if ann1["category_id"] != ann2["category_id"]:
+                        continue
+
+                    mask1 = coco_seg_to_mask(
+                        ann1["segmentation"],
+                        coords1[1] - coords1[0],
+                        coords1[3] - coords1[2]
+                    )
+                    mask2 = coco_seg_to_mask(
+                        ann2["segmentation"],
+                        coords2[1] - coords2[0],
+                        coords2[3] - coords2[2]
+                    )
+
+                    # extract overlap
+                    mask1 = mask1[coords2[2] - coords1[2]:, :]
+                    mask2 = mask2[:coords1[3] - coords2[2], :]
+
+                    # evaluate object intersection
+                    if mask1.sum() > 0 and mask2.sum() > 0:
+                        IoU = np.logical_and(mask1, mask2).sum() / np.logical_or(mask1, mask2).sum()
+                        IoS = np.logical_and(mask1, mask2).sum() / min(mask1.sum(), mask2.sum())
+                        intersection = np.logical_and(mask1, mask2).sum()
+
+                        # update adjacency matrix
+                        if (
+                            IoU >= iou_threshold
+                            and IoS >= ios_threshold
+                            and intersection >= intersection_threshold
+                        ):
+                            obj_ind_1 = obj_map[ann1["id"]]
+                            obj_ind_2 = obj_map[ann2["id"]]
+                            adj_mat[obj_ind_1, obj_ind_2] = 1
+                            adj_mat[obj_ind_2, obj_ind_1] = 1 # unnecessary
+
+    orig_img = reconstruct_original_image(img_anns, img_dir)
+    orig_img_ann = coco_utils.build_coco_image(
+        image_id = int(img_anns[0]["id"]),
+        file_name = get_bname_from_fname(img_anns[0]["file_name"]) + ".jpg",
+        width = int(orig_img.shape[1]),
+        height = int(orig_img.shape[0]),
+        coco_url = str(img_anns[0].get("coco_url", "")),
+        date_captured = str(img_anns[0].get("date_captured", 0)),
+        flickr_url = str(img_anns[0].get("flickr_url", "")),
     )
 
-    return orig_img, orig_img_ann, merged_obj_anns, orig_obj_anns
+    # identify groups of objects to be merged
+    n_comp, comp_labels = connected_components(adj_mat, directed=False)
+
+    merged_obj_anns = []
+    for i_comp in range(n_comp):
+        inds_merge = np.where(comp_labels == i_comp)[0].tolist()
+        polygons, bbox = merge_segmentations(img_anns, [obj_anns[i] for i in inds_merge])
+        merged_obj_anns.append({
+            "area": bbox[2] * bbox[3],
+            "bbox": bbox,
+            "segmentation": polygons,
+            "iscrowd": 0,
+            "image_id": orig_img_ann["id"],
+            "id": obj_anns[inds_merge[0]]["id"],
+            "category_id": obj_anns[inds_merge[0]]["category_id"]
+        })
+
+    return orig_img, orig_img_ann, merged_obj_anns
 
 def merge_sliding_window_predictions(
     img_dir: str,
     ann_path: str,
     out_dir: str,
-    intersection_type: str = 'ios',
-    intersection_th: float = 0.5,
+    task: str,
+    iou_threshold: float = 0.5,
+    ios_threshold: float = 0,
+    intersection_threshold: float = 100,
     on_out_dir_exists: Callable[[str], bool] = lambda out_dir: True,
     on_img_out_dir_exists: Callable[[str], bool] = lambda img_out_dir: True,
 ):
@@ -451,15 +810,14 @@ def merge_sliding_window_predictions(
         Path to predicted annotation.
     out_dir : str
         Path to directory that the merged annotations and images should be written to.
-    intersection_type : str, optional
-        Type or intersection to calculate, by default 'ios'.
-
-        Possible types are:
-        - "simple": absolute intersection area
-        - "iou": intersection over union (intersection area / union area)
-        - "ios": intersection over smaller (intersection area / smaller bbox area)
-    intersection_th : float, optional
-        Intersection threshold for the clustering cut-off, by default 0.6
+    task : str
+        Either 'bbox-detection' or 'instance-segmentation'.
+    iou_threshold : float
+        Min. intersection over union of two objects to be merged.
+    ios_threshold : float
+        Min. intersection over smaller area.
+    intersection_threshold : float
+        Min. absolute intersection.
     on_out_dir_exists : Callable[[str], bool], optional
         A function that decides what should happen if out_dir already exists.
         If true is returned, out_dir will be overwritten.
@@ -503,13 +861,24 @@ def merge_sliding_window_predictions(
             [get_obj_anns(img_ann, ann) for img_ann in img_anns]
         ))
 
-        orig_img, orig_img_ann, merged_obj_anns, _ = merge_cropped_predictions(
-            img_anns,
-            obj_anns,
-            img_dir,
-            intersection_type=intersection_type,
-            intersection_th=intersection_th
-        )
+        if task == "bbox-detection":
+            orig_img, orig_img_ann, merged_obj_anns = merge_window_predictions_bbox(
+                img_anns,
+                obj_anns,
+                img_dir,
+                iou_threshold = iou_threshold,
+                ios_threshold = ios_threshold,
+                intersection_threshold = intersection_threshold
+            )
+        elif task == "instance-segmentation":
+            orig_img, orig_img_ann, merged_obj_anns = merge_window_predictions_seg(
+                img_anns,
+                obj_anns,
+                img_dir,
+                iou_threshold = iou_threshold,
+                ios_threshold = ios_threshold,
+                intersection_threshold = intersection_threshold
+            )
 
         img_f = os.path.join(img_out_dir, f'{bname}.jpg')
         cv2.imwrite(img_f, orig_img)
