@@ -284,8 +284,10 @@ def utils_sw_merge(args):
         img_dir=args.image_dir,
         ann_path=args.ann_path,
         out_dir=args.out_dir,
-        intersection_type=args.intersection_type,
-        intersection_th=args.intersection_th,
+        task=args.task,
+        iou_threshold=args.iou_threshold,
+        ios_threshold=args.ios_threshold,
+        intersection_threshold=args.intersection_threshold,
         on_out_dir_exists=on_out_dir_exists,
         on_img_out_dir_exists=on_img_out_dir_exists,
     )

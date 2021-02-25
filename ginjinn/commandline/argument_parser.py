@@ -935,9 +935,11 @@ def _setup_utils_parser(subparsers):
         'sw_merge',
         help = '''
             <EXPERIMENTAL> Merge sliding-window cropped images and annotations.
+            Objects will be merged only if they satisfy ALL three thresholds.
         ''',
         description = '''
             <EXPERIMENTAL> Merge sliding-window cropped images and annotations.
+            Objects will be merged only if they satisfy ALL three thresholds.
         ''',
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
@@ -968,29 +970,45 @@ def _setup_utils_parser(subparsers):
         ''',
         required=True,
     )
+    sw_merge_required.add_argument(
+        '-t', '--task',
+        type = str,
+        choices = [
+            'instance-segmentation', 'bbox-detection'
+        ],
+        help = '''
+            Task, which the dataset will be used for.
+        ''',
+        required = True,
+    )
 
     # optional
     sw_merge_optional = sw_merge_parser.add_argument_group('optional arguments')
     sw_merge_optional.add_argument(
-        '-t', '--intersection_type',
-        type = str,
+        '-c', '--intersection_threshold',
+        type = int,
         help = '''
-            Intersection type to use for merging:
-            - 'ios': intersection over smaller object
-            - 'iou': intersection over union
+            Absolute intersection threshold for merging in pixel.
         ''',
-        choices = ['ios', 'iou'],
-        default = 'ios',
+        default=0,
     )
     sw_merge_optional.add_argument(
-        '-th', '--intersection_th',
+        '-u', '--iou_threshold',
         type = float,
         help = '''
-            Intersection threshold for merging. Only objects with an intersection
-            above intersection_th will be merged.
+            Intersection over union threshold for merging in pixel.
         ''',
         default=0.5,
     )
+    sw_merge_optional.add_argument(
+        '-s', '--ios_threshold',
+        type = float,
+        help = '''
+            Intersection over smaller object threshold for merging in pixel.
+        ''',
+        default=0.0,
+    )
+
 
     # == filter
     filter_parser = utils_parsers.add_parser(
