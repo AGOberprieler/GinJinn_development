@@ -16,7 +16,7 @@ from pycocotools import mask
 from ginjinn.simulation import coco_utils
 from .utils import load_coco_ann, get_obj_anns
 from .utils import get_pvoc_obj_bbox, bbox_from_mask,\
-    crop_bbox, bbox_size, set_pvoc_obj_bbox,\
+    bbox_from_polygons, crop_bbox, bbox_size, set_pvoc_obj_bbox,\
     drop_pvoc_objects, get_pvoc_filename, set_pvoc_filename,\
     get_pvoc_objects, add_pvoc_object, set_pvoc_size, get_pvoc_size,\
     load_pvoc_annotation, write_pvoc_annotation, coco_seg_to_mask
@@ -242,13 +242,8 @@ def crop_seg_from_coco(
                 continue
 
             # calculate bounding box from segmentation
-            x_any = seg_mask.any(axis=0)
-            y_any = seg_mask.any(axis=1)
-            x = np.where(x_any == True)[0]
-            y = np.where(y_any == True)[0]
-            if len(x) > 0 and len(y) > 0:
-                bbox = [x[0], y[0], x[-1] + 1, y[-1] + 1]
-            else:
+            bbox = bbox_from_mask(seg_mask, fmt="xyxy").tolist()
+            if bbox[2] - bbox[0] < 1 or bbox[3] - bbox[1] < 1:
                 continue
 
             # apply padding, clip values
@@ -278,19 +273,13 @@ def crop_seg_from_coco(
 
             # annotate cropped instance
             mask_cropped = seg_mask[y1:y2, x1:x2]
-
-            x_any = mask_cropped.any(axis=0)
-            y_any = mask_cropped.any(axis=1)
-            x = np.where(x_any == True)[0].tolist()
-            y = np.where(y_any == True)[0].tolist()
-            x1, y1, x2, y2 = (x[0], y[0], x[-1] + 1, y[-1] + 1)
-            bbox_coco = [ x1, y1, x2 - x1, y2 - y1 ]
-
             polygons_cropped = imantics.Mask(mask_cropped).polygons().segmentation
+            # remove polygons with less than 3 points
             polygons_cropped = [p for p in polygons_cropped if len(p) >= 6]
+            bbox_coco = bbox_from_polygons(polygons_cropped, fmt="xywh").tolist()
 
             annotations.append({
-                "area": (x2 - x1) * (y2 - y1),
+                "area": bbox_coco[2] * bbox_coco[3],
                 "bbox": bbox_coco,
                 "segmentation": polygons_cropped,
                 "iscrowd": 0,

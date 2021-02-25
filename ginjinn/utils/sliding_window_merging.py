@@ -777,7 +777,7 @@ def merge_window_predictions_seg(
         polygons, bbox = merge_segmentations(img_anns, [obj_anns[i] for i in inds_merge])
         merged_obj_anns.append({
             "area": bbox[2] * bbox[3],
-            "bbox": bbox,
+            "bbox": bbox.tolist(),
             "segmentation": polygons,
             "iscrowd": 0,
             "image_id": orig_img_ann["id"],

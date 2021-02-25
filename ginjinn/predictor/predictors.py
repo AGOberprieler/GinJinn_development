@@ -21,6 +21,7 @@ import ginjinn.segmentation_refinement as refine
 import torch
 from ginjinn.data_reader.data_reader import get_class_names
 from ginjinn.ginjinn_config import GinjinnConfiguration
+from ginjinn.utils.utils import bbox_from_polygons
 
 
 class GinjinnPredictor():
@@ -372,7 +373,11 @@ class GinjinnPredictor():
             if self.task == "instance-segmentation":
                 imask = imantics.Mask(masks[i_inst])
                 ipoly = imask.polygons()
+                # remove polygons with less than 3 points
                 anno["segmentation"] = [p for p in ipoly.segmentation if len(p) >= 6]
+                # recalculate bounding box
+                anno["bbox"] = bbox_from_polygons(anno["segmentation"], fmt="xywh").tolist()
+                anno["area"] = anno["bbox"][2] * anno["bbox"][3]
 
             self._coco_annotations[name].append(anno)
 

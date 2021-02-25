@@ -89,7 +89,47 @@ def bbox_from_mask(mask: np.ndarray, fmt: str):
         raise ValueError(
             f"Unknown bounding box format \"{fmt}\"."
         )
-    return np.array(bbox)
+    return np.array(bbox).astype("int")
+
+def bbox_from_polygons(polygons: List[List[float]], fmt: str):
+    """Calculate bounding box from polygons.
+
+    Parameters
+    ----------
+    polygons : list of list of float
+        List of polygons, i.e. [[x0, y0, x1, y1, x2, y2 ...], ...]
+    fmt : str
+        Output format, either "xywh" (COCO-like) or "xyxy" (PascalVoc-like)
+
+    Returns
+    -------
+    np.ndarray
+        Bounding box
+
+    Raises
+    ------
+    ValueError
+        Raised for unsupported output formats.
+    """
+    if any(len(p) for p in polygons):
+        x = np.concatenate([p[0::2] for p in polygons])
+        y = np.concatenate([p[1::2] for p in polygons])
+        x0 = np.min(x)
+        x1 = np.max(x) + 1
+        y0 = np.min(y)
+        y1 = np.max(y) + 1
+    else:
+        x0, y0, x1, y1 = (0, 0, 0, 0)
+
+    if fmt == "xywh":
+        bbox = ( x0, y0, x1 - x0, y1 - y0 )
+    elif fmt == "xyxy":
+        bbox = ( x0, y0, x1, y1 )
+    else:
+        raise ValueError(
+            f"Unknown bounding box format \"{fmt}\"."
+        )
+    return np.array(bbox).round().astype("int")
 
 def confirmation(question: str) -> bool:
     """Ask question expecting "yes" or "no".
