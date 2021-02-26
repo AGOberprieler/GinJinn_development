@@ -1,15 +1,17 @@
 ''' Module containing functionality for data set preprocessing.
 '''
 
+import glob
 import json
 import os
 import shutil
 from typing import List
+import xml.etree.ElementTree as ET
 import datetime
 import cv2
 import imantics
 import pandas as pd
-from .utils import bbox_from_mask, coco_seg_to_mask
+from .utils import bbox_from_mask, coco_seg_to_mask, confirmation
 
 def flatten_coco(
     ann_file: str,
@@ -155,6 +157,84 @@ def filter_categories_coco(
             indent = 2,
             sort_keys = True
         )
+
+def filter_categories_pvoc(
+    ann_dir: str,
+    img_dir: str,
+    out_dir: str,
+    link_images: bool = True,
+    drop: List[str] = None,
+    keep: List[str] = None
+):
+    """filter_categories_pvoc
+
+    This function allows to filter object annotations in a PascalVOC dataset according to their
+    assigned category. Therefore, either ``drop`` or ``keep`` has to be specified.
+    If img_dir is specified, a new, filtered image directory is created as well.
+
+    Parameters
+    ----------
+    ann_dir: str
+        Directory containing annotation files (XML)
+    img_dir: str
+        Directory containing image files. If None, no filtered image directory is written.
+    out_dir: str
+        Output directory
+    link_images : bool
+        If true, images won't be copied but hard-linked instead.
+    drop : list of str
+        If specified, these categories are removed from the dataset.
+    keep : list of str
+        If specified, only these categories are preserved.
+
+    Raises
+    ------
+    ValueError
+        Raised for unsupported parameter settings.
+    """
+    if bool(drop) + bool(keep) == 0:
+        raise ValueError(
+            "Either ``drop`` or ``keep`` has to be specified as non-empty list."
+        )
+
+    if os.path.exists(out_dir):
+        if confirmation(
+            out_dir + ' already exists.\nDo you want do overwrite it?'
+        ):
+            shutil.rmtree(out_dir)
+        else:
+            return
+
+    os.makedirs(os.path.join(out_dir, "annotations"))
+    if img_dir:
+        os.makedirs(os.path.join(out_dir, "images"))
+
+    for ann_path in glob.glob(os.path.join(ann_dir, "*.xml")):
+        tree = ET.parse(ann_path)
+        root = tree.getroot()
+
+        for child in root.findall("object"):
+            if keep and child.findtext("name") not in keep:
+                root.remove(child)
+            if drop and child.findtext("name") in drop:
+                root.remove(child)
+
+        if root.findall("object"):
+            tree.write(
+                os.path.join(
+                    out_dir,
+                    "annotations",
+                    os.path.split(ann_path)[1]
+                )
+            )
+            if img_dir:
+                img_name = os.path.split(root.findtext("filename"))[1]
+                img_path = os.path.join(img_dir, img_name)
+
+                if link_images:
+                    os.link(img_path, os.path.join(out_dir, "images", img_name))
+                else:
+                    shutil.copy(img_path, os.path.join(out_dir, "images", img_name))
 
 def filter_objects_by_size(
     ann_file: str,
