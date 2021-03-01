@@ -107,6 +107,9 @@ class GinjinnConfiguration: #pylint: disable=too-many-arguments,too-many-instanc
         # detectron2 output dir
         config.OUTPUT_DIR = os.path.join(self.project_dir, 'outputs')
 
+        # maybe remove this
+        print(config)
+
         return config
 
     @classmethod

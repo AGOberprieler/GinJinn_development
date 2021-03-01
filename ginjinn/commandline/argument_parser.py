@@ -2,6 +2,9 @@
 '''
 
 import argparse
+import glob
+from os.path import basename, join
+import pkg_resources
 
 def _setup_new_parser(subparsers):
     '''_setup_new_parser
@@ -19,8 +22,6 @@ def _setup_new_parser(subparsers):
         An argparse ArgumentParser, registered for the new subcommand.
     '''
 
-    # TODO: implement
-
     parser = subparsers.add_parser(
         'new',
         help = '''
@@ -28,7 +29,8 @@ def _setup_new_parser(subparsers):
         ''',
         description = '''
             Create a new GinJinn project.
-        '''
+        ''',
+        formatter_class=argparse.RawTextHelpFormatter,
     )
     parser.add_argument(
         'project_dir',
@@ -36,6 +38,30 @@ def _setup_new_parser(subparsers):
         help = '''
             Path to new GinJinn project directory.
         '''
+    )
+
+    template_dir =  pkg_resources.resource_filename(
+        'ginjinn', 'data/ginjinn_config/templates',
+    )
+    template_files = glob.glob(join(template_dir, '*.yaml'))
+    templates = sorted([basename(t_f) for t_f in template_files])
+    templates_string = '\n'.join(f'- {t}' for t in templates)
+    parser.add_argument(
+        '-t', '--template',
+        type = str,
+        help = f'''
+Model template to initialize the new GinJinn project with.
+Faster RCNN models are bounding-box detection models, while
+Mask RCNN models are segmentation models.
+
+Available templates are:
+{templates_string}
+
+(default: "faster_rcnn_R_50_FPN_3x.yaml")
+        ''',
+        choices=templates,
+        default='faster_rcnn_R_50_FPN_3x.yaml',
+        metavar='TEMPLATE'
     )
 
     return parser

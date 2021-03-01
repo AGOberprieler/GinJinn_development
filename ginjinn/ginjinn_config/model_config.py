@@ -4,6 +4,7 @@ GinJinn model configuration module
 
 import copy
 import os
+from typing import List
 from .config_error import InvalidModelConfigurationError
 
 class AnchorGeneratorConfig: #pylint: disable=too-few-public-methods
@@ -13,18 +14,18 @@ class AnchorGeneratorConfig: #pylint: disable=too-few-public-methods
 
     Parameters
     ----------
-    sizes : list
-        List of anchor sizes in absolute pixels.
-    aspect_ratios : list
-        List of anchor aspect ratios.
-    angles : list
-        List of anchor angles.
+    sizes : List[List[float]]
+        List of lists of anchor sizes in absolute pixels.
+    aspect_ratios : List[List[float]]
+        List of lists of anchor aspect ratios.
+    angles : List[List[float]]
+        List of lists of anchor angles.
     '''
     def __init__(
         self,
-        sizes : list = None,
-        aspect_ratios : list = None,
-        angles : list = None,
+        sizes : List[List[float]] = None,
+        aspect_ratios : List[List[float]] = None,
+        angles : List[List[float]] = None,
     ):
         self.sizes = sizes
         self.aspect_ratios = aspect_ratios
@@ -82,11 +83,11 @@ class AnchorGeneratorConfig: #pylint: disable=too-few-public-methods
         '''
 
         if self.sizes:
-            cfg.MODEL.ANCHOR_GENERATOR.SIZES = [self.sizes]
+            cfg.MODEL.ANCHOR_GENERATOR.SIZES = self.sizes
         if self.aspect_ratios:
-            cfg.MODEL.ANCHOR_GENERATOR.ASPECT_RATIOS = [self.aspect_ratios]
+            cfg.MODEL.ANCHOR_GENERATOR.ASPECT_RATIOS = self.aspect_ratios
         if self.angles:
-            cfg.MODEL.ANCHOR_GENERATOR.ANGLES = [self.angles]
+            cfg.MODEL.ANCHOR_GENERATOR.ANGLES = self.angles
 
 class RPNConfig: #pylint: disable=too-few-public-methods
     '''RPNConfig
@@ -170,18 +171,18 @@ class ROIHeadsConfig: #pylint: disable=too-few-public-methods
 
     Parameters
     ----------
-    iou_threshold : float
-        Overlap threshold for an RoI to be considered foreground, by default None
+    iou_thresholds : List[float]
+        Overlap thresholds for an RoI to be considered foreground, by default None
     batch_size_per_image : int, optional
         Number of RoIs per image, by default None
     '''
 
     def __init__(
         self,
-        iou_threshold: float = None,
+        iou_thresholds: List[float] = None,
         batch_size_per_image: int = None,
     ):
-        self.iou_threshold = iou_threshold
+        self.iou_thresholds = iou_thresholds
         self.batch_size_per_image = batch_size_per_image
 
     @classmethod
@@ -204,7 +205,7 @@ class ROIHeadsConfig: #pylint: disable=too-few-public-methods
             Raised if unknown parameter in config dict.
         '''
 
-        available_configs = ['iou_threshold', 'batch_size_per_image']
+        available_configs = ['iou_thresholds', 'batch_size_per_image']
         for cfg_name in config.keys():
             if not cfg_name in available_configs:
                 err_msg = f'Unknown roi heads parameter name "{cfg_name}". ' +\
@@ -214,15 +215,15 @@ class ROIHeadsConfig: #pylint: disable=too-few-public-methods
         default_config = {
         }
 
-        if config.get('iou_threshold', False):
-            if not isinstance(config['iou_threshold'], list):
-                config['iou_threshold'] = [config['iou_threshold']]
+        if config.get('iou_thresholds', False):
+            if not isinstance(config['iou_thresholds'], list):
+                config['iou_thresholds'] = [config['iou_thresholds']]
 
         default_config.update(config)
         config = copy.deepcopy(default_config)
 
         return cls(
-            iou_threshold=config.get('iou_threshold', None),
+            iou_thresholds=config.get('iou_thresholds', None),
             batch_size_per_image=config.get('batch_size_per_image', None),
         )
 
@@ -238,8 +239,8 @@ class ROIHeadsConfig: #pylint: disable=too-few-public-methods
 
         '''
 
-        if self.iou_threshold:
-            cfg.MODEL.ROI_HEADS.IOU_THRESHOLDS = self.iou_threshold
+        if self.iou_thresholds:
+            cfg.MODEL.ROI_HEADS.IOU_THRESHOLDS = self.iou_thresholds
         if self.batch_size_per_image:
             cfg.MODEL.ROI_HEADS.BATCH_SIZE_PER_IMAGE = self.batch_size_per_image
 
@@ -738,7 +739,6 @@ class GinjinnModelConfiguration: #pylint: disable=too-few-public-methods
         '''
 
         if self.weights != '' and self.weights != 'pretrained':
-            print(self.weights)
             if not os.path.isfile(self.weights):
                 raise InvalidModelConfigurationError(
                     'weights must be either "", "pretrained", or a valid weights file path.' #pylint: disable=line-too-long
