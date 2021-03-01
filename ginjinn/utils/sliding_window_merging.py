@@ -461,8 +461,9 @@ def merge_window_predictions_bbox(
     """merge_window_predictions_bbox
 
     Merge bounding boxes from sliding-window cropped COCO annotations. Two objects from different
-    windows are only merged if their intersection satisfies all specified conditions or if further
-    objects act as connectors.
+    windows are only merged if their intersection satisfies the specified conditions or if further
+    objects act as connectors. The three conditions are combined in this way:
+    ((IoU >= iou_threshold) OR (IoS >= ios_threshold)) AND (intersection >= intersection_threshold)
 
     Parameters
     ----------
@@ -473,9 +474,9 @@ def merge_window_predictions_bbox(
     img_dir : str
         Directory containing the images, img_anns refer to.
     iou_threshold : float
-        Min. intersection over union of two objects to be merged.
+        Min. intersection over union of two objects to be merged (0 = disabled).
     ios_threshold : float
-        Min. intersection over smaller area.
+        Min. intersection over smaller area (0 = disabled).
     intersection_threshold : float
         Min. absolute intersection.
 
@@ -532,8 +533,10 @@ def merge_window_predictions_bbox(
 
                         # update adjacency matrix
                         if (
-                            IoU >= iou_threshold
-                            and IoS >= ios_threshold
+                            (
+                                (iou_threshold and IoU >= iou_threshold)
+                                or (ios_threshold and IoS >= ios_threshold)
+                            )
                             and intersection >= intersection_threshold
                         ):
                             obj_ind_1 = obj_map[ann1["id"]]
@@ -577,8 +580,10 @@ def merge_window_predictions_bbox(
 
                         # update adjacency matrix
                         if (
-                            IoU >= iou_threshold
-                            and IoS >= ios_threshold
+                            (
+                                (iou_threshold and IoU >= iou_threshold)
+                                or (ios_threshold and IoS >= ios_threshold)
+                            )
                             and intersection >= intersection_threshold
                         ):
                             obj_ind_1 = obj_map[ann1["id"]]
@@ -632,8 +637,9 @@ def merge_window_predictions_seg(
     """merge_window_predictions_seg
 
     Merge instance segmentations from sliding-window cropped COCO annotations. Two objects from
-    different windows are only merged if their intersection satisfies all specified conditions or
-    if further objects act as connectors.
+    different windows are only merged if their intersection satisfies the specified conditions or
+    if further objects act as connectors. The three conditions are combined in this way:
+    ((IoU >= iou_threshold) OR (IoS >= ios_threshold)) AND (intersection >= intersection_threshold)
 
     Parameters
     ----------
@@ -644,9 +650,9 @@ def merge_window_predictions_seg(
     img_dir : str
         Directory containing the images, img_anns refer to.
     iou_threshold : float
-        Min. intersection over union of two objects to be merged.
+        Min. intersection over union of two objects to be merged (0 = disabled).
     ios_threshold : float
-        Min. intersection over smaller area.
+        Min. intersection over smaller area (0 = disabled).
     intersection_threshold : float
         Min. absolute intersection.
 
@@ -703,8 +709,10 @@ def merge_window_predictions_seg(
 
                         # update adjacency matrix
                         if (
-                            IoU >= iou_threshold
-                            and IoS >= ios_threshold
+                            (
+                                (iou_threshold and IoU >= iou_threshold)
+                                or (ios_threshold and IoS >= ios_threshold)
+                            )
                             and intersection >= intersection_threshold
                         ):
                             obj_ind_1 = obj_map[ann1["id"]]
@@ -748,8 +756,10 @@ def merge_window_predictions_seg(
 
                         # update adjacency matrix
                         if (
-                            IoU >= iou_threshold
-                            and IoS >= ios_threshold
+                            (
+                                (iou_threshold and IoU >= iou_threshold)
+                                or (ios_threshold and IoS >= ios_threshold)
+                            )
                             and intersection >= intersection_threshold
                         ):
                             obj_ind_1 = obj_map[ann1["id"]]
