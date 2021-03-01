@@ -94,7 +94,9 @@ def flatten_coco(
 
 def filter_categories_coco(
     ann_file: str,
-    out_file: str,
+    img_dir: str,
+    out_dir: str,
+    link_images: bool = True,
     drop: List[str] = None,
     keep: List[str] = None
 ):
@@ -102,6 +104,7 @@ def filter_categories_coco(
 
     This function allows to filter object annotations in a COCO dataset according to their
     assigned category. Therefore, either ``drop`` or ``keep`` has to be specified.
+    If img_dir is specified, a new, filtered image directory is created as well.
     Note that the original IDs referring to annotations, categories and images are preserved,
     and may be non-contiguous in the output dataset.
 
@@ -109,8 +112,12 @@ def filter_categories_coco(
     ----------
     ann_file : str
         Path to annotation (JSON) file
-    out_file : str
-        Output file name
+    img_dir: str
+        Directory containing image files. If None, no filtered image directory is written.
+    out_dir: str
+        Output directory
+    link_images : bool
+        If true, images won't be copied but hard-linked instead.
     drop : list of str
         If specified, these categories are removed from the dataset.
     keep : list of str
@@ -125,6 +132,18 @@ def filter_categories_coco(
         raise ValueError(
             "Either ``drop`` or ``keep`` has to be specified as non-empty list."
         )
+
+    if os.path.exists(out_dir):
+        if confirmation(
+            out_dir + ' already exists.\nDo you want do overwrite it?'
+        ):
+            shutil.rmtree(out_dir)
+        else:
+            return
+
+    os.makedirs(out_dir)
+    if img_dir:
+        os.makedirs(os.path.join(out_dir, "images"))
 
     with open(ann_file, "rb") as f:
         anno = json.load(f)
@@ -150,13 +169,25 @@ def filter_categories_coco(
     }
 
     # write COCO json file
-    with open(out_file, 'w') as json_file:
+    with open(os.path.join(out_dir, "annotations.json"), 'w') as json_file:
         json.dump(
             anno,
             json_file,
             indent = 2,
             sort_keys = True
         )
+
+    if img_dir:
+        for img in anno.get("images"):
+            if img["id"] in images_left:
+                img_name = os.path.split(img["file_name"])[1]
+                img_path = os.path.join(img_dir, img_name)
+
+                if link_images:
+                    os.link(img_path, os.path.join(out_dir, "images", img_name))
+                else:
+                    shutil.copy(img_path, os.path.join(out_dir, "images", img_name))
+
 
 def filter_categories_pvoc(
     ann_dir: str,
