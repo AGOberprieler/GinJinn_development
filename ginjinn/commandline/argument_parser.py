@@ -1049,10 +1049,10 @@ def _setup_utils_parser(subparsers):
     filter_parser = utils_parsers.add_parser(
         'filter',
         help = '''
-            Filter COCO annotation categories.
+            Filter annotation categories.
         ''',
         description = '''
-            Filter COCO annotation categories.
+            Filter annotation categories.
         ''',
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
@@ -1060,18 +1060,19 @@ def _setup_utils_parser(subparsers):
     # required
     filter_parser_required = filter_parser.add_argument_group('required arguments')
     filter_parser_required.add_argument(
-        '-o', '--out_file',
+        '-o', '--out_dir',
         type = str,
         help = '''
-            Annotation file (JSON) the filtered annotations should be written to.
+            Output directory the filtered annotations, and optionally filtered images
+            (see img_dir option), should be written to.
         ''',
         required=True,
     )
     filter_parser_required.add_argument(
-        '-a', '--ann_file',
+        '-a', '--ann_path',
         type = str,
         help = '''
-            Path to COCO annotation file (JSON).
+            Path to COCO annotation file (JSON) or PVCO annotation directory.
         ''',
         required=True,
     )
@@ -1085,6 +1086,15 @@ def _setup_utils_parser(subparsers):
         action = 'append',
         required = True,
     )
+    filter_parser_required.add_argument(
+        '-t', '--ann_type',
+        type = str,
+        help = '''
+            Annotation type.
+        ''',
+        choices = ['COCO', 'PVOC'],
+        required=True,
+    )
 
     # optional
     filter_parser_optional = filter_parser.add_argument_group('optional arguments')
@@ -1096,6 +1106,25 @@ def _setup_utils_parser(subparsers):
         '''
     )
     parser.set_defaults(drop = False)
+
+    filter_parser_optional.add_argument(
+        '-i', '--img_dir',
+        type = str,
+        help = '''
+            Directory containing the annotated images. Use this parameter if you
+            want to filter out images without annotation after category filtering.
+        ''',
+        required=False,
+        default=None,
+    )
+    filter_parser_optional.add_argument(
+        '-c', '--copy_images',
+        action = 'store_true',
+        help = '''
+            Copy images to img_dir instead of hard linkin them.
+        '''
+    )
+    parser.set_defaults(copy_images = False)
 
     # == filter_size
     filter_size_parser = utils_parsers.add_parser(

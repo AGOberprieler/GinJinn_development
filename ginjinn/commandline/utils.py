@@ -307,16 +307,31 @@ def utils_filter(args):
         filter subcommand.
     '''
 
-    from ginjinn.utils.data_prep import filter_categories_coco
+    from ginjinn.utils.data_prep import filter_categories_coco, filter_categories_pvoc
 
-    filter_categories_coco(
-        ann_file = args.ann_file,
-        out_file = args.out_file,
-        drop = args.filter if args.drop else None,
-        keep = args.filter if not args.drop else None,
-    )
+    if args.ann_type == 'COCO':
+        filter_categories_coco(
+            ann_file = args.ann_path,
+            img_dir = args.img_dir,
+            out_dir = args.out_dir,
+            drop = args.filter if args.drop else None,
+            keep = args.filter if not args.drop else None,
+            link_images = not args.copy_images,
+        )
+    elif args.ann_type == 'PVOC':
+        filter_categories_pvoc(
+            ann_dir = args.ann_path,
+            img_dir = args.img_dir,
+            out_dir = args.out_dir,
+            drop = args.filter if args.drop else None,
+            keep = args.filter if not args.drop else None,
+            link_images = not args.copy_images,
+        )
+    else:
+        print(f'Unknown annotation type "{args.ann_type}".')
+        return
 
-    print(f'Filtered annotation written to "{args.out_file}".')
+    print(f'Filtered annotations written to "{args.out_dir}".')
 
 def utils_filter_size(args):
     '''utils_filter_size
