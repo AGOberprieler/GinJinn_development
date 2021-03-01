@@ -15,8 +15,38 @@ input:
 
 # Model options
 model:
-  name: "mask_rcnn_X_101_32x8d_FPN_3x"
+  name: "mask_rcnn_R_101_DC5_3x"
   weights: "pretrained"
+
+  # additional model options
+  model_parameters:
+    # anchor generator options
+    anchor_generator:
+      sizes:
+        - - 32
+          - 64
+          - 128
+          - 256
+          - 512
+      aspect_ratios:
+        - - 0.5
+          - 1.0
+          - 2.0
+      angles:
+        - - -90
+          - 0
+          - 90
+    # region proposal network options
+    rpn:
+      iou_thresholds:
+        - 0.3
+        - 0.7
+      batch_size_per_image: 256
+    # regions of interest options
+    roi_heads:
+      iou_thresholds:
+        - 0.5
+      batch_size_per_image: 512
 
 # Options for model training
 training:

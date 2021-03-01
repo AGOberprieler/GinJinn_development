@@ -45,6 +45,7 @@ def _setup_new_parser(subparsers):
     )
     template_files = glob.glob(join(template_dir, '*.yaml'))
     templates = sorted([basename(t_f) for t_f in template_files])
+    templates = [t for t in templates if not t.startswith('adv_')]
     templates_string = '\n'.join(f'- {t}' for t in templates)
     parser.add_argument(
         '-t', '--template',
@@ -63,6 +64,14 @@ Available templates are:
         default='faster_rcnn_R_50_FPN_3x.yaml',
         metavar='TEMPLATE'
     )
+
+    parser.add_argument(
+        '-a', '--advanced',
+        dest='advanced',
+        action='store_true',
+        help='Generate config exposing advanced options.'
+    )
+    parser.set_defaults(advanced=False)
 
     return parser
 
@@ -1032,7 +1041,7 @@ def _setup_utils_parser(subparsers):
         help = '''
             Intersection over smaller object threshold for merging in pixel.
         ''',
-        default=0.0,
+        default=0.8,
     )
 
 
