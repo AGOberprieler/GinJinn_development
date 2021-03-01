@@ -474,9 +474,9 @@ def merge_window_predictions_bbox(
     img_dir : str
         Directory containing the images, img_anns refer to.
     iou_threshold : float
-        Min. intersection over union of two objects to be merged.
+        Min. intersection over union of two objects to be merged (0 = disabled).
     ios_threshold : float
-        Min. intersection over smaller area.
+        Min. intersection over smaller area (0 = disabled).
     intersection_threshold : float
         Min. absolute intersection.
 
@@ -533,7 +533,10 @@ def merge_window_predictions_bbox(
 
                         # update adjacency matrix
                         if (
-                            (IoU >= iou_threshold or IoS >= ios_threshold)
+                            (
+                                (iou_threshold and IoU >= iou_threshold)
+                                or (ios_threshold and IoS >= ios_threshold)
+                            )
                             and intersection >= intersection_threshold
                         ):
                             obj_ind_1 = obj_map[ann1["id"]]
@@ -577,7 +580,10 @@ def merge_window_predictions_bbox(
 
                         # update adjacency matrix
                         if (
-                            (IoU >= iou_threshold or IoS >= ios_threshold)
+                            (
+                                (iou_threshold and IoU >= iou_threshold)
+                                or (ios_threshold and IoS >= ios_threshold)
+                            )
                             and intersection >= intersection_threshold
                         ):
                             obj_ind_1 = obj_map[ann1["id"]]
@@ -644,9 +650,9 @@ def merge_window_predictions_seg(
     img_dir : str
         Directory containing the images, img_anns refer to.
     iou_threshold : float
-        Min. intersection over union of two objects to be merged.
+        Min. intersection over union of two objects to be merged (0 = disabled).
     ios_threshold : float
-        Min. intersection over smaller area.
+        Min. intersection over smaller area (0 = disabled).
     intersection_threshold : float
         Min. absolute intersection.
 
@@ -703,7 +709,10 @@ def merge_window_predictions_seg(
 
                         # update adjacency matrix
                         if (
-                            (IoU >= iou_threshold or IoS >= ios_threshold)
+                            (
+                                (iou_threshold and IoU >= iou_threshold)
+                                or (ios_threshold and IoS >= ios_threshold)
+                            )
                             and intersection >= intersection_threshold
                         ):
                             obj_ind_1 = obj_map[ann1["id"]]
@@ -747,7 +756,10 @@ def merge_window_predictions_seg(
 
                         # update adjacency matrix
                         if (
-                            (IoU >= iou_threshold or IoS >= ios_threshold)
+                            (
+                                (iou_threshold and IoU >= iou_threshold)
+                                or (ios_threshold and IoS >= ios_threshold)
+                            )
                             and intersection >= intersection_threshold
                         ):
                             obj_ind_1 = obj_map[ann1["id"]]
