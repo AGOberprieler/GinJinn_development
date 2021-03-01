@@ -24,7 +24,10 @@ def ginjinn_new(args):
     template_dir = pkg_resources.resource_filename(
         'ginjinn', 'data/ginjinn_config/templates',
     )
-    template_path = os.path.join(template_dir, args.template)
+    template_path = os.path.join(
+        template_dir,
+        ('adv_' if args.advanced else '') + args.template
+    )
 
 
     project_dir = args.project_dir
