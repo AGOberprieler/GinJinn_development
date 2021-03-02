@@ -714,3 +714,112 @@ def set_pvoc_obj_bbox(
     bbox_node.find('ymin').text = str(bbox[1])
     bbox_node.find('xmax').text = str(bbox[2])
     bbox_node.find('ymax').text = str(bbox[3])
+
+def visualize_annotations(
+    ann_path: str,
+    img_dir: str,
+    out_dir: str,
+    ann_type: str,
+    vis_type: str,
+):
+    '''visualize_annotations
+
+    Visualize COCO and PVOC object annotations for PVOC and COCO annotated images.
+
+    Parameters
+    ----------
+    ann_path: str
+        Path to annotations JSON file for a COCO data set or path to a directory
+        containing XML annotations files for a PVOC data set.
+    img_dir: str
+        Path to a directory containing images corresponding to annotations in
+        ann_path.
+    out_dir : str
+        Path to an existing directory, which the visualizations should be written to.
+    ann_type: str
+        Type of annotation. Either "COCO" or "PVOC".
+    vis_type : str
+        Type of visualization. Either "segmentation" or "bbox". For PVOC annotations,
+        only "bbox" is allowed.
+
+    Raises
+    ------
+    Exception
+        Raised if an unknown visualization type is passed.
+    Exception
+        Raised if ann_type is "PVOC" and vis_type is "segmentation". 
+    Exception
+        Raised if an unknown annotation type is passed.
+    '''
+
+    import cv2
+    from ginjinn.data_reader.load_datasets import \
+        MetadataCatalog, DatasetCatalog, load_vis_set, \
+        get_class_names_coco, get_class_names_pvoc
+    from ginjinn.predictor.predictors import GJ_Visualizer, ColorMode
+    from detectron2.structures.boxes import BoxMode
+    from .sliding_window_merging import xywh_to_xyxy
+
+    # input sanity checks
+    if not vis_type in ['bbox', 'segmentation']:
+        msg = f'Unknown visualization type "{vis_type}".'
+        raise Exception(msg)
+
+    if vis_type == 'segmentation' and ann_type == 'PVOC':
+        msg = 'Visualization type "segmentation" is incompatible with annotation type "PVOC".'
+        raise Exception(msg)
+
+    # get class names
+    if ann_type == 'COCO':
+        class_names = get_class_names_coco([ann_path])
+    elif ann_type == 'PVOC':
+        class_names = get_class_names_pvoc([ann_path])
+    else:
+        msg = f'Unknown annotation type "{ann_type}".'
+        raise Exception(msg)
+
+    # load data set for visualization
+    load_vis_set(ann_path, img_dir, ann_type)
+    # filter annotations for images in img_path
+    vis_set = [ann for ann in DatasetCatalog.get('vis') if os.path.isfile(ann['file_name'])]
+    metadata = MetadataCatalog.get('vis')
+
+    for img_ann in vis_set:
+        img = cv2.imread(img_ann['file_name'])
+        classes = np.array([ann['category_id'] for ann in img_ann['annotations']], dtype=int)
+
+        # get bboxes
+        boxes = [ann['bbox'] for ann in img_ann['annotations']]
+        box_modes = [ann['bbox_mode'] for ann in img_ann['annotations']]
+        boxes = np.array([
+            (xywh_to_xyxy(box) if b_mode == BoxMode.XYWH_ABS else box)
+            for box, b_mode in zip(boxes, box_modes)
+        ])
+
+        # get segmentation masks if available
+        if vis_type == 'segmentation':
+            segmentations = [ann['segmentation'] for ann in img_ann['annotations']]
+            masks = np.array([
+                imantics.Polygons(seg).mask(img.shape[1], img.shape[0]).array
+                for seg in segmentations
+            ])
+        else:
+            masks = None
+
+        # visualize bboxes and segmentation masks
+        gj_vis = GJ_Visualizer(
+            img,
+            metadata=metadata,
+            instance_mode=ColorMode.IMAGE_BW,
+        )
+        vis_img = gj_vis.draw_instance_predictions_gj(
+            None,
+            classes,
+            boxes,
+            class_names,
+            masks = masks
+        )
+
+        vis_img.save(
+            os.path.abspath(os.path.join(out_dir, os.path.basename(img_ann['file_name'])))
+        )

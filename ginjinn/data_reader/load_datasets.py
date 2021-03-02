@@ -128,7 +128,6 @@ def load_test_set(
             )
         register_pvoc(ann_path, img_path, "test", class_names_test)
 
-
 def load_train_val_sets (
         cfg: GinjinnConfiguration
     ):
@@ -169,3 +168,38 @@ def load_train_val_sets (
             register_pvoc(ann_path_train, img_path_train, "train", class_names)
 
     save_class_names(cfg.project_dir, class_names)
+
+def load_vis_set(
+        ann_path: str,
+        img_dir: str,
+        ann_type: str,
+    ):
+    """Read and register a visualization ("vis") data set.
+    The registered data set can be accessed via DatasetCatalog.get('vis').
+
+    Parameters
+    ----------
+    ann_path: str
+        Path to annotations JSON file for a COCO data set or path to a directory
+        containing XML annotations files for a PVOC data set.
+    img_dir: str
+        Path to a directory containing images corresponding to annotations in
+        ann_path.
+    ann_type: str
+        Type of annotation. Either "COCO" or "PVOC".
+
+    Raises
+    ------
+    Exception
+        Raised if an invalid annotation type is passed.
+    """
+
+    if ann_type == "COCO":
+        class_names = get_class_names_coco([ann_path])
+        register_coco(ann_path, img_dir, "vis", class_names)
+    elif ann_type == "PVOC":
+        class_names = get_class_names_pvoc([ann_path])
+        register_pvoc(ann_path, img_dir, "vis", class_names)
+    else:
+        msg = f'Unknown annotation type "{ann_type}".'
+        raise Exception(msg)

@@ -36,6 +36,8 @@ def ginjinn_utils(args):
         utils_filter(args)
     elif args.utils_subcommand == 'filter_size':
         utils_filter_size(args)
+    elif args.utils_subcommand in ['visualize', 'vis']:
+        utils_visualize(args)
     else:
         err = f'Unknown utils subcommand "{args.utils_subcommand}".'
         raise Exception(err)
@@ -358,3 +360,37 @@ def utils_filter_size(args):
     )
 
     print(f'Filtered annotation written to "{args.out_file}".')
+
+def utils_visualize(args):
+    '''utils_visualize
+
+    GinJinn utils visualize command.
+
+    Parameters
+    ----------
+    args
+        Parsed GinJinn commandline arguments for the ginjinn utils
+        visualize subcommand.
+    '''
+
+    from ginjinn.utils.utils import visualize_annotations
+
+    if os.path.exists(args.out_dir):
+        msg = f'Directory "{args.out_dir} already exists. Should it be overwritten?"\n' +\
+            f'WARNING: This will remove "{args.out_dir}" and ALL SUBDIRECTORIES.\n'
+        should_remove = confirmation_cancel(msg)
+        if should_remove:
+            shutil.rmtree(args.out_dir)
+            os.mkdir(args.out_dir)
+    else:
+        os.mkdir(args.out_dir)
+
+    visualize_annotations(
+        ann_path = args.ann_path,
+        img_dir = args.img_dir,
+        out_dir = args.out_dir,
+        ann_type = args.ann_type,
+        vis_type = args.vis_type,
+    )
+
+    print(f'Visualizations written to "{args.out_dir}".')

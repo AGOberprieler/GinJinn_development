@@ -1205,6 +1205,64 @@ def _setup_utils_parser(subparsers):
         '''
     )
 
+    # == visualize
+    visualize_parser = utils_parsers.add_parser(
+        'visualize',
+        help = '''
+            Visualize object annotations on images.
+        ''',
+        description = '''
+            Visualize object annotations on images.
+        ''',
+        aliases=['vis'],
+    )
+
+    # required
+    visualize_parser_required = visualize_parser.add_argument_group('required arguments')
+    visualize_parser_required.add_argument(
+        '-o', '--out_dir',
+        type = str,
+        help = '''
+            Directory the visualizations should be written to.
+        ''',
+        required=True,
+    )
+    visualize_parser_required.add_argument(
+        '-a', '--ann_path',
+        type = str,
+        help = '''
+            Path to COCO annotation file (JSON) or PVCO annotation directory.
+        ''',
+        required=True,
+    )
+    visualize_parser_required.add_argument(
+        '-i', '--img_dir',
+        type = str,
+        help = '''
+            Directory containing (potentially a subset) of the annotated images.
+        ''',
+        required=True,
+    )
+    visualize_parser_required.add_argument(
+        '-t', '--ann_type',
+        type = str,
+        help = '''
+            Annotation type. Either "COCO" or "PVOC".
+        ''',
+        choices = ['COCO', 'PVOC'],
+        required=True,
+    )
+    visualize_parser_required.add_argument(
+        '-v', '--vis_type',
+        type = str,
+        help = '''
+            Visualization type. Either "bbox" for bounding-boxes or "segmentation"
+            for segmentation masks. For PVOC, only "bbox" is allowed.
+        ''',
+        choices = ['segmentation', 'bbox'],
+        required=True,
+    )
+
     # == other utils
     # ...
 
