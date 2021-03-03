@@ -808,7 +808,7 @@ def visualize_annotations(
 
         # visualize bboxes and segmentation masks
         gj_vis = GJ_Visualizer(
-            img,
+            img[:, :, ::-1],
             metadata=metadata,
             instance_mode=ColorMode.IMAGE_BW,
         )
