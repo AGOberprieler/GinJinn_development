@@ -30,6 +30,8 @@ def ginjinn_utils(args):
         utils_crop(args)
     elif args.utils_subcommand == 'sliding_window':
         utils_sliding_window(args)
+    elif args.utils_subcommand == 'sw_split':
+        utils_sw_split(args)
     elif args.utils_subcommand == 'sw_merge':
         utils_sw_merge(args)
     elif args.utils_subcommand == 'filter':
@@ -256,6 +258,119 @@ def utils_sliding_window(args):
         msg = f'Sliding-window cropped images written to {img_dir_out}. '+\
             f'Sliding-window cropped annotations written to {ann_dir_out}.'
         print(msg)
+
+def utils_sw_split(args):
+    '''utils_sw_split
+
+    GinJinn utils utils_sw_split command.
+
+    Parameters
+    ----------
+    args
+        Parsed GinJinn commandline arguments for the ginjinn utils
+        sw_split subcommand.
+    '''
+
+    from ginjinn.utils.dataset_cropping import sliding_window_crop_coco, sliding_window_crop_pvoc
+
+    if os.path.exists(args.out_dir):
+        msg = f'Directory "{args.out_dir} already exists. Should it be overwritten?"\n' +\
+            f'WARNING: This will remove "{args.out_dir}" and ALL SUBDIRECTORIES.\n'
+        should_remove = confirmation_cancel(msg)
+        if should_remove:
+            shutil.rmtree(args.out_dir)
+            os.mkdir(args.out_dir)
+        else:
+            print('sw_split canceled')
+            return
+    else:
+        os.mkdir(args.out_dir)
+
+    if args.ann_type == 'COCO':
+        for ds_name in ['train', 'val', 'test']:
+            img_dir = os.path.join(args.split_dir, 'images', ds_name)
+            ann_path = os.path.join(args.split_dir, 'annotations', f'{ds_name}.json')
+
+            if not os.path.isdir(img_dir):
+                print(
+                    f'No image directory found for dataset "{ds_name}". ' +\
+                    f'(Expected location: "{img_dir}")'
+                )
+                continue
+            if not os.path.isfile(ann_path):
+                print(
+                    f'No annotation file found for dataset "{ds_name}". ' +\
+                    f'(Expected location: "{ann_path}")'
+                )
+                continue
+
+            img_dir_out = os.path.join(args.out_dir, 'images', ds_name)
+            os.makedirs(img_dir_out, exist_ok=True)
+            ann_dir_out = os.path.join(args.out_dir, 'annotations')
+            os.makedirs(ann_dir_out, exist_ok=True)
+            ann_path_out = os.path.join(ann_dir_out, f'{ds_name}.json')
+
+            print(f'Splitting dataset {ds_name}...')
+            sliding_window_crop_coco(
+                img_dir=img_dir,
+                ann_path=ann_path,
+                img_dir_out=img_dir_out,
+                ann_path_out=ann_path_out,
+                n_x=args.n_x,
+                n_y=args.n_y,
+                overlap=args.overlap,
+                img_id=args.img_id,
+                obj_id=args.obj_id,
+                save_empty=not args.remove_empty,
+                keep_incomplete=not args.remove_incomplete,
+                task=args.task,
+            )
+
+            msg = \
+                f'Sliding-window images for dataset {ds_name} written to {img_dir_out}. '+\
+                f'Sliding-window annotation for dataset {ds_name} written to {ann_path_out}.'
+            print(msg)
+
+    elif args.ann_type == 'PVOC':
+        for ds_name in ['train', 'val', 'test']:
+            img_dir = os.path.join(args.split_dir, 'images', ds_name)
+            ann_dir = os.path.join(args.split_dir, 'annotations', ds_name)
+
+            if not os.path.isdir(img_dir):
+                print(
+                    f'No image directory found for dataset "{ds_name}". ' +\
+                    f'(Expected location: "{img_dir}")'
+                )
+                continue
+            if not os.path.isdir(ann_dir):
+                print(
+                    f'No annotation directory found for dataset "{ds_name}". ' +\
+                    f'(Expected location: "{ann_dir}")'
+                )
+                continue
+
+            img_dir_out = os.path.join(args.out_dir, 'images', ds_name)
+            os.makedirs(img_dir_out, exist_ok=True)
+            ann_dir_out = os.path.join(args.out_dir, 'annotations', ds_name)
+            os.makedirs(ann_dir_out, exist_ok=True)
+
+            print(f'Splitting dataset {ds_name}...')
+            sliding_window_crop_pvoc(
+                img_dir=img_dir,
+                ann_dir=ann_dir,
+                img_dir_out=img_dir_out,
+                ann_dir_out=ann_dir_out,
+                n_x=args.n_x,
+                n_y=args.n_y,
+                overlap=args.overlap,
+                save_empty=not args.remove_empty,
+                keep_incomplete=not args.remove_incomplete,
+            )
+
+            msg = \
+                f'Sliding-window images for dataset {ds_name} written to {img_dir_out}. '+\
+                f'Sliding-window annotations for dataset {ds_name} written to {ann_dir_out}.'
+            print(msg)
 
 def utils_sw_merge(args):
     '''utils_sw_merge
