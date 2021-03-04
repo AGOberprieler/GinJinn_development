@@ -929,6 +929,17 @@ def _setup_utils_parser(subparsers):
         default=0.5,
     )
     sliding_window_optional.add_argument(
+        '-k', '--task',
+        choices = [
+            'instance-segmentation', 'bbox-detection'
+        ],
+        help = '''
+            Task, which the dataset will be used for. Only applies to COCO
+            datasets.
+        ''',
+        default = 'instance-segmentation',
+    )
+    sliding_window_optional.add_argument(
         '-m', '--img_id',
         type = int,
         help = '''

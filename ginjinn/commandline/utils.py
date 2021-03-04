@@ -222,6 +222,7 @@ def utils_sliding_window(args):
             obj_id=args.obj_id,
             save_empty=not args.remove_empty,
             keep_incomplete=not args.remove_incomplete,
+            task=args.task,
         )
 
         msg = f'Sliding-window cropped images written to {img_dir_out}. '+\

@@ -444,6 +444,9 @@ def crop_ann_img(
         (cropped_img, cropped_img_ann, cropped_img_name, cropped_obj_anns, img_id, obj_id).
     '''
     for cropping_range in xxyy:
+        # print('cropping_range:', cropping_range)
+        # print('w, h:', img.shape[1], img.shape[0])
+        # print('obj_anns:', obj_anns)
         obj_id, cropped_obj_anns = crop_annotations(
             annotations=obj_anns,
             img_width=img.shape[1],
@@ -453,6 +456,8 @@ def crop_ann_img(
             task=task,
             keep_incomplete=keep_incomplete,
         )
+        # print('cropped_obj_anns', cropped_obj_anns)
+        # print()
         if not return_empty:
             if len(cropped_obj_anns) < 1:
                 continue
@@ -504,8 +509,9 @@ def sliding_window_crop_coco(
     overlap: float,
     img_id: int = 0,
     obj_id: int = 0,
-    save_empty=True,
-    keep_incomplete=True,
+    save_empty: bool=True,
+    keep_incomplete: bool=True,
+    task: str='instance-segmentation',
 ):
     '''sliding_window_crop_coco
 
@@ -534,8 +540,11 @@ def sliding_window_crop_coco(
         Start image ID for new COCO object annotations, by default 0
     save_empty : bool, optional
         Whether images without annotations should be saved, by default True
-    keep_incomplete : bool
+    keep_incomplete : bool, optional
         If false, trimmed object annotations are discarded.
+    task : str, optional
+        Task the dataset will be used for. Eiter "bbox-detection" or
+        "instance-segmentation"
     '''
     ann = load_coco_ann(ann_path)
     img_anns = ann['images']
@@ -562,6 +571,7 @@ def sliding_window_crop_coco(
             img_id=img_id,
             return_empty=save_empty,
             keep_incomplete=keep_incomplete,
+            task=task
         ):
             new_img_anns.append(c_img_ann)
             new_obj_anns.extend(c_obj_anns)
@@ -572,6 +582,8 @@ def sliding_window_crop_coco(
             )
 
         img_id, obj_id = i_id, o_id
+
+    # print('new_obj_anns:', new_obj_anns)
 
     new_ann = coco_utils.build_coco_dataset(
         annotations = new_obj_anns,
@@ -769,7 +781,7 @@ def sliding_window_crop_pvoc(
             n_x, n_y, overlap=overlap
         )).astype(int)
 
-        print(get_pvoc_filename(ann))
+        # print(get_pvoc_filename(ann))
 
         for cropping_range in xxyy:
             cropped_ann = crop_pvoc_ann(
