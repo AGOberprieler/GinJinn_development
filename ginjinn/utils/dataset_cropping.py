@@ -100,9 +100,9 @@ def crop_annotations(
             x1, y1, w, h = bbox_orig
             x2, y2 = x1 + w, y1 + h
             x1, y1, x2, y2 = (round(coord) for coord in (x1, y1, x2, y2))
-            X1 = np.clip(x1 - x_start, 0, x_end - x_start - 1).tolist()
+            X1 = np.clip(x1 - x_start, 0, x_end - x_start).tolist()
             X2 = np.clip(x2 - x_start, 0, x_end - x_start).tolist()
-            Y1 = np.clip(y1 - y_start, 0, y_end - y_start - 1).tolist()
+            Y1 = np.clip(y1 - y_start, 0, y_end - y_start).tolist()
             Y2 = np.clip(y2 - y_start, 0, y_end - y_start).tolist()
             area = (X2 - X1) * (Y2 - Y1)
 
