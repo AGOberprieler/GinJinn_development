@@ -823,3 +823,74 @@ def visualize_annotations(
         vis_img.save(
             os.path.abspath(os.path.join(out_dir, os.path.basename(img_ann['file_name'])))
         )
+
+def dataset_info(
+    ann_path: str,
+    img_dir: str,
+    ann_type: str,
+):
+    '''dataset_info [summary]
+
+    Parameters
+    ----------
+    ann_path: str
+        Path to annotations JSON file for a COCO data set or path to a directory
+        containing XML annotations files for a PVOC data set.
+    img_dir: str
+        Path to a directory containing images corresponding to annotations in
+        ann_path.
+    ann_type: str
+        Type of annotation. Either "COCO" or "PVOC".
+    '''
+    from ginjinn.data_reader.load_datasets import \
+        MetadataCatalog, DatasetCatalog, load_vis_set
+    import pandas as pd
+
+    # load data set
+    load_vis_set(ann_path, img_dir, ann_type)
+    metadata = MetadataCatalog.get('vis')
+
+    count_df = pd.DataFrame(
+        columns=['#seg', '#bbox'],
+        index=[*metadata.thing_classes],
+        data=0
+    )
+
+    img_count = 0
+    for ann in DatasetCatalog.get('vis'):
+        img_count += 1
+        objs = ann['annotations']
+        for obj in objs:
+            if obj.get('segmentation'):
+                count_df.iloc[obj['category_id'], 0] += 1
+            elif obj.get('bbox'):
+                count_df.iloc[obj['category_id'], 1] += 1
+            else:
+                print(f'Invalid object annotation: {obj}')
+
+    count_df.loc['total']= count_df.sum(numeric_only=True, axis=0)
+    count_df.loc[:,'total'] = count_df.sum(numeric_only=True, axis=1)
+
+    empty_cls_idc = count_df['total'] == 0
+
+    print()
+    print('Dataset info for dataset')
+    print(f'\tann_path: {ann_path}')
+    print(f'\timg_dir: {img_dir}')
+
+    print()
+    print('# images:', img_count)
+    print()
+    print('category distribution:')
+    print(count_df)
+
+    if empty_cls_idc.any():
+        print('')
+        print('<WARNING> Found categories without annotation')
+        for cls_nm in count_df.index[empty_cls_idc]:
+            print(f'\t- "{cls_nm}"')
+        print()
+        print(
+            'Please remove empty categories (ginjinn utils filter) ' +\
+            'if you are planning to use this dataset for model training.'
+        )

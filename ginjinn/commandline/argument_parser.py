@@ -1395,6 +1395,45 @@ def _setup_utils_parser(subparsers):
         required=True,
     )
 
+    # == info
+    info_parser = utils_parsers.add_parser(
+        'info',
+        help = '''
+            Print dataset info.
+        ''',
+        description = '''
+            Print dataset info.
+        ''',
+    )
+
+    # required
+    info_parser_required = info_parser.add_argument_group('required arguments')
+    info_parser_required.add_argument(
+        '-a', '--ann_path',
+        type = str,
+        help = '''
+            Path to COCO annotation file (JSON) or PVCO annotation directory.
+        ''',
+        required=True,
+    )
+    info_parser_required.add_argument(
+        '-i', '--img_dir',
+        type = str,
+        help = '''
+            Directory containing  the annotated images.
+        ''',
+        required=True,
+    )
+    info_parser_required.add_argument(
+        '-t', '--ann_type',
+        type = str,
+        help = '''
+            Annotation type. Either "COCO" or "PVOC".
+        ''',
+        choices = ['COCO', 'PVOC'],
+        required=True,
+    )
+
     # == other utils
     # ...
 
