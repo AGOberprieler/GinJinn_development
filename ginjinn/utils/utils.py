@@ -747,7 +747,7 @@ def visualize_annotations(
     Exception
         Raised if an unknown visualization type is passed.
     Exception
-        Raised if ann_type is "PVOC" and vis_type is "segmentation". 
+        Raised if ann_type is "PVOC" and vis_type is "segmentation".
     Exception
         Raised if an unknown annotation type is passed.
     '''

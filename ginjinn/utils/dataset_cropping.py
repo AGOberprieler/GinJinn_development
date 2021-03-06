@@ -5,11 +5,13 @@ Module for generating datasets with cropped object instances.
 import datetime
 import glob
 import json
+import math
 import os
 import copy
 import xml
-from typing import List, Sequence, Tuple, Optional
+from typing import Generator, List, Sequence, Tuple, Optional
 import numpy as np
+#from numpy.typing import DTypeLike
 import cv2
 import imantics
 from pycocotools import mask
@@ -20,6 +22,79 @@ from .utils import get_pvoc_obj_bbox, bbox_from_mask,\
     drop_pvoc_objects, get_pvoc_filename, set_pvoc_filename,\
     get_pvoc_objects, add_pvoc_object, set_pvoc_size, get_pvoc_size,\
     load_pvoc_annotation, write_pvoc_annotation, coco_seg_to_mask
+
+
+def sw_coords_1d(length: int, win_length: int, overlap: int) -> Generator[Tuple[int], None, None]:
+    """sw_coords_1d
+
+    Generate start and stop indices for sliding window cropping with padding.
+
+    Parameters
+    ----------
+    length : int
+        Width or length of image to be cropped
+    win_length : int
+        Width or length of sliding windows
+    overlap : int
+        Absolute horizontal or vertical overlap (pixels) between neighboring windows.
+
+    Yields
+    ------
+    (start, stop) : tuple of int
+        Start and stop indices. Negative start values or stop values above length indicate padding.
+    """
+    n_windows = math.ceil((length - overlap) / (win_length - overlap))
+    excess = n_windows * win_length - (n_windows - 1) * overlap - length
+
+    start = -round(excess/2)
+    for _ in range(n_windows):
+        yield (start, start + win_length)
+        start += win_length - overlap
+
+def crop_img_padded(
+    img: np.ndarray,
+    cropping_range: Sequence[int],
+    dtype: Optional["DTypeLike"] = None
+) -> np.ndarray:
+    """Crop image or mask with padding.
+
+    Parameters
+    ----------
+    img : np.ndarray
+        Input image/mask as 2D (height, width) or 3D (height, width, channel) array
+    cropping_range : sequence of int
+        (x0, x1, y0, y1) slices segmentation masks by x0:x1 (horizontally) and y0:y1 (vertically).
+        If the cropping range exceeds the input image, i.e., x0 < 0, y0 < 0, x1 > width,
+        or y1 > height, padding is applied.
+    dtype : str or dtype, optional
+        Data type of output array. By default, the data type of the input array is preserved.
+
+    Returns
+    -------
+    img_cropped : np.ndarray
+        Cropped image/mask
+    """
+    if not dtype:
+        dtype = img.dtype
+
+    height, width = img.shape[:2]
+    x0, x1, y0, y1 = cropping_range
+
+    shape_cropped = list(img.shape)
+    shape_cropped[:2] = (y1-y0, x1-x0)
+    img_cropped = np.zeros(shape_cropped, dtype=dtype)
+
+    offset_x = -min(0, x0)
+    offset_y = -min(0, y0)
+
+    # get valid coordinates for the original image
+    x0, x1 = np.clip((x0, x1), 0, width)
+    y0, y1 = np.clip((y0, y1), 0, height)
+
+    img_cropped[offset_y:offset_y+y1-y0, offset_x:offset_x+x1-x0] = img[y0:y1, x0:x1]
+
+    return img_cropped
+
 
 # pylint: disable=C0103
 def crop_annotations(
@@ -47,6 +122,8 @@ def crop_annotations(
         (Original) image height
     cropping_range: sequence of int
         (x0, x1, y0, y1) slices segmentation masks by x0:x1 (horizontally) and y0:y1 (vertically).
+        The cropping range may exceed the input image, e.g., through negative start indices.
+        In this case, padding is assumed.
     start_id : int
         Object ID to start output annotations with.
     task : str
@@ -128,13 +205,13 @@ def crop_annotations(
                 continue
 
             # crop segmentation
-            imask_cropped = imantics.Mask(mask_orig[y_start:y_end, x_start:x_end])
-            seg_cropped = imask_cropped.polygons().segmentation
+            mask_cropped = crop_img_padded(mask_orig, cropping_range)
+            seg_cropped = imantics.Mask(mask_cropped).polygons().segmentation
 
             if seg_cropped:
                 # compare object boundaries
                 bbox_orig = bbox_from_mask(mask_orig, fmt="xywh").tolist()
-                bbox_cropped = bbox_from_mask(imask_cropped.array, fmt="xywh").tolist()
+                bbox_cropped = bbox_from_mask(mask_cropped, fmt="xywh").tolist()
 
                 if (
                     keep_incomplete
@@ -305,69 +382,13 @@ def crop_seg_from_coco(
             sort_keys = True
         )
 
-# TODO: this should be reworked and improved
-def sliding_window_idcs(l: int, n: int, overlap: float = 0.5) -> Tuple:
-    '''sliding_window_idcs
-
-    >EXPERIMENTAL< Generate sliding window start and stop indices.
-
-    Parameters
-    ----------
-    l : int
-        length
-    n : int
-        number of non-sliding windows
-    overlap : float, optional
-        overlap between sliding-windows, by default 0.5
-
-    Returns
-    -------
-    Tuple
-        Tuple of start indices and stop indices
-    '''
-    window = l / n
-    stride = window * (1-overlap)
-    starts = np.arange(0, l, stride)[:-1].astype(int)
-    stops = (starts + window).astype(int)
-
-    return starts, stops
-
-def sliding_window_idcs_2d(
-    x: int, y: int,
-    n_x: int, n_y: int,
-    overlap: float = 0.5,
-) -> Tuple:
-    '''sliding_window_idcs_2d
-
-    >EXPERIMENTAL< Generate sliding window start and stop indices.
-
-    Parameters
-    ----------
-    x : int
-        length in x
-    y : int
-        length in y
-    n_x : int
-        number of non-sliding windows in x
-    n_y : int
-        number of non-sliding windows in y
-    overlap : float, optional
-        overlap between sliding-windows, by default 0.5
-
-    Returns
-    -------
-    Tuple
-        Tuple of start and stop indices, i.e. ((start_x, stop_x), (start_y, stop_y)).
-    '''
-    return (
-        sliding_window_idcs(x, n_x, overlap),
-        sliding_window_idcs(y, n_y, overlap),
-    )
-
 def sliding_window_grid_2d(
-    x: int, y: int,
-    n_x: int, n_y: int,
-    overlap: float = 0.5
+    img_width: int,
+    img_height: int,
+    win_width: int,
+    win_height: int,
+    hor_overlap: int,
+    vert_overlap: int
 ):
     '''sliding_window_grid_2d
 
@@ -375,16 +396,18 @@ def sliding_window_grid_2d(
 
     Parameters
     ----------
-    x : int
-        length in x
-    y : int
-        length in y
-    n_x : int
-        number of non-sliding windows in x
-    n_y : int
-        number of non-sliding windows in y
-    overlap : float, optional
-        overlap between sliding-windows, by default 0.5
+    img_width: int
+        Image width (px)
+    img_height: int
+        Image height (px)
+    win_width: int
+        Window width (px)
+    win_height: int
+        Window height (px)
+    hor_overlap: int
+        Horizontal overlap (px)
+    vert_overlap: int
+        Vertical overlap (px)
 
     Returns
     -------
@@ -392,19 +415,18 @@ def sliding_window_grid_2d(
         2D numpy array, where each row consists of the four values
         start_x, stop_x, start_y, stop_y.
     '''
-    (x_0, x_1), (y_0, y_1) = sliding_window_idcs_2d(
-        x, y,
-        n_x, n_y, overlap=overlap
+    xxyy = np.array(
+        [(*x01, *y01)
+         for x01 in sw_coords_1d(img_width, win_width, hor_overlap)
+         for y01 in sw_coords_1d(img_height, win_height, vert_overlap)]
     )
-    xxyy = np.array([[*x01, *y01] for x01 in zip(x_0, x_1) for y01 in zip(y_0, y_1)])
-
     return xxyy
 
 def crop_ann_img(
-    img,
+    img: np.ndarray,
     img_ann: dict,
     obj_anns: dict,
-    xxyy,
+    xxyy: np.ndarray,
     obj_id: int,
     img_id: int,
     task: str = 'instance-segmentation',
@@ -417,13 +439,13 @@ def crop_ann_img(
 
     Parameters
     ----------
-    img
+    img : np.ndarray
         Image as numpy array.
     img_ann : dict
         Image annotation as COCO dict.
     obj_anns : dict
         Object annotations as list of COCO dicts.
-    xxyy
+    xxyy : np.ndarray
         2D numpy array, where each row consists of the four values
         x0, x1, y0, y1 for cropping.
     obj_id : int
@@ -462,10 +484,7 @@ def crop_ann_img(
             if len(cropped_obj_anns) < 1:
                 continue
 
-        cropped_img = img[
-            cropping_range[2]:cropping_range[3],
-            cropping_range[0]:cropping_range[1],
-        ]
+        cropped_img = crop_img_padded(img, cropping_range)
 
         for ann in cropped_obj_anns:
             ann['image_id'] = img_id
@@ -473,10 +492,12 @@ def crop_ann_img(
         img_name = os.path.basename(img_ann['file_name']).split('.')[0]
         # think about whether the name should contain the upper range
         # inclusively or exclusively
-        cropped_img_name = '{}_{}-{}_{}-{}.jpg'.format(
+        #cropped_img_name = '{}_{}-{}_{}-{}.jpg'.format(img_name, *cropping_range)
+        cropped_img_name = '{}_{}x{}_{}-{}_{}-{}.jpg'.format(
             img_name,
-            cropping_range[0], cropping_range[1],
-            cropping_range[2], cropping_range[3]
+            img.shape[1],
+            img.shape[0],
+            *cropping_range
         )
         cropped_img_ann = coco_utils.build_coco_image(
             image_id = img_id,
@@ -504,9 +525,10 @@ def sliding_window_crop_coco(
     ann_path: str,
     img_dir_out: str,
     ann_path_out: str,
-    n_x: int,
-    n_y: int,
-    overlap: float,
+    win_width: int,
+    win_height: int,
+    hor_overlap: int,
+    vert_overlap: int,
     img_id: int = 0,
     obj_id: int = 0,
     save_empty: bool=True,
@@ -528,12 +550,14 @@ def sliding_window_crop_coco(
         Output directory for images.
     ann_path_out : str
         Output path for COCO annotation.
-    n_x : int
-        number of non-sliding windows in x
-    n_y : int
-        number of non-sliding windows in y
-    overlap : float, optional
-        overlap between sliding-windows, by default 0.5
+    win_width: int
+        Window width (px)
+    win_height: int
+        Window height (px)
+    hor_overlap: int
+        Horizontal overlap of neighboring windows (px)
+    vert_overlap: int
+        Vertical overlap of neighboring windows (px)
     img_id : int, optional
         Start image ID for new COCO images, by default 0
     obj_id : int, optional
@@ -557,8 +581,12 @@ def sliding_window_crop_coco(
         obj_anns = get_obj_anns(img_ann, ann)
 
         xxyy = sliding_window_grid_2d(
-            img.shape[1], img.shape[0],
-            n_x, n_y, overlap=overlap
+            img.shape[1],
+            img.shape[0],
+            win_width,
+            win_height,
+            hor_overlap,
+            vert_overlap
         )
 
         i_id, o_id = img_id, obj_id
@@ -588,9 +616,9 @@ def sliding_window_crop_coco(
     new_ann = coco_utils.build_coco_dataset(
         annotations = new_obj_anns,
         images = new_img_anns,
-        categories = ann['categories'],
-        licenses = ann['licenses'],
-        info = ann['info'],
+        categories = ann.get('categories'),
+        licenses = ann.get('licenses'),
+        info = ann.get('info')
     )
 
     with open(ann_path_out, 'w') as ann_f:
@@ -682,7 +710,8 @@ def crop_pvoc_ann(
             os.path.basename(get_pvoc_filename(ann))
         )
         xmn, xmx, ymn, ymx = cropping_range
-        new_name = f'{nm}_{xmn}-{xmx}_{ymn}-{ymx}{ext}'
+        img_width, img_height, _ = get_pvoc_size(ann)
+        new_name = f'{nm}_{img_width}x{img_height}_{xmn}-{xmx}_{ymn}-{ymx}{ext}'
         set_pvoc_filename(cropped_ann, new_name)
 
     cropped_objs = [
@@ -737,9 +766,10 @@ def sliding_window_crop_pvoc(
     ann_dir: str,
     img_dir_out: str,
     ann_dir_out: str,
-    n_x: int,
-    n_y: int,
-    overlap: float,
+    win_width: int,
+    win_height: int,
+    hor_overlap: int,
+    vert_overlap: int,
     save_empty: bool = True,
     keep_incomplete: bool = True,
 ):
@@ -758,12 +788,14 @@ def sliding_window_crop_pvoc(
         Path to output image directory
     ann_dir_out : str
         Path to output annotation directory
-    n_x : int
-        number of non-sliding windows in x
-    n_y : int
-        number of non-sliding windows in y
-    overlap : float, optional
-        overlap between sliding-windows, by default 0.5
+    win_width: int
+        Window width (px)
+    win_height: int
+        Window height (px)
+    hor_overlap: int
+        Horizontal overlap of neighboring windows (px)
+    vert_overlap: int
+        Vertical overlap of neighboring windows (px)
     save_empty : bool, optional
         Whether cropped images without object annotations should be saved,
         by default True
@@ -776,10 +808,14 @@ def sliding_window_crop_pvoc(
         ann = load_pvoc_annotation(ann_f)
         img = cv2.imread(os.path.join(img_dir, get_pvoc_filename(ann)))
 
-        xxyy = np.round(sliding_window_grid_2d(
-            img.shape[1], img.shape[0],
-            n_x, n_y, overlap=overlap
-        )).astype(int)
+        xxyy = sliding_window_grid_2d(
+            img.shape[1],
+            img.shape[0],
+            win_width,
+            win_height,
+            hor_overlap,
+            vert_overlap
+        ).astype(int)
 
         # print(get_pvoc_filename(ann))
 
@@ -792,7 +828,7 @@ def sliding_window_crop_pvoc(
             if not save_empty and len(get_pvoc_objects(cropped_ann)) < 1:
                 continue
 
-            cropped_img = crop_image(img, cropping_range)
+            cropped_img = crop_img_padded(img, cropping_range)
 
             filename, ext = os.path.splitext(get_pvoc_filename(cropped_ann))
             ann_filepath = os.path.join(ann_dir_out, f'{filename}.xml')

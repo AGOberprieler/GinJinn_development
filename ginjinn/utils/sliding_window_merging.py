@@ -7,12 +7,15 @@ import shutil
 import json
 import itertools
 from operator import itemgetter
+import shutil
+from tempfile import TemporaryDirectory
 from typing import Iterable, List, Tuple, Callable
 import cv2
 import imantics
 import numpy as np
 from scipy.sparse.csgraph import connected_components
 from ginjinn.simulation import coco_utils
+from .dataset_cropping import crop_annotations, crop_image
 from .utils import load_coco_ann, get_obj_anns, coco_seg_to_mask, bbox_from_mask
 
 # source: https://stackoverflow.com/a/52604722
@@ -44,7 +47,7 @@ def get_bname_from_fname(file_name: str) -> str:
     '''
     fname, _ = os.path.splitext(file_name)
     fname_split = fname.split('_')
-    return '_'.join(fname_split[:-2])
+    return '_'.join(fname_split[:-3])
 
 def get_coords_from_fname(file_name: str) -> np.ndarray:
     '''get_coords_from_fname
@@ -64,12 +67,31 @@ def get_coords_from_fname(file_name: str) -> np.ndarray:
     '''
     fname, _ = os.path.splitext(file_name)
     fname_split = fname.split('_')
-    #y0, y1 = [int(coord) for coord in fname_split[-2].split('-')]
-    #x0, x1 = [int(coord) for coord in fname_split[-1].split('-')]
-    y0, y1 = [int(coord) for coord in fname_split[-1].split('-')]
-    x0, x1 = [int(coord) for coord in fname_split[-2].split('-')]
+    y0, y1 = [int(coord) for coord in fname_split[-1].rsplit('-', 1)]
+    x0, x1 = [int(coord) for coord in fname_split[-2].rsplit('-', 1)]
 
     return np.array([x0, x1, y0, y1])
+
+def get_size_from_fname(file_name: str) -> np.ndarray:
+    '''get_size_from_fname
+
+    Get size of the original image from the file name of a sliding-window crop.
+
+    Parameters
+    ----------
+    file_name : str
+        Sliding-window cropped image file name
+
+    Returns
+    -------
+    np.ndarray
+        Image size of original image (width, height)
+    '''
+    fname, _ = os.path.splitext(file_name)
+    fname_split = fname.split('_')
+    width, height = [int(x) for x in fname_split[-3].split('x')]
+
+    return np.array([width, height])
 
 def xywh_to_xyxy(xywh: np.ndarray) -> np.ndarray:
     '''xywh_to_xyxy
@@ -258,9 +280,7 @@ def reconstruct_original_image(
     np.ndarray
         RGB image as numpy array (h * w * 3)
     '''
-    coords = np.array([get_coords_from_fname(img_ann['file_name']) for img_ann in img_anns])
-
-    orig_w, orig_h = coords.max(0)[[1, 3]]
+    orig_w, orig_h = get_size_from_fname(img_anns[0]['file_name'])
     orig_img = np.zeros((orig_h, orig_w, 3), dtype=np.int)
 
     for img_ann in img_anns:
@@ -294,10 +314,9 @@ def merge_segmentations(
     bbox : np.ndarray
         Corresponding bounding box (COCO format)
     '''
-    coords = np.array([get_coords_from_fname(img_ann["file_name"]) for img_ann in img_anns])
     dict_images = {ann["id"]: ann for ann in img_anns}
 
-    orig_w, orig_h = coords.max(0)[[1, 3]]
+    orig_w, orig_h = get_size_from_fname(img_anns[0]['file_name'])
     mask = np.zeros((orig_h, orig_w), dtype=np.bool_)
 
     for obj_ann in obj_anns:
@@ -861,40 +880,82 @@ def merge_sliding_window_predictions(
 
     new_img_anns = []
     new_obj_anns = []
+    obj_id = 1
 
-    for bname in bnames:
-        img_anns = [
-            img_ann
-            for img_ann in ann['images'] if get_bname_from_fname(img_ann['file_name']) == bname
-        ]
-        obj_anns = list(itertools.chain.from_iterable(
-            [get_obj_anns(img_ann, ann) for img_ann in img_anns]
-        ))
+    with TemporaryDirectory() as tmp_dir:
+        for bname in bnames:
+            img_anns = []
+            obj_anns = []
+            for img_ann in ann['images']:
+                if get_bname_from_fname(img_ann['file_name']) == bname:
+                    obj_anns_win = get_obj_anns(img_ann, ann)
+                    width_orig, height_orig = get_size_from_fname(img_ann['file_name'])
+                    x0, x1, y0, y1 = get_coords_from_fname(img_ann['file_name'])
 
-        if task == "bbox-detection":
-            orig_img, orig_img_ann, merged_obj_anns = merge_window_predictions_bbox(
-                img_anns,
-                obj_anns,
-                img_dir,
-                iou_threshold = iou_threshold,
-                ios_threshold = ios_threshold,
-                intersection_threshold = intersection_threshold
-            )
-        elif task == "instance-segmentation":
-            orig_img, orig_img_ann, merged_obj_anns = merge_window_predictions_seg(
-                img_anns,
-                obj_anns,
-                img_dir,
-                iou_threshold = iou_threshold,
-                ios_threshold = ios_threshold,
-                intersection_threshold = intersection_threshold
-            )
+                    # remove padding
+                    if any((x0 < 0, y0 < 0, x1 > width_orig, y1 > height_orig)) :
+                        X0 = -min(0, x0)
+                        Y0 = -min(0, y0)
+                        X1 = x1 - x0 - max(0, x1 - width_orig)
+                        Y1 = y1 - y0 - max(0, y1 - height_orig)
 
-        img_f = os.path.join(img_out_dir, f'{bname}.jpg')
-        cv2.imwrite(img_f, orig_img)
+                        obj_id, obj_anns_win = crop_annotations(
+                            annotations = obj_anns_win,
+                            img_width = img_ann["width"],
+                            img_height = img_ann["height"],
+                            cropping_range = (X0, X1, Y0, Y1),
+                            start_id = obj_id,
+                            task = task,
+                            keep_incomplete = True
+                        )
+                        img_name_new = '{}_{}x{}_{}-{}_{}-{}.jpg'.format(
+                            bname,
+                            width_orig,
+                            height_orig,
+                            *np.clip((x0, x1), 0, width_orig).tolist(),
+                            *np.clip((y0, y1), 0, height_orig).tolist()
+                        )
+                        img_padded = cv2.imread(os.path.join(img_dir, img_ann['file_name']))
+                        cv2.imwrite(
+                            os.path.join(tmp_dir, img_name_new),
+                            crop_image(img_padded, (X0, X1, Y0, Y1))
+                        )
+                        img_ann["file_name"] = img_name_new
+                        img_ann["width"] = X1 - X0
+                        img_ann["height"] = Y1 - Y0
+                    else:
+                        shutil.copy(
+                            os.path.join(img_dir, img_ann['file_name']),
+                            os.path.join(tmp_dir, img_ann['file_name'])
+                        )
 
-        new_img_anns.append(orig_img_ann)
-        new_obj_anns.extend(merged_obj_anns)
+                    img_anns.append(img_ann)
+                    obj_anns.extend(obj_anns_win)
+
+            if task == "bbox-detection":
+                orig_img, orig_img_ann, merged_obj_anns = merge_window_predictions_bbox(
+                    img_anns,
+                    obj_anns,
+                    tmp_dir,
+                    iou_threshold = iou_threshold,
+                    ios_threshold = ios_threshold,
+                    intersection_threshold = intersection_threshold
+                )
+            elif task == "instance-segmentation":
+                orig_img, orig_img_ann, merged_obj_anns = merge_window_predictions_seg(
+                    img_anns,
+                    obj_anns,
+                    tmp_dir,
+                    iou_threshold = iou_threshold,
+                    ios_threshold = ios_threshold,
+                    intersection_threshold = intersection_threshold
+                )
+
+            img_f = os.path.join(img_out_dir, f'{bname}.jpg')
+            cv2.imwrite(img_f, orig_img)
+
+            new_img_anns.append(orig_img_ann)
+            new_obj_anns.extend(merged_obj_anns)
 
     new_ann = coco_utils.build_coco_dataset(
         annotations=new_obj_anns,
