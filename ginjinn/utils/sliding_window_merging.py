@@ -7,7 +7,6 @@ import shutil
 import json
 import itertools
 from operator import itemgetter
-import shutil
 from tempfile import TemporaryDirectory
 from typing import Iterable, List, Tuple, Callable
 import cv2
@@ -281,7 +280,7 @@ def reconstruct_original_image(
         RGB image as numpy array (h * w * 3)
     '''
     orig_w, orig_h = get_size_from_fname(img_anns[0]['file_name'])
-    orig_img = np.zeros((orig_h, orig_w, 3), dtype=np.int)
+    orig_img = np.zeros((orig_h, orig_w, 3), dtype="uint8")
 
     for img_ann in img_anns:
         sub_img = cv2.imread(os.path.join(img_dir, img_ann['file_name']))
@@ -888,7 +887,8 @@ def merge_sliding_window_predictions(
             obj_anns = []
             for img_ann in ann['images']:
                 if get_bname_from_fname(img_ann['file_name']) == bname:
-                    obj_anns_win = get_obj_anns(img_ann, ann)
+                    img_ann_new = copy.deepcopy(img_ann)
+                    obj_anns_win = copy.deepcopy(get_obj_anns(img_ann, ann))
                     width_orig, height_orig = get_size_from_fname(img_ann['file_name'])
                     x0, x1, y0, y1 = get_coords_from_fname(img_ann['file_name'])
 
@@ -920,16 +920,16 @@ def merge_sliding_window_predictions(
                             os.path.join(tmp_dir, img_name_new),
                             crop_image(img_padded, (X0, X1, Y0, Y1))
                         )
-                        img_ann["file_name"] = img_name_new
-                        img_ann["width"] = X1 - X0
-                        img_ann["height"] = Y1 - Y0
+                        img_ann_new["file_name"] = img_name_new
+                        img_ann_new["width"] = X1 - X0
+                        img_ann_new["height"] = Y1 - Y0
                     else:
                         shutil.copy(
-                            os.path.join(img_dir, img_ann['file_name']),
-                            os.path.join(tmp_dir, img_ann['file_name'])
+                            os.path.join(img_dir, img_ann["file_name"]),
+                            os.path.join(tmp_dir, img_ann["file_name"])
                         )
 
-                    img_anns.append(img_ann)
+                    img_anns.append(img_ann_new)
                     obj_anns.extend(obj_anns_win)
 
             if task == "bbox-detection":
