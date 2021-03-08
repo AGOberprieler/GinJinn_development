@@ -6,6 +6,7 @@ import copy
 import shutil
 import json
 import itertools
+from collections import defaultdict
 from operator import itemgetter
 from tempfile import TemporaryDirectory
 from typing import Iterable, List, Tuple, Callable
@@ -856,7 +857,15 @@ def merge_sliding_window_predictions(
         By default, img_out_dir will be overwritten.
     '''
     ann = load_coco_ann(ann_path)
-    bnames = list({get_bname_from_fname(img_ann['file_name']) for img_ann in ann['images']})
+
+    bname_to_img_anns = defaultdict(list)
+    for img_ann in ann["images"]:
+        bname = get_bname_from_fname(img_ann["file_name"])
+        bname_to_img_anns[bname].append(img_ann)
+
+    img_id_to_obj_anns = defaultdict(list)
+    for obj_ann in ann["annotations"]:
+        img_id_to_obj_anns[obj_ann["image_id"]].append(obj_ann)
 
     if os.path.exists(out_dir):
         should_remove = on_out_dir_exists(out_dir)
@@ -879,58 +888,57 @@ def merge_sliding_window_predictions(
 
     new_img_anns = []
     new_obj_anns = []
-    obj_id = 1
 
     with TemporaryDirectory() as tmp_dir:
-        for bname in bnames:
-            img_anns = []
+        for bname in bname_to_img_anns:
+            img_anns = [] # without padding
             obj_anns = []
-            for img_ann in ann['images']:
-                if get_bname_from_fname(img_ann['file_name']) == bname:
-                    img_ann_new = copy.deepcopy(img_ann)
-                    obj_anns_win = copy.deepcopy(get_obj_anns(img_ann, ann))
-                    width_orig, height_orig = get_size_from_fname(img_ann['file_name'])
-                    x0, x1, y0, y1 = get_coords_from_fname(img_ann['file_name'])
 
-                    # remove padding
-                    if any((x0 < 0, y0 < 0, x1 > width_orig, y1 > height_orig)) :
-                        X0 = -min(0, x0)
-                        Y0 = -min(0, y0)
-                        X1 = x1 - x0 - max(0, x1 - width_orig)
-                        Y1 = y1 - y0 - max(0, y1 - height_orig)
+            for img_ann in bname_to_img_anns[bname]:
+                img_ann_new = copy.deepcopy(img_ann)
+                obj_anns_win = copy.deepcopy(img_id_to_obj_anns[img_ann["id"]])
+                width_orig, height_orig = get_size_from_fname(img_ann['file_name'])
+                x0, x1, y0, y1 = get_coords_from_fname(img_ann['file_name'])
 
-                        obj_id, obj_anns_win = crop_annotations(
-                            annotations = obj_anns_win,
-                            img_width = img_ann["width"],
-                            img_height = img_ann["height"],
-                            cropping_range = (X0, X1, Y0, Y1),
-                            start_id = None,
-                            task = task,
-                            keep_incomplete = True
-                        )
-                        img_name_new = '{}_{}x{}_{}-{}_{}-{}.jpg'.format(
-                            bname,
-                            width_orig,
-                            height_orig,
-                            *np.clip((x0, x1), 0, width_orig).tolist(),
-                            *np.clip((y0, y1), 0, height_orig).tolist()
-                        )
-                        img_padded = cv2.imread(os.path.join(img_dir, img_ann['file_name']))
-                        cv2.imwrite(
-                            os.path.join(tmp_dir, img_name_new),
-                            crop_image(img_padded, (X0, X1, Y0, Y1))
-                        )
-                        img_ann_new["file_name"] = img_name_new
-                        img_ann_new["width"] = X1 - X0
-                        img_ann_new["height"] = Y1 - Y0
-                    else:
-                        shutil.copy(
-                            os.path.join(img_dir, img_ann["file_name"]),
-                            os.path.join(tmp_dir, img_ann["file_name"])
-                        )
+                # remove padding
+                if any((x0 < 0, y0 < 0, x1 > width_orig, y1 > height_orig)) :
+                    X0 = -min(0, x0)
+                    Y0 = -min(0, y0)
+                    X1 = x1 - x0 - max(0, x1 - width_orig)
+                    Y1 = y1 - y0 - max(0, y1 - height_orig)
 
-                    img_anns.append(img_ann_new)
-                    obj_anns.extend(obj_anns_win)
+                    _, obj_anns_win = crop_annotations(
+                        annotations = obj_anns_win,
+                        img_width = img_ann["width"],
+                        img_height = img_ann["height"],
+                        cropping_range = (X0, X1, Y0, Y1),
+                        start_id = None,
+                        task = task,
+                        keep_incomplete = True
+                    )
+                    img_name_new = '{}_{}x{}_{}-{}_{}-{}.jpg'.format(
+                        bname,
+                        width_orig,
+                        height_orig,
+                        *np.clip((x0, x1), 0, width_orig).tolist(),
+                        *np.clip((y0, y1), 0, height_orig).tolist()
+                    )
+                    img_padded = cv2.imread(os.path.join(img_dir, img_ann['file_name']))
+                    cv2.imwrite(
+                        os.path.join(tmp_dir, img_name_new),
+                        crop_image(img_padded, (X0, X1, Y0, Y1))
+                    )
+                    img_ann_new["file_name"] = img_name_new
+                    img_ann_new["width"] = X1 - X0
+                    img_ann_new["height"] = Y1 - Y0
+                else:
+                    shutil.copy(
+                        os.path.join(img_dir, img_ann["file_name"]),
+                        os.path.join(tmp_dir, img_ann["file_name"])
+                    )
+
+                img_anns.append(img_ann_new)
+                obj_anns.extend(obj_anns_win)
 
             if task == "bbox-detection":
                 orig_img, orig_img_ann, merged_obj_anns = merge_window_predictions_bbox(
