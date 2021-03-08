@@ -125,7 +125,7 @@ def crop_annotations(
         The cropping range may exceed the input image, e.g., through negative start indices.
         In this case, padding is assumed.
     start_id : int
-        Object ID to start output annotations with.
+        Object ID to start output annotations with. If None, the original object IDs are preserved.
     task : str
         Either "bbox-detection" or "instance-segmentation"
     keep_incomplete : bool
@@ -135,7 +135,7 @@ def crop_annotations(
     Returns
     -------
     next_id
-        This may be useful as start id for further objects.
+        This may be useful as start id for further objects. If start_id=None, None is returned.
     annotation_cropped
         List of transformed COCO annotations with non-empty segmentation
 
@@ -190,10 +190,11 @@ def crop_annotations(
                         "area": area,
                         "bbox": [X1, Y1, X2-X1, Y2-Y1],
                         "image_id": img_id,
-                        "id": i_ann,
+                        "id": i_ann if start_id is not None else annotation["id"],
                         "category_id": annotation.get("category_id")
                     })
-                    i_ann += 1
+                    if start_id is not None:
+                        i_ann += 1
 
         elif task == "instance-segmentation":
             # read segmentation
@@ -224,10 +225,11 @@ def crop_annotations(
                         "segmentation": seg_cropped,
                         "iscrowd": 0,
                         "image_id": img_id,
-                        "id": i_ann,
+                        "id": i_ann if start_id is not None else annotation["id"],
                         "category_id": annotation.get("category_id")
                     })
-                    i_ann += 1
+                    if start_id is not None:
+                        i_ann += 1
 
     return i_ann, annotations_cropped
 

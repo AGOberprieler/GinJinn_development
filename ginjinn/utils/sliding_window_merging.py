@@ -904,7 +904,7 @@ def merge_sliding_window_predictions(
                             img_width = img_ann["width"],
                             img_height = img_ann["height"],
                             cropping_range = (X0, X1, Y0, Y1),
-                            start_id = obj_id,
+                            start_id = None,
                             task = task,
                             keep_incomplete = True
                         )
