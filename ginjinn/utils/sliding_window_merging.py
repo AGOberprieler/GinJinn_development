@@ -932,8 +932,8 @@ def merge_sliding_window_predictions(
                     img_ann_new["width"] = X1 - X0
                     img_ann_new["height"] = Y1 - Y0
                 else:
-                    shutil.copy(
-                        os.path.join(img_dir, img_ann["file_name"]),
+                    os.symlink(
+                        os.path.abspath(os.path.join(img_dir, img_ann["file_name"])),
                         os.path.join(tmp_dir, img_ann["file_name"])
                     )
 
