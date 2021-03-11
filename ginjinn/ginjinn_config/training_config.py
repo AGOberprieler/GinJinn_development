@@ -23,6 +23,8 @@ class GinjinnTrainingConfiguration: #pylint: disable=too-few-public-methods
         momentum for solver.
     eval_period: int
         evaluation period.
+    checkpoint_period: int
+        checkpoint period.
     '''
     def __init__( #pylint: disable=too-many-arguments
         self,
@@ -32,6 +34,7 @@ class GinjinnTrainingConfiguration: #pylint: disable=too-few-public-methods
         warmup_iter: int = 1000,
         momentum: float = 0.9,
         eval_period: int = 0,
+        checkpoint_period: int = 0,
     ):
         self.learning_rate = learning_rate
         self.batch_size = batch_size
@@ -39,6 +42,7 @@ class GinjinnTrainingConfiguration: #pylint: disable=too-few-public-methods
         self.warmup_iter = warmup_iter
         self.momentum = momentum
         self.eval_period = eval_period
+        self.checkpoint_period = checkpoint_period
 
         self._check_config()
 
@@ -59,6 +63,7 @@ class GinjinnTrainingConfiguration: #pylint: disable=too-few-public-methods
         cfg.SOLVER.WARMUP_ITERS = self.warmup_iter
         cfg.SOLVER.MOMENTUM = self.momentum
         cfg.TEST.EVAL_PERIOD = self.eval_period
+        cfg.SOLVER.CHECKPOINT_PERIOD = self.checkpoint_period
 
     @classmethod
     def from_dictionary(cls, config: dict):
@@ -83,6 +88,7 @@ class GinjinnTrainingConfiguration: #pylint: disable=too-few-public-methods
             'warmup_iter': 1000,
             'momentum': 0.9,
             'eval_period': 0,
+            'checkpoint_period': 5000,
         }
 
         # Maybe implement this more elegantly...
@@ -96,6 +102,7 @@ class GinjinnTrainingConfiguration: #pylint: disable=too-few-public-methods
             warmup_iter=config['warmup_iter'],
             momentum=config['momentum'],
             eval_period=config['eval_period'],
+            checkpoint_period=config['checkpoint_period'],
         )
 
     def _check_learning_rate(self):
@@ -178,6 +185,20 @@ class GinjinnTrainingConfiguration: #pylint: disable=too-few-public-methods
                 'eval_period must be positive.'
             )
 
+    def _check_checkpoint_period(self):
+        '''_check_checkpoint_period
+
+        Raises
+        ------
+        InvalidTrainingConfigurationError
+            Raised for invalid checkpoint_period value.
+        '''
+
+        if self.eval_period < 0:
+            raise InvalidTrainingConfigurationError(
+                'checkpoint_period must be positive.'
+            )
+
     def _check_config(self):
         ''' Check configs
         '''
@@ -186,3 +207,4 @@ class GinjinnTrainingConfiguration: #pylint: disable=too-few-public-methods
         self._check_max_iter()
         self._check_momentum()
         self._check_eval_period()
+        self._check_checkpoint_period()

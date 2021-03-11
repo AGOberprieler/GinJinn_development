@@ -23,6 +23,7 @@ training:
   batch_size: 1
   max_iter: 5000
   eval_period: 250
+  checkpoint_period: 2500
 
 # Options for image augmentation
 augmentation:
