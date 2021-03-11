@@ -40,8 +40,6 @@ def ginjinn_utils(args):
         utils_filter_size(args)
     elif args.utils_subcommand in ['visualize', 'vis']:
         utils_visualize(args)
-    elif args.utils_subcommand == 'info':
-        utils_info(args)
     else:
         err = f'Unknown utils subcommand "{args.utils_subcommand}".'
         raise Exception(err)
@@ -558,22 +556,3 @@ def utils_visualize(args):
     )
 
     print(f'Visualizations written to "{args.out_dir}".')
-
-def utils_info(args):
-    '''utils_info
-
-    GinJinn utils info command.
-
-    Parameters
-    ----------
-    args
-        Parsed GinJinn commandline arguments for the ginjinn utils
-        info subcommand.
-    '''
-    from ginjinn.utils.utils import dataset_info
-
-    dataset_info(
-        ann_path=args.ann_path,
-        img_dir=args.img_dir,
-        ann_type=args.ann_type,
-    )

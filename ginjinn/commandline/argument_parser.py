@@ -392,6 +392,62 @@ def _setup_split_parser(subparsers):
 
     return parser
 
+def _setup_info_parser(subparsers):
+    '''_setup_info_parser
+
+    Setup parser for the ginjinn info subcommand.
+
+    Parameters
+    ----------
+    subparsers
+        An object returned by argparse.ArgumentParser.add_subparsers()
+
+    Returns
+    -------
+    parser
+        An argparse ArgumentParser, registered for the info subcommand.
+    '''
+
+    info_parser = subparsers.add_parser(
+        'info',
+        help = '''
+            Print dataset info.
+        ''',
+        description = '''
+            Print dataset info.
+        ''',
+    )
+
+    # required
+    info_parser_required = info_parser.add_argument_group('required arguments')
+    info_parser_required.add_argument(
+        '-a', '--ann_path',
+        type = str,
+        help = '''
+            Path to COCO annotation file (JSON) or PVCO annotation directory.
+        ''',
+        required=True,
+    )
+    info_parser_required.add_argument(
+        '-i', '--img_dir',
+        type = str,
+        help = '''
+            Directory containing  the annotated images.
+        ''',
+        required=True,
+    )
+    info_parser_required.add_argument(
+        '-t', '--ann_type',
+        type = str,
+        help = '''
+            Annotation type. Either "COCO" or "PVOC".
+        ''',
+        choices = ['COCO', 'PVOC'],
+        required=True,
+    )
+
+    return info_parser
+
 def _setup_simulate_parser(subparsers):
     '''_setup_simulate_parser
 
@@ -1389,45 +1445,6 @@ def _setup_utils_parser(subparsers):
         required=True,
     )
 
-    # == info
-    info_parser = utils_parsers.add_parser(
-        'info',
-        help = '''
-            Print dataset info.
-        ''',
-        description = '''
-            Print dataset info.
-        ''',
-    )
-
-    # required
-    info_parser_required = info_parser.add_argument_group('required arguments')
-    info_parser_required.add_argument(
-        '-a', '--ann_path',
-        type = str,
-        help = '''
-            Path to COCO annotation file (JSON) or PVCO annotation directory.
-        ''',
-        required=True,
-    )
-    info_parser_required.add_argument(
-        '-i', '--img_dir',
-        type = str,
-        help = '''
-            Directory containing  the annotated images.
-        ''',
-        required=True,
-    )
-    info_parser_required.add_argument(
-        '-t', '--ann_type',
-        type = str,
-        help = '''
-            Annotation type. Either "COCO" or "PVOC".
-        ''',
-        choices = ['COCO', 'PVOC'],
-        required=True,
-    )
-
     # == other utils
     # ...
 
@@ -1496,6 +1513,7 @@ class GinjinnArgumentParser():
         _setup_predict_parser(self._subparsers)
         _setup_split_parser(self._subparsers)
         _setup_simulate_parser(self._subparsers)
+        _setup_info_parser(self._subparsers)
         _setup_utils_parser(self._subparsers)
 
         # TODO: implement
