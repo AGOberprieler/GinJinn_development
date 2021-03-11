@@ -829,7 +829,7 @@ def dataset_info(
     img_dir: str,
     ann_type: str,
 ):
-    '''dataset_info [summary]
+    '''dataset_info
 
     Parameters
     ----------
@@ -894,3 +894,44 @@ def dataset_info(
             'Please remove empty categories (ginjinn utils filter) ' +\
             'if you are planning to use this dataset for model training.'
         )
+
+def count_categories(
+    ann_path: str,
+) -> "pandas.DataFrame":
+    '''count_categories
+
+    Parameters
+    ----------
+    ann_path: str
+        Path to COCO JSON annotation file.
+    '''
+    import pandas as pd
+
+    ann = load_coco_ann(ann_path)
+
+    categories = sorted(
+        [(cat['name'], cat['id']) for cat in ann['categories']],
+        key = lambda x: x[1],
+    )
+    cat_map = {cat[1]: cat[0] for cat in categories}
+
+    columns = {cat[0]: [] for cat in categories}
+    index = []
+
+    for img_ann in ann['images']:
+        index.append(img_ann['file_name'])
+
+        counts = {key: 0 for key in columns.keys()}
+        for obj_ann in get_obj_anns(img_ann, ann):
+            counts[cat_map[obj_ann['category_id']]] += 1
+
+        for key, count in counts.items():
+            columns[key].append(count)
+
+    count_df = pd.DataFrame(
+        data=columns,
+        index=index,
+    )
+    count_df.index.set_names(['image'])
+
+    return count_df

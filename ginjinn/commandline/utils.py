@@ -40,6 +40,8 @@ def ginjinn_utils(args):
         utils_filter_size(args)
     elif args.utils_subcommand in ['visualize', 'vis']:
         utils_visualize(args)
+    elif args.utils_subcommand == 'count':
+        utils_count(args)
     else:
         err = f'Unknown utils subcommand "{args.utils_subcommand}".'
         raise Exception(err)
@@ -556,3 +558,22 @@ def utils_visualize(args):
     )
 
     print(f'Visualizations written to "{args.out_dir}".')
+
+def utils_count(args):
+    '''utils_count
+
+    GinJinn utils count command.
+
+    Parameters
+    ----------
+    args
+        Parsed GinJinn commandline arguments for the ginjinn utils
+        count subcommand.
+    '''
+
+    from ginjinn.utils.utils import count_categories
+
+    count_df = count_categories(args.ann_path)
+    count_df.to_csv(args.out_file, index_label='image')
+
+    print(f'\nCategory counts written to {args.out_file}.')

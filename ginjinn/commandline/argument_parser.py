@@ -1455,6 +1455,37 @@ def _setup_utils_parser(subparsers):
         required=True,
     )
 
+    # == count
+    count_parser = utils_parsers.add_parser(
+        'count',
+        help = '''
+            Count objects per category for each image annotation.
+        ''',
+        description = '''
+            Count objects per category for each image annotation.
+        ''',
+        aliases=['vis'],
+    )
+
+    # required
+    count_parser_required = count_parser.add_argument_group('required arguments')
+    count_parser_required.add_argument(
+        '-a', '--ann_path',
+        type = str,
+        help = '''
+            Path to COCO annotation file (JSON).
+        ''',
+        required=True,
+    )
+    count_parser_required.add_argument(
+        '-o', '--out_file',
+        type = str,
+        help = '''
+            File (CSV) the category counts should be written to.
+        ''',
+        required=True,
+    )
+
     # == other utils
     # ...
 
