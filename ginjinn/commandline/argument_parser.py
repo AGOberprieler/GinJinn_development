@@ -850,12 +850,10 @@ def _setup_utils_parser(subparsers):
     sliding_window_parser = utils_parsers.add_parser(
         'sliding_window',
         help = '''
-            <EXPERIMENTAL> Crop images and corresponding annotation into sliding windows.
-            Right now, this is only available for COCO annotated bounding-boxes.
+            Crop images and corresponding annotation into sliding windows.
         ''',
         description = '''
-            <EXPERIMENTAL> Crop images and corresponding annotation into sliding windows.
-            Right now, this is only available for COCO annotated bounding-boxes.
+            Crop images and corresponding annotation into sliding windows.
         ''',
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
@@ -901,32 +899,30 @@ def _setup_utils_parser(subparsers):
     # optional
     sliding_window_optional = sliding_window_parser.add_argument_group('optional arguments')
     sliding_window_optional.add_argument(
-        '-x', '--n_x',
+        '-s', '--window_size',
         type = int,
+        nargs = '+',
         help = '''
-            Number of non-overlapping windows to divide the width into.
-            For example, an image of width 1000 would be divided into 
-            sub-images of width 500 if n_x is 2.
+            Sliding window size in pixel.
+            If one argument is passed, quadratic windows of window_size will be generated.
+            If two arguments are passed, they are interpreted as window width and height, respectively.
+
+            "-s 500", for example, crops sliding windows of size 500*500 (w*h), while "-s 500 300" crops 
+            windows of size 500*300.
         ''',
-        default=2,
-    )
-    sliding_window_optional.add_argument(
-        '-y', '--n_y',
-        type = int,
-        help = '''
-            Number of non-overlapping windows to divide the height into.
-            For example, an image of height 600 would be divided into 
-            sub-images of width 300 if n_x is 2.
-        ''',
-        default=2,
+        default=[1000],
     )
     sliding_window_optional.add_argument(
         '-p', '--overlap',
         type = float,
+        nargs = '+',
         help = '''
             Overlap between sliding windows.
+            If one argument is passed, the same overlap is used in horizontal and vertical direction.
+            If two arguments are passed, they are interpreted as overlap in horizontal and
+            vertical, respectively.
         ''',
-        default=0.5,
+        default=[0.5],
     )
     sliding_window_optional.add_argument(
         '-k', '--task',
@@ -1022,32 +1018,30 @@ def _setup_utils_parser(subparsers):
     # optional
     sw_split_optional = sw_split_parser.add_argument_group('optional arguments')
     sw_split_optional.add_argument(
-        '-x', '--n_x',
+        '-s', '--window_size',
         type = int,
+        nargs = '+',
         help = '''
-            Number of non-overlapping windows to divide the width into.
-            For example, an image of width 1000 would be divided into 
-            sub-images of width 500 if n_x is 2.
+            Sliding window size in pixel.
+            If one argument is passed, quadratic windows of window_size will be generated.
+            If two arguments are passed, they are interpreted as window width and height, respectively.
+
+            "-s 500", for example, crops sliding windows of size 500*500 (w*h), while "-s 500 300" crops 
+            windows of size 500*300.
         ''',
-        default=2,
-    )
-    sw_split_optional.add_argument(
-        '-y', '--n_y',
-        type = int,
-        help = '''
-            Number of non-overlapping windows to divide the height into.
-            For example, an image of height 600 would be divided into 
-            sub-images of width 300 if n_x is 2.
-        ''',
-        default=2,
+        default=[1000],
     )
     sw_split_optional.add_argument(
         '-p', '--overlap',
-        type = float,
+        type = int,
+        nargs = '+',
         help = '''
-            Overlap between sliding windows.
+            Overlap between sliding windows in pixel.
+            If one argument is passed, the same overlap is used in horizontal and vertical direction.
+            If two arguments are passed, they are interpreted as overlap in horizontal and
+            vertical, respectively.
         ''',
-        default=0.5,
+        default=[0.5],
     )
     sw_split_optional.add_argument(
         '-k', '--task',

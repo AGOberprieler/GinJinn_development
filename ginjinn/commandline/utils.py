@@ -187,6 +187,27 @@ def utils_sliding_window(args):
         Parsed GinJinn commandline arguments for the ginjinn utils
         sliding_window subcommand.
     '''
+    window_size = args.window_size
+    if len(window_size) == 1:
+        win_width = window_size[0]
+        win_height = window_size[0]
+    elif len(window_size) == 2:
+        win_width = window_size[0]
+        win_height = window_size[1]
+    else:
+        print('ERROR: "-s/--window_size" must receive 1 or 2 arguments.')
+        return
+
+    overlap = args.overlap
+    if len(overlap) == 1:
+        hor_overlap = overlap[0]
+        vert_overlap = overlap[0]
+    elif len(overlap) == 2:
+        hor_overlap = overlap[0]
+        vert_overlap = overlap[1]
+    else:
+        print('ERROR: "-p/--overlap" must receive 1 or 2 arguments.')
+        return
 
     from ginjinn.utils.dataset_cropping import sliding_window_crop_coco, sliding_window_crop_pvoc
 
@@ -219,9 +240,10 @@ def utils_sliding_window(args):
             ann_path=args.ann_path,
             img_dir_out=img_dir_out,
             ann_path_out=ann_path_out,
-            n_x=args.n_x,
-            n_y=args.n_y,
-            overlap=args.overlap,
+            win_width=win_width,
+            win_height=win_height,
+            hor_overlap=hor_overlap,
+            vert_overlap=vert_overlap,
             img_id=args.img_id,
             obj_id=args.obj_id,
             save_empty=not args.remove_empty,
@@ -250,9 +272,10 @@ def utils_sliding_window(args):
             ann_dir=args.ann_path,
             img_dir_out=img_dir_out,
             ann_dir_out=ann_dir_out,
-            n_x=args.n_x,
-            n_y=args.n_y,
-            overlap=args.overlap,
+            win_width=win_width,
+            win_height=win_height,
+            hor_overlap=hor_overlap,
+            vert_overlap=vert_overlap,
             save_empty=not args.remove_empty,
             keep_incomplete=not args.remove_incomplete,
         )
@@ -272,6 +295,27 @@ def utils_sw_split(args):
         Parsed GinJinn commandline arguments for the ginjinn utils
         sw_split subcommand.
     '''
+    window_size = args.window_size
+    if len(window_size) == 1:
+        win_width = window_size[0]
+        win_height = window_size[0]
+    elif len(window_size) == 2:
+        win_width = window_size[0]
+        win_height = window_size[1]
+    else:
+        print('ERROR: "-s/--window_size" must receive 1 or 2 arguments.')
+        return
+
+    overlap = args.overlap
+    if len(overlap) == 1:
+        hor_overlap = overlap[0]
+        vert_overlap = overlap[0]
+    elif len(overlap) == 2:
+        hor_overlap = overlap[0]
+        vert_overlap = overlap[1]
+    else:
+        print('ERROR: "-p/--overlap" must receive 1 or 2 arguments.')
+        return
 
     from ginjinn.utils.dataset_cropping import sliding_window_crop_coco, sliding_window_crop_pvoc
 
@@ -318,9 +362,10 @@ def utils_sw_split(args):
                 ann_path=ann_path,
                 img_dir_out=img_dir_out,
                 ann_path_out=ann_path_out,
-                n_x=args.n_x,
-                n_y=args.n_y,
-                overlap=args.overlap,
+                win_width=win_width,
+                win_height=win_height,
+                hor_overlap=hor_overlap,
+                vert_overlap=vert_overlap,
                 img_id=args.img_id,
                 obj_id=args.obj_id,
                 save_empty=not args.remove_empty,
@@ -362,9 +407,10 @@ def utils_sw_split(args):
                 ann_dir=ann_dir,
                 img_dir_out=img_dir_out,
                 ann_dir_out=ann_dir_out,
-                n_x=args.n_x,
-                n_y=args.n_y,
-                overlap=args.overlap,
+                win_width=win_width,
+                win_height=win_height,
+                hor_overlap=hor_overlap,
+                vert_overlap=vert_overlap,
                 save_empty=not args.remove_empty,
                 keep_incomplete=not args.remove_incomplete,
             )
