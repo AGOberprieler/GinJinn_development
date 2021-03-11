@@ -61,7 +61,8 @@ class GinjinnPredictor():
         cls,
         gj_cfg: GinjinnConfiguration,
         img_dir: str,
-        outdir: str
+        outdir: str,
+        checkpoint_name: str = "model_final.pth",
     ) -> "GinjinnPredictor":
         """
         Build GinjinnPredictor object from GinjinnConfiguration instead of
@@ -74,6 +75,8 @@ class GinjinnPredictor():
             Directory containing input images for inference
         outdir : str
             Directory for writing results
+        checkpoint_name : str
+            Name of the checkpoint to use.
 
         Returns
         -------
@@ -81,7 +84,7 @@ class GinjinnPredictor():
         """
 
         d2_cfg = gj_cfg.to_detectron2_config()
-        d2_cfg.MODEL.WEIGHTS = os.path.join(d2_cfg.OUTPUT_DIR, "model_final.pth")
+        d2_cfg.MODEL.WEIGHTS = os.path.join(d2_cfg.OUTPUT_DIR, checkpoint_name)
 
         return cls(
             d2_cfg,

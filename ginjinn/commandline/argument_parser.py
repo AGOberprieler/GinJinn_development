@@ -238,6 +238,16 @@ def _setup_predict_parser(subparsers):
     )
 
     optional.add_argument(
+        '-c', '--checkpoint',
+        type = str,
+        help = '''
+            Checkpoint file name. By default the most recent checkpoint
+            (model_final.pth) will be used.
+        ''',
+        default = "model_final.pth",
+    )
+
+    optional.add_argument(
         '-t', '--threshold',
         type = float,
         help = '''

@@ -63,6 +63,18 @@ def ginjinn_predict(args):
     else:
         img_names = [image_path]
 
+    # checkpoint
+    checkpoint_name = args.checkpoint
+    checkpoint_file = os.path.join(
+        config.project_dir, 'outputs', checkpoint_name
+    )
+    if not os.path.isfile(checkpoint_file):
+        print(
+            f'\nERROR: Checkpoint "{checkpoint_name}" (expected location: {checkpoint_file}) ' +\
+            'does not exist. Please pass a valid checkpoint name.'
+        )
+        sys.exit(1)
+
     # output
     out_dir = args.out_dir
     if out_dir is None:
@@ -87,6 +99,7 @@ def ginjinn_predict(args):
         gj_cfg=config,
         img_dir=img_dir,
         outdir=out_dir,
+        checkpoint_name=checkpoint_name,
     )
     predictor.predict(
         img_names=img_names,
