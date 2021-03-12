@@ -9,14 +9,14 @@ import random
 import shutil
 import sys
 import xml.etree.ElementTree as ET
-from typing import List, Union, Generator, Callable, Optional
+from typing import List, Union, Generator, Callable, Optional, Tuple
 import numpy as np
 import pandas as pd
 from detectron2.data.datasets import load_coco_json
 from ginjinn.utils.utils import confirmation
 from .data_reader import get_class_names_coco, set_category_ids_coco
 from .data_reader import get_class_names_pvoc, get_dicts_pvoc
-
+from .data_error import ImproperDatasetError
 
 def create_split(
     ann_path: str,
@@ -129,7 +129,7 @@ def split_dataset_dicts(
         a list of dictionaries, which can be registered as dataset for
         Detectron2.
     """
-    class_counts = count_class_occurrences(dict_list, len(class_names), task)
+    class_counts, _ = count_class_occurrences(dict_list, len(class_names), task)
 
     n_trials = 0
     accept = False
@@ -248,7 +248,6 @@ def create_split_2(
         save_split_pvoc(ann_path, dicts_split, split_dir)
 
 
-
 def split_dataset_dicts_2(
     dict_list: List[dict],
     class_names: List[str],
@@ -288,7 +287,19 @@ def split_dataset_dicts_2(
         a list of dictionaries, which can be registered as dataset for
         Detectron2.
     """
-    class_counts = count_class_occurrences(dict_list, len(class_names), task)
+    class_counts, image_counts = count_class_occurrences(dict_list, len(class_names), task)
+
+    # check input
+    min_required = 1 + bool(p_val) + bool(p_test)
+    unsplittable = image_counts < min_required
+    if any(unsplittable):
+        raise ImproperDatasetError(
+            f"\nFor {task}, the following categories are represented by less than {min_required} images:\n"\
+            f"{np.array(class_names)[unsplittable].tolist()}\n"\
+            "Since every sub-dataset has to comprise objects of each category, it is impossible "\
+            "to find a valid split.\nYou may want to remove these categories, which can be done "\
+            "using GinJinn's filter utility.\n"
+        )
 
     n_trials = 0
     accept = False
@@ -369,13 +380,14 @@ def count_class_occurrences(
     dict_list: List[dict],
     n_classes: int,
     task: str = None
-    ) -> "np.ndarray[np.int]":
-    """Count class occurences for each image of a Detectron2 dataset.
+    ) -> Tuple["np.ndarray[np.int]", "np.ndarray[np.int]"]:
+    """Count class occurences for each image and vice versa for a Detectron2 dataset.
 
     Parameters
     ----------
     dict_list : list of dict
-        Image annotations in Detectron2's default format
+        Image annotations in Detectron2's default format. Note that the category IDs have to be
+        contiguous, starting from zero.
     n_classes : int
         Number of object classes
     task : str
@@ -385,11 +397,14 @@ def count_class_occurrences(
 
     Returns
     -------
-    class_counts : ndarray
+    class_counts : np.ndarray
         2-D array indicating how many objects of each class (column) are
         annotated within each image (row)
+    image_counts : np.ndarray
+        1-D array indicating over how many images the objects of each class are distributed
     """
     class_counts = np.zeros((len(dict_list), n_classes), dtype=int)
+    image_counts = np.zeros(n_classes, dtype=int)
 
     if task == "bbox-detection":
         required = ("bbox", "bbox_mode", "category_id")
@@ -399,11 +414,16 @@ def count_class_occurrences(
         required = ()
 
     for i_img, img_annotation in enumerate(dict_list):
+        contained_classes = np.zeros(n_classes, dtype=int)
+        # look for (complete) object annotations
         for obj_annotation in img_annotation["annotations"]:
             if None not in [obj_annotation.get(key) for key in required]:
                 class_counts[i_img, obj_annotation["category_id"]] += 1
+                contained_classes[obj_annotation["category_id"]] = 1
 
-    return class_counts
+        image_counts += contained_classes
+
+    return class_counts, image_counts
 
 
 def sel_order(
