@@ -1464,7 +1464,6 @@ def _setup_utils_parser(subparsers):
         description = '''
             Count objects per category for each image annotation.
         ''',
-        aliases=['vis'],
     )
 
     # required
