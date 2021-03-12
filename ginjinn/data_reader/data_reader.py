@@ -226,10 +226,10 @@ def get_dicts_pvoc(ann_dir: str, img_dir: str, class_names: List[str]) -> List[d
 
         for obj in root.findall("object"):
             bbox = obj.find("bndbox")
-            xmin = int(bbox.findtext("xmin")) - 1.0
-            ymin = int(bbox.findtext("ymin")) - 1.0
-            xmax = int(bbox.findtext("xmax"))
-            ymax = int(bbox.findtext("ymax"))
+            xmin = float(bbox.findtext("xmin")) - 1.0
+            ymin = float(bbox.findtext("ymin")) - 1.0
+            xmax = float(bbox.findtext("xmax"))
+            ymax = float(bbox.findtext("ymax"))
             name = obj.findtext("name")
 
             annotation = {
