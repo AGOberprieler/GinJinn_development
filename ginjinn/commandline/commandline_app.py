@@ -44,7 +44,7 @@ class GinjinnCommandlineApplication():
             self._run_train()
         elif self.args.subcommand == 'utils':
             self._run_utils()
-        elif self.args.subcommand == 'evaluate':
+        elif self.args.subcommand in ['evaluate', 'eval']:
             self._run_evaluate()
         elif self.args.subcommand == 'predict':
             self._run_predict()
