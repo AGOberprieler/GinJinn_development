@@ -494,8 +494,12 @@ def merge_window_predictions_bbox(
         Directory containing the images, img_anns refer to.
     iou_threshold : float
         Min. intersection over union of two objects to be merged (0 = disabled).
+        Note that the denominator (union) is only calculated within the overlapping region
+        of two sliding windows.
     ios_threshold : float
         Min. intersection over smaller area (0 = disabled).
+        The latter considers the object within the whole sliding window, not only within
+        the window overlap.
     intersection_threshold : float
         Min. absolute intersection.
 
@@ -531,11 +535,13 @@ def merge_window_predictions_bbox(
 
                     # bboxes -> coordinate system of orig. image
                     bbox1 = copy.deepcopy(ann1["bbox"])
+                    orig_size1 = bbox1[2] * bbox1[3]
                     bbox1[0] += coords1[0]
                     bbox1[1] += coords1[2]
                     bbox1 = xywh_to_xyxy(bbox1)
 
                     bbox2 = copy.deepcopy(ann2["bbox"])
+                    orig_size2 = bbox2[2] * bbox2[3]
                     bbox2[0] += coords2[0]
                     bbox2[1] += coords2[2]
                     bbox2 = xywh_to_xyxy(bbox2)
@@ -547,7 +553,8 @@ def merge_window_predictions_bbox(
                     # evaluate object intersection
                     if bbox1[2] - bbox1[0] > 0 and bbox2[2] - bbox2[0] > 0:
                         IoU = intersection_bboxes(bbox1, bbox2, intersection_type="iou")
-                        IoS = intersection_bboxes(bbox1, bbox2, intersection_type="ios")
+                        #IoS = intersection_bboxes(bbox1, bbox2, intersection_type="ios")
+                        IoS = intersection_bboxes(bbox1, bbox2, intersection_type="simple") / min(orig_size1, orig_size2)
                         intersection = intersection_bboxes(bbox1, bbox2, intersection_type="simple")
 
                         # update adjacency matrix
@@ -578,11 +585,13 @@ def merge_window_predictions_bbox(
 
                     # bboxes -> coordinate system of orig. image
                     bbox1 = copy.deepcopy(ann1["bbox"])
+                    orig_size1 = bbox1[2] * bbox1[3]
                     bbox1[0] += coords1[0]
                     bbox1[1] += coords1[2]
                     bbox1 = xywh_to_xyxy(bbox1)
 
                     bbox2 = copy.deepcopy(ann2["bbox"])
+                    orig_size2 = bbox2[2] * bbox2[3]
                     bbox2[0] += coords2[0]
                     bbox2[1] += coords2[2]
                     bbox2 = xywh_to_xyxy(bbox2)
@@ -594,7 +603,8 @@ def merge_window_predictions_bbox(
                     # evaluate object intersection
                     if bbox1[3] - bbox1[1] > 0 and bbox2[3] - bbox2[1] > 0:
                         IoU = intersection_bboxes(bbox1, bbox2, intersection_type="iou")
-                        IoS = intersection_bboxes(bbox1, bbox2, intersection_type="ios")
+                        #IoS = intersection_bboxes(bbox1, bbox2, intersection_type="ios")
+                        IoS = intersection_bboxes(bbox1, bbox2, intersection_type="simple") / min(orig_size1, orig_size2)
                         intersection = intersection_bboxes(bbox1, bbox2, intersection_type="simple")
 
                         # update adjacency matrix
@@ -670,8 +680,12 @@ def merge_window_predictions_seg(
         Directory containing the images, img_anns refer to.
     iou_threshold : float
         Min. intersection over union of two objects to be merged (0 = disabled).
+        Note that the denominator (union) is only calculated within the overlapping region
+        of two sliding windows.
     ios_threshold : float
         Min. intersection over smaller area (0 = disabled).
+        The latter considers the object within the whole sliding window, not only within
+        the window overlap.
     intersection_threshold : float
         Min. absolute intersection.
 
@@ -715,6 +729,8 @@ def merge_window_predictions_seg(
                         coords2[1] - coords2[0],
                         coords2[3] - coords2[2]
                     )
+                    orig_size1 = mask1.sum()
+                    orig_size2 = mask2.sum()
 
                     # extract overlap
                     mask1 = mask1[:, coords2[0] - coords1[0]:]
@@ -723,7 +739,8 @@ def merge_window_predictions_seg(
                     # evaluate object intersection
                     if mask1.sum() > 0 and mask2.sum() > 0:
                         IoU = np.logical_and(mask1, mask2).sum() / np.logical_or(mask1, mask2).sum()
-                        IoS = np.logical_and(mask1, mask2).sum() / min(mask1.sum(), mask2.sum())
+                        #IoS = np.logical_and(mask1, mask2).sum() / min(mask1.sum(), mask2.sum())
+                        IoS = np.logical_and(mask1, mask2).sum() / min(orig_size1, orig_size2)
                         intersection = np.logical_and(mask1, mask2).sum()
 
                         # update adjacency matrix
@@ -762,6 +779,8 @@ def merge_window_predictions_seg(
                         coords2[1] - coords2[0],
                         coords2[3] - coords2[2]
                     )
+                    orig_size1 = mask1.sum()
+                    orig_size2 = mask2.sum()
 
                     # extract overlap
                     mask1 = mask1[coords2[2] - coords1[2]:, :]
@@ -770,7 +789,8 @@ def merge_window_predictions_seg(
                     # evaluate object intersection
                     if mask1.sum() > 0 and mask2.sum() > 0:
                         IoU = np.logical_and(mask1, mask2).sum() / np.logical_or(mask1, mask2).sum()
-                        IoS = np.logical_and(mask1, mask2).sum() / min(mask1.sum(), mask2.sum())
+                        #IoS = np.logical_and(mask1, mask2).sum() / min(mask1.sum(), mask2.sum())
+                        IoS = np.logical_and(mask1, mask2).sum() / min(orig_size1, orig_size2)
                         intersection = np.logical_and(mask1, mask2).sum()
 
                         # update adjacency matrix
@@ -843,8 +863,12 @@ def merge_sliding_window_predictions(
         Either 'bbox-detection' or 'instance-segmentation'.
     iou_threshold : float
         Min. intersection over union of two objects to be merged.
+        Note that the denominator (union) is only calculated within the overlapping region
+        of two sliding windows.
     ios_threshold : float
         Min. intersection over smaller area.
+        The latter considers the object within the whole sliding window, not only within
+        the window overlap.
     intersection_threshold : float
         Min. absolute intersection.
     on_out_dir_exists : Callable[[str], bool], optional
