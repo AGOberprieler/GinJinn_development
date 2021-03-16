@@ -97,7 +97,7 @@ def ginjinn_split(args):
     p_val = args.validation_fraction
     p_test = args.test_fraction
 
-    create_split_2(
+    if create_split_2(
         ann_path=ann_path,
         img_path=img_dir,
         split_dir=split_dir,
@@ -108,6 +108,5 @@ def ginjinn_split(args):
         on_split_dir_exists=on_split_dir_exists,
         on_split_proposal=on_split_proposal,
         on_no_valid_split=on_no_valid_split,
-    )
-
-    print(f'Datasets written to "{split_dir}".')
+    ):
+        print(f'Datasets written to "{split_dir}".')
