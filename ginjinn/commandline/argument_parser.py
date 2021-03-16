@@ -980,7 +980,7 @@ def _setup_utils_parser(subparsers):
     )
     sliding_window_optional.add_argument(
         '-p', '--overlap',
-        type = float,
+        type = int,
         nargs = '+',
         help = '''
             Overlap between sliding windows.
@@ -988,7 +988,7 @@ def _setup_utils_parser(subparsers):
             If two arguments are passed, they are interpreted as overlap in horizontal and
             vertical, respectively.
         ''',
-        default=[0.5],
+        default=[200],
     )
     sliding_window_optional.add_argument(
         '-k', '--task',
