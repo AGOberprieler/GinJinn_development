@@ -68,12 +68,11 @@ def create_split(
         else:
             sys.exit()
 
-    os.makedirs(os.path.join(split_dir, "images", "train"))
+    os.makedirs(os.path.join(split_dir, "train", "images"))
     if p_val > 0:
-        os.mkdir(os.path.join(split_dir, "images", "val"))
+        os.makedirs(os.path.join(split_dir, "val", "images"))
     if p_test > 0:
-        os.mkdir(os.path.join(split_dir, "images", "test"))
-    os.mkdir(os.path.join(split_dir, "annotations"))
+        os.makedirs(os.path.join(split_dir, "test", "images"))
 
     if ann_type == "COCO":
         class_names = get_class_names_coco([ann_path])
@@ -83,11 +82,11 @@ def create_split(
         save_split_coco(ann_path, dicts_split, split_dir)
 
     if ann_type == "PVOC":
-        os.makedirs(os.path.join(split_dir, "annotations", "train"))
+        os.mkdir(os.path.join(split_dir, "train", "annotations"))
         if p_val > 0:
-            os.mkdir(os.path.join(split_dir, "annotations", "val"))
+            os.mkdir(os.path.join(split_dir, "val", "annotations"))
         if p_test > 0:
-            os.mkdir(os.path.join(split_dir, "annotations", "test"))
+            os.mkdir(os.path.join(split_dir, "test", "annotations"))
 
         class_names = get_class_names_pvoc([ann_path])
         dict_list_all = get_dicts_pvoc(ann_path, img_path, class_names)
@@ -215,12 +214,11 @@ def create_split_2(
         else:
             return
 
-    os.makedirs(os.path.join(split_dir, "images", "train"))
+    os.makedirs(os.path.join(split_dir, "train", "images"))
     if p_val > 0:
-        os.mkdir(os.path.join(split_dir, "images", "val"))
+        os.makedirs(os.path.join(split_dir, "val", "images"))
     if p_test > 0:
-        os.mkdir(os.path.join(split_dir, "images", "test"))
-    os.mkdir(os.path.join(split_dir, "annotations"))
+        os.makedirs(os.path.join(split_dir, "test", "images"))
 
     if ann_type == "COCO":
         class_names = get_class_names_coco([ann_path])
@@ -233,11 +231,11 @@ def create_split_2(
         save_split_coco(ann_path, dicts_split, split_dir)
 
     if ann_type == "PVOC":
-        os.makedirs(os.path.join(split_dir, "annotations", "train"))
+        os.mkdir(os.path.join(split_dir, "train", "annotations"))
         if p_val > 0:
-            os.mkdir(os.path.join(split_dir, "annotations", "val"))
+            os.mkdir(os.path.join(split_dir, "val", "annotations"))
         if p_test > 0:
-            os.mkdir(os.path.join(split_dir, "annotations", "test"))
+            os.mkdir(os.path.join(split_dir, "test", "annotations"))
 
         class_names = get_class_names_pvoc([ann_path])
         dict_list_all = get_dicts_pvoc(ann_path, img_path, class_names)
@@ -544,8 +542,8 @@ def save_split_coco(
     with open(ann_file, 'r') as json_file:
         ann_dict = json.load(json_file)
 
-    info = ann_dict['info']
-    licenses = ann_dict['licenses']
+    info = ann_dict.get('info') or {}
+    licenses = ann_dict.get('licenses') or []
     images = ann_dict['images']
     annotations = ann_dict['annotations']
     categories = ann_dict['categories']
@@ -560,7 +558,7 @@ def save_split_coco(
         annotations_part = [ann for ann in annotations if ann["image_id"] in img_ids]
         images_part = [img for img in images if img["id"] in img_ids]
 
-        json_new = os.path.join(split_dir, "annotations", key + ".json")
+        json_new = os.path.join(split_dir, key, "annotations.json")
         with open(json_new, 'w') as json_file:
             json.dump({
                 'info': info,
@@ -578,7 +576,7 @@ def save_split_coco(
 
         for fname in img_names_part:
             img_path_orig = os.path.join(img_dir, fname)
-            img_path_new = os.path.join(split_dir, "images", key, fname)
+            img_path_new = os.path.join(split_dir, key, "images", fname)
             os.link(img_path_orig, img_path_new)
 
 
@@ -617,10 +615,10 @@ def save_split_pvoc(
         for record in dicts_split[key]:
             img_path = record["file_name"]
             img_name = os.path.split(img_path)[1]
-            img_path_new = os.path.join(split_dir, "images", key, img_name)
+            img_path_new = os.path.join(split_dir, key, "images", img_name)
             os.link(img_path, img_path_new)
 
             ann_path = ann_map[img_name]
             ann_name = os.path.split(ann_map[img_name])[1]
-            ann_path_new = os.path.join(split_dir, "annotations", key, ann_name)
+            ann_path_new = os.path.join(split_dir, key, "annotations", ann_name)
             os.link(ann_path, ann_path_new)
