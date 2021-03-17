@@ -334,8 +334,8 @@ def utils_sw_split(args):
 
     if args.ann_type == 'COCO':
         for ds_name in ['train', 'val', 'test']:
-            img_dir = os.path.join(args.split_dir, 'images', ds_name)
-            ann_path = os.path.join(args.split_dir, 'annotations', f'{ds_name}.json')
+            img_dir = os.path.join(args.split_dir, ds_name, 'images')
+            ann_path = os.path.join(args.split_dir, ds_name, 'annotations.json')
 
             if not os.path.isdir(img_dir):
                 print(
@@ -350,11 +350,9 @@ def utils_sw_split(args):
                 )
                 continue
 
-            img_dir_out = os.path.join(args.out_dir, 'images', ds_name)
+            img_dir_out = os.path.join(args.out_dir, ds_name, 'images')
             os.makedirs(img_dir_out, exist_ok=True)
-            ann_dir_out = os.path.join(args.out_dir, 'annotations')
-            os.makedirs(ann_dir_out, exist_ok=True)
-            ann_path_out = os.path.join(ann_dir_out, f'{ds_name}.json')
+            ann_path_out = os.path.join(args.out_dir, ds_name, 'annotations.json')
 
             print(f'Splitting dataset {ds_name}...')
             sliding_window_crop_coco(
@@ -380,8 +378,8 @@ def utils_sw_split(args):
 
     elif args.ann_type == 'PVOC':
         for ds_name in ['train', 'val', 'test']:
-            img_dir = os.path.join(args.split_dir, 'images', ds_name)
-            ann_dir = os.path.join(args.split_dir, 'annotations', ds_name)
+            img_dir = os.path.join(args.split_dir, ds_name, 'images')
+            ann_dir = os.path.join(args.split_dir, ds_name, 'annotations')
 
             if not os.path.isdir(img_dir):
                 print(
@@ -396,9 +394,9 @@ def utils_sw_split(args):
                 )
                 continue
 
-            img_dir_out = os.path.join(args.out_dir, 'images', ds_name)
+            img_dir_out = os.path.join(args.out_dir, ds_name, 'images')
             os.makedirs(img_dir_out, exist_ok=True)
-            ann_dir_out = os.path.join(args.out_dir, 'annotations', ds_name)
+            ann_dir_out = os.path.join(args.out_dir, ds_name, 'annotations')
             os.makedirs(ann_dir_out, exist_ok=True)
 
             print(f'Splitting dataset {ds_name}...')
