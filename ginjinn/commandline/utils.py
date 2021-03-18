@@ -8,6 +8,7 @@ import sys
 from ginjinn.utils import confirmation_cancel
 from ginjinn.utils import flatten_coco
 
+
 def ginjinn_utils(args):
     '''ginjinn_utils
 
@@ -18,6 +19,11 @@ def ginjinn_utils(args):
     args
         Parsed GinJinn commandline arguments for the ginjinn utils
         subcommand.
+
+    Raises
+    ------
+    Exception
+        Raised if an unknown utils subcommand is passed.
     '''
 
     if args.utils_subcommand == 'merge':
