@@ -73,6 +73,17 @@ Available templates are:
     )
     parser.set_defaults(advanced=False)
 
+    parser.add_argument(
+        '-d', '--data_dir',
+        type=str,
+        default=None,
+        help='''
+            Data directory to initialize the project config for. Can either be
+            either the path to a COCO/PVOC dataset directory, or the path to a split
+            directory as built by "ginjinn split".
+        '''
+    )
+
     return parser
 
 def _setup_train_parser(subparsers):
