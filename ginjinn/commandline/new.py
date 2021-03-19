@@ -9,6 +9,7 @@ import re
 import pkg_resources
 
 from ginjinn.utils import confirmation_cancel
+from ginjinn.utils.utils import get_dstype
 
 TYPE_RE = re.compile(r'(type:\s+")\w+(")')
 TRAINING_RE = re.compile(
@@ -148,7 +149,7 @@ def ginjinn_new(args):
                     print(f'\tFound PVOC dataset and initialized it as {ds_name} data.')
                     ds_types.append('PVOC')
 
-            if not len(set(ds_types)) <= 1:
+            if len(set(ds_types)) > 1:
                 print('ERROR: incompatible dataset types found.')
                 sys.exit()
             config_str = re.sub(TYPE_RE, f'\\1{ds_types[0]}\\2', config_str)

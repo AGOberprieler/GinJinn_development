@@ -324,8 +324,6 @@ def _setup_split_parser(subparsers):
         An argparse ArgumentParser, registered for the split subcommand.
     '''
 
-    # TODO: implement
-
     parser = subparsers.add_parser(
         'split',
         help = '''
@@ -338,14 +336,6 @@ def _setup_split_parser(subparsers):
         '''
     )
     required_parser = parser.add_argument_group('required named arguments')
-    required_parser.add_argument(
-        '-i', '--image_dir',
-        type = str,
-        help = '''
-            Path to directory containing images.
-        ''',
-        required = True,
-    )
     required_parser.add_argument(
         '-a', '--annotation_path',
         type = str,
@@ -376,24 +366,25 @@ def _setup_split_parser(subparsers):
         ''',
         required = True,
     )
-    required_parser.add_argument(
+    optional_parser = parser.add_argument_group('optional arguments')
+    optional_parser.add_argument(
+        '-i', '--image_dir',
+        type = str,
+        help = '''
+            Path to directory containing images. By default, GinJinn searches for
+            a sibling directory to "annotation_path" called "images".
+        ''',
+        default=None,
+    )
+    optional_parser.add_argument(
         '-k', '--ann_type',
         type = str,
-        choices = ['COCO', 'PVOC'],
+        choices = ['auto', 'COCO', 'PVOC'],
         help = '''
-            Dataset type.
+            Dataset type. If 'auto', annotation type will be inferred.
         ''',
-        required = True,
+        default='auto',
     )
-    # parser.add_argument(
-    #     '-t', '--train_fraction',
-    #     type = float,
-    #     help = '''
-    #         Fraction of the dataset to use for training. (Default: 0.6)
-    #     ''',
-    #     default = 0.6,
-    # )
-    optional_parser = parser.add_argument_group('optional arguments')
     optional_parser.add_argument(
         '-t', '--test_fraction',
         type = float,

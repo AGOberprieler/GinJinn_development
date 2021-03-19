@@ -935,3 +935,120 @@ def count_categories(
     count_df.index.set_names(['image'])
 
     return count_df
+
+class InvalidAnnotationPath(Exception):
+    pass
+
+class InvalidDatasetDir(Exception):
+    pass
+
+class ImageDirNotFound(Exception):
+    pass
+
+def get_anntype(ann_path: str) -> str:
+    '''get_anntype
+
+    Get annotation type (COCO or PVOC) of ann_path.
+
+    Parameters
+    ----------
+    ann_path : str
+        Path to JSON file for COCO or a folder for PVOC.
+
+    Returns
+    -------
+    str
+        Annotation type. Either "COCO" or "PVOC".
+
+    Raises
+    ------
+    InvalidAnnotationPath
+        Raised if ann_path is not a valid annotation path.
+    '''
+    if os.path.isfile(ann_path):
+        return 'COCO'
+    elif os.path.isdir(ann_path):
+        return 'PVOC'
+    else:
+        msg = f'"{ann_path}" is not a valid annotation path.'
+        raise InvalidAnnotationPath(msg)
+
+def find_img_dir(ann_path: str) -> str:
+    '''find_img_dir
+
+    Find images directory for ann_path.
+
+    Parameters
+    ----------
+    ann_path : str
+        Path to JSON annotation file (COCO) or folder (PVOC).
+
+    Returns
+    -------
+    str
+        Path to images directory.
+
+    Raises
+    ------
+    ImageDirNotFound
+        Raised if image directory could not be found.
+    '''
+    ds_dir = os.path.dirname(os.path.abspath(ann_path))
+    img_dir = os.path.join(ds_dir, 'images')
+    if not os.path.isdir(img_dir):
+        msg = f'Could not find "images" folder as a sibling to "{ann_path}".'
+        raise ImageDirNotFound(msg)
+
+    return img_dir
+
+def get_dstype(data_dir: str) -> str:
+    '''get_dstype
+
+    Get annotation type (COCO or PVOC) of dataset in data_dir.
+
+    Parameters
+    ----------
+    data_dir : str
+        Dataset directory. Must contain a folder named "images", and
+        a file named "annotations.json" for a COCO dataset or
+        a folder named "annotations" for a PVOC dataset.
+
+    Returns
+    -------
+    str
+        Dataset type. Either "COCO" or "PVOC".
+
+    Raises
+    ------
+    InvalidDatasetDir
+        Raised if data_dir is not a valid dataset directory.
+    '''
+
+    dir_content = os.listdir(data_dir)
+    if not 'images' in dir_content:
+        msg = f'Could not find "images" folder in "{data_dir}".'
+        raise InvalidDatasetDir(msg)
+    images_path = os.path.join(data_dir, 'images')
+    if not os.path.isdir(images_path):
+        msg = f'"{images_path}" is not a folder.'
+        raise InvalidDatasetDir(msg)
+
+    # COCO
+    if 'annotations.json' in dir_content:
+        ann_path = os.path.join(data_dir, 'annotations.json')
+        if not os.path.isfile(ann_path):
+            msg = f'"{ann_path}" is not a file.'
+            raise InvalidDatasetDir(msg)
+        ds_type = 'COCO'
+    # PVOC
+    elif 'annotations' in dir_content:
+        ann_path = os.path.join(data_dir, 'annotations')
+        if not os.path.isdir(ann_path):
+            msg = f'"{ann_path}" is not a folder.'
+            raise InvalidDatasetDir(msg)
+        ds_type = 'PVOC'
+    else:
+        msg = f'Could not find annotations ("annotations" or "annotations.json") in {data_dir}.'
+        raise InvalidDatasetDir(msg)
+
+    return ds_type

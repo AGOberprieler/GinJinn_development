@@ -2,6 +2,7 @@
 '''
 
 import pandas as pd
+import sys
 
 from ginjinn.utils import confirmation_cancel
 
@@ -22,7 +23,7 @@ def on_split_dir_exists(split_dir: str) -> bool:
     '''
     return confirmation_cancel(
         '"' + split_dir + '" already exists.\nDo you want do overwrite it? '+\
-        'ATTENTION: This will DELETE "' + split_dir + '" and all subdirectories.'
+        'ATTENTION: This will DELETE "' + split_dir + '" and all subdirectories.\n'
     )
 
 def on_split_proposal(split_df: 'pd.DataFrame') -> bool:
@@ -50,7 +51,7 @@ def on_split_proposal(split_df: 'pd.DataFrame') -> bool:
     print('\nSplit proposal:')
     print(df_pretty)
     return confirmation_cancel(
-        '\nDo you want to accept this split? (Otherwise a new one will be generated.)'
+        '\nDo you want to accept this split? (Otherwise a new one will be generated.)\n'
     )
 
 def on_no_valid_split() -> bool:
@@ -66,7 +67,7 @@ def on_no_valid_split() -> bool:
     '''
 
     return confirmation_cancel(
-        'Could not find a valid split. Try again?'
+        'Could not find a valid split. Try again?\n'
     )
 
 
@@ -87,12 +88,28 @@ def ginjinn_split(args):
 
     # import here to avoid long startup time, when ginjinn_split is not called
     from ginjinn.data_reader.data_splitter import create_split_2
+    from ginjinn.utils.utils import get_anntype, find_img_dir, ImageDirNotFound
 
     ann_path = args.annotation_path
     img_dir = args.image_dir
     split_dir = args.output_dir
     task = args.task
     ann_type = args.ann_type
+
+    if not img_dir:
+        try:
+            img_dir = find_img_dir(ann_path)
+        except ImageDirNotFound:
+            print(
+                f'ERROR: could not find "images" folder as sibling of "{ann_path}". Make sure ' +\
+                f'there is an "images" folder in the same directory as "{ann_path}" or ' +\
+                'explicitly pass "--image_dir".'
+            )
+            sys.exit()
+
+    if ann_type == 'auto':
+        ann_type = get_anntype(ann_path)
+        print(ann_type)
 
     p_val = args.validation_fraction
     p_test = args.test_fraction
