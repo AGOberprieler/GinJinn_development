@@ -174,12 +174,31 @@ def utils_crop(args):
     '''
 
     from ginjinn.utils import crop_seg_from_coco
+    from ginjinn.utils.utils import find_img_dir, ImageDirNotFound
+
+    img_dir = args.img_dir
+    ann_path = args.ann_path
+
+    if not img_dir:
+        try:
+            img_dir = find_img_dir(ann_path)
+        except ImageDirNotFound:
+            print(
+                f'ERROR: could not find "images" folder as sibling of "{ann_path}". Make sure ' +\
+                f'there is an "images" folder in the same directory as "{ann_path}" or ' +\
+                'explicitly pass "--image_dir".'
+            )
+            sys.exit()
 
     crop_seg_from_coco(
-        ann_file=args.ann_path,
-        img_dir=args.image_dir,
+        ann_file=ann_path,
+        img_dir=img_dir,
         outdir=args.out_dir,
         padding=args.padding,
+    )
+
+    print(
+        f'Cropped dataset written to "{args.out_dir}".'
     )
 
 def utils_sliding_window(args):
@@ -216,6 +235,7 @@ def utils_sliding_window(args):
         return
 
     from ginjinn.utils.dataset_cropping import sliding_window_crop_coco, sliding_window_crop_pvoc
+    from ginjinn.utils.utils import get_anntype, find_img_dir, ImageDirNotFound
 
     if os.path.exists(args.out_dir):
         msg = f'Directory "{args.out_dir} already exists. Should it be overwritten?"\n' +\
@@ -238,12 +258,30 @@ def utils_sliding_window(args):
     else:
         os.mkdir(img_dir_out)
 
-    if args.ann_type == 'COCO':
+    ann_path = args.ann_path
+    ann_type = args.ann_type
+    img_dir = args.img_dir
+
+    if not img_dir:
+        try:
+            img_dir = find_img_dir(ann_path)
+        except ImageDirNotFound:
+            print(
+                f'ERROR: could not find "images" folder as sibling of "{ann_path}". Make sure ' +\
+                f'there is an "images" folder in the same directory as "{ann_path}" or ' +\
+                'explicitly pass "--image_dir".'
+            )
+            sys.exit()
+
+    if ann_type == 'auto':
+        ann_type = get_anntype(ann_path)
+
+    if ann_type == 'COCO':
         ann_path_out = os.path.join(args.out_dir, 'annotations.json')
 
         sliding_window_crop_coco(
-            img_dir=args.image_dir,
-            ann_path=args.ann_path,
+            img_dir=img_dir,
+            ann_path=ann_path,
             img_dir_out=img_dir_out,
             ann_path_out=ann_path_out,
             win_width=win_width,
@@ -261,7 +299,7 @@ def utils_sliding_window(args):
             f'Sliding-window cropped annotation written to {ann_path_out}.'
         print(msg)
 
-    elif args.ann_type == 'PVOC':
+    elif ann_type == 'PVOC':
         ann_dir_out = os.path.join(args.out_dir, 'annotations')
         if os.path.exists(ann_dir_out):
             msg = f'Directory "{ann_dir_out} already exists. Should it be overwritten?"\n' +\
@@ -274,8 +312,8 @@ def utils_sliding_window(args):
             os.mkdir(ann_dir_out)
 
         sliding_window_crop_pvoc(
-            img_dir=args.image_dir,
-            ann_dir=args.ann_path,
+            img_dir=img_dir,
+            ann_dir=ann_path,
             img_dir_out=img_dir_out,
             ann_dir_out=ann_dir_out,
             win_width=win_width,
@@ -338,7 +376,32 @@ def utils_sw_split(args):
     else:
         os.mkdir(args.out_dir)
 
-    if args.ann_type == 'COCO':
+
+    from ginjinn.utils.utils import get_dstype
+
+    ann_type = args.ann_type
+    # infer ann_type
+    if ann_type == 'auto':
+        ds_types = []
+        for ds_name in ['train', 'val', 'test']:
+            ds_path = os.path.join(args.split_dir, ds_name)
+            if not os.path.isdir(ds_path):
+                continue
+            ds_types.append(get_dstype(ds_path))
+        if len(set(ds_types)) > 1:
+            print(
+                f'ERROR: Found multiple dataset types in "{args.split_dir}". ' +\
+                'The datasets in splitdir must all have the same annotation type (COCO or PVOC).'
+            )
+            sys.exit()
+        if len(ds_types) < 1:
+            print(
+                f'ERROR: Could not find any dataset (train, val, test) in "{args.split_dir}".'
+            )
+            sys.exit()
+        ann_type = ds_types[0]
+
+    if ann_type == 'COCO':
         for ds_name in ['train', 'val', 'test']:
             img_dir = os.path.join(args.split_dir, ds_name, 'images')
             ann_path = os.path.join(args.split_dir, ds_name, 'annotations.json')
@@ -382,7 +445,7 @@ def utils_sw_split(args):
                 f'Sliding-window annotation for dataset {ds_name} written to {ann_path_out}.'
             print(msg)
 
-    elif args.ann_type == 'PVOC':
+    elif ann_type == 'PVOC':
         for ds_name in ['train', 'val', 'test']:
             img_dir = os.path.join(args.split_dir, ds_name, 'images')
             ann_dir = os.path.join(args.split_dir, ds_name, 'annotations')
@@ -478,19 +541,25 @@ def utils_filter(args):
     '''
 
     from ginjinn.utils.data_prep import filter_categories_coco, filter_categories_pvoc
+    from ginjinn.utils.utils import get_anntype
 
-    if args.ann_type == 'COCO':
+    ann_path = args.ann_path
+    ann_type = args.ann_type
+    if ann_type == 'auto':
+        ann_type = get_anntype(ann_path)
+
+    if ann_type == 'COCO':
         filter_categories_coco(
-            ann_file = args.ann_path,
+            ann_file = ann_path,
             img_dir = args.img_dir,
             out_dir = args.out_dir,
             drop = args.filter if args.drop else None,
             keep = args.filter if not args.drop else None,
             link_images = not args.copy_images,
         )
-    elif args.ann_type == 'PVOC':
+    elif ann_type == 'PVOC':
         filter_categories_pvoc(
-            ann_dir = args.ann_path,
+            ann_dir = ann_path,
             img_dir = args.img_dir,
             out_dir = args.out_dir,
             drop = args.filter if args.drop else None,
@@ -553,11 +622,31 @@ def utils_visualize(args):
     else:
         os.mkdir(args.out_dir)
 
+    from ginjinn.utils.utils import find_img_dir, ImageDirNotFound, get_anntype
+
+    ann_path = args.ann_path
+    ann_type = args.ann_type
+    img_dir = args.img_dir
+
+    if not img_dir:
+        try:
+            img_dir = find_img_dir(ann_path)
+        except ImageDirNotFound:
+            print(
+                f'ERROR: could not find "images" folder as sibling of "{ann_path}". Make sure ' +\
+                f'there is an "images" folder in the same directory as "{ann_path}" or ' +\
+                'explicitly pass "--img_dir".'
+            )
+            sys.exit()
+
+    if ann_type == 'auto':
+        ann_type = get_anntype(ann_path)
+
     visualize_annotations(
-        ann_path = args.ann_path,
-        img_dir = args.img_dir,
+        ann_path = ann_path,
+        img_dir = img_dir,
         out_dir = args.out_dir,
-        ann_type = args.ann_type,
+        ann_type = ann_type,
         vis_type = args.vis_type,
     )
 

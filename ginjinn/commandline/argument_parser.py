@@ -381,7 +381,7 @@ def _setup_split_parser(subparsers):
         type = str,
         choices = ['auto', 'COCO', 'PVOC'],
         help = '''
-            Dataset type. If 'auto', annotation type will be inferred.
+            Annotation type. If 'auto', annotation type will be inferred.
         ''',
         default='auto',
     )
@@ -440,22 +440,23 @@ def _setup_info_parser(subparsers):
         ''',
         required=True,
     )
-    info_parser_required.add_argument(
+    info_parser_optional = info_parser.add_argument_group('optional arguments')
+    info_parser_optional.add_argument(
         '-i', '--img_dir',
         type = str,
         help = '''
             Directory containing  the annotated images.
         ''',
-        required=True,
+        default = None,
     )
-    info_parser_required.add_argument(
+    info_parser_optional.add_argument(
         '-t', '--ann_type',
         type = str,
         help = '''
-            Annotation type. Either "COCO" or "PVOC".
+            Annotation type. If 'auto', annotation type will be inferred.
         ''',
-        choices = ['COCO', 'PVOC'],
-        required=True,
+        choices = ['auto', 'COCO', 'PVOC'],
+        default = 'auto'
     )
 
     return info_parser
@@ -861,12 +862,12 @@ def _setup_utils_parser(subparsers):
     crop_parser = utils_parsers.add_parser(
         'crop',
         help = '''
-            Crop COCO data set bounding boxes as single images.
+            Crop COCO dataset bounding boxes as single images.
             This is useful for multi-step models, e.g. training a bbox model
             and a segmentation model on the cropped bboxes.
         ''',
         description = '''
-            Crop COCO data set bounding boxes as single images.
+            Crop COCO dataset bounding boxes as single images.
             This is useful for multi-step models, e.g. training a bbox model
             and a segmentation model on the cropped bboxes.
         ''',
@@ -884,16 +885,6 @@ def _setup_utils_parser(subparsers):
         ''',
         required=True,
     )
-
-    crop_required.add_argument(
-        '-i', '--image_dir',
-        type = str,
-        help = '''
-            Path to image directory.
-        ''',
-        required=True,
-    )
-
     crop_required.add_argument(
         '-a', '--ann_path',
         type = str,
@@ -905,6 +896,14 @@ def _setup_utils_parser(subparsers):
 
     # optional
     crop_optional = crop_parser.add_argument_group('optional arguments')
+    crop_optional.add_argument(
+        '-i', '--img_dir',
+        type = str,
+        help = '''
+            Path to image directory. By default, will be inferred.
+        ''',
+        default=None,
+    )
     crop_optional.add_argument(
         '-p', '--padding',
         type = int,
@@ -938,14 +937,6 @@ def _setup_utils_parser(subparsers):
         required=True,
     )
     sliding_window_required.add_argument(
-        '-i', '--image_dir',
-        type = str,
-        help = '''
-            Path to image directory.
-        ''',
-        required=True,
-    )
-    sliding_window_required.add_argument(
         '-a', '--ann_path',
         type = str,
         help = '''
@@ -954,18 +945,26 @@ def _setup_utils_parser(subparsers):
         ''',
         required=True,
     )
-    sliding_window_required.add_argument(
-        '-t', '--ann_type',
-        type = str,
-        help = '''
-            Annotation type.
-        ''',
-        choices = ['COCO', 'PVOC'],
-        required=True,
-    )
 
     # optional
     sliding_window_optional = sliding_window_parser.add_argument_group('optional arguments')
+    sliding_window_optional.add_argument(
+        '-i', '--img_dir',
+        type = str,
+        help = '''
+            Path to image directory. By default, will be inferred.
+        ''',
+        default = None,
+    )
+    sliding_window_optional.add_argument(
+        '-t', '--ann_type',
+        type = str,
+        help = '''
+            Annotation type. If "auto", will be inferred.
+        ''',
+        choices = ['auto', 'COCO', 'PVOC'],
+        default = 'auto',
+    )
     sliding_window_optional.add_argument(
         '-s', '--window_size',
         type = int,
@@ -1073,18 +1072,18 @@ def _setup_utils_parser(subparsers):
         ''',
         required=True,
     )
-    sw_split_required.add_argument(
-        '-t', '--ann_type',
-        type = str,
-        help = '''
-            Annotation type.
-        ''',
-        choices = ['COCO', 'PVOC'],
-        required=True,
-    )
 
     # optional
     sw_split_optional = sw_split_parser.add_argument_group('optional arguments')
+    sw_split_optional.add_argument(
+        '-t', '--ann_type',
+        type = str,
+        help = '''
+            Annotation type. If 'auto', will be inferred.
+        ''',
+        choices = ['auto', 'COCO', 'PVOC'],
+        default = 'auto',
+    )
     sw_split_optional.add_argument(
         '-s', '--window_size',
         type = int,
@@ -1275,23 +1274,23 @@ def _setup_utils_parser(subparsers):
         type = str,
         help = '''
             Names of categories to filter. Filtering depends on the drop parameter.
-            By default, the passed categories kept and the remaining are dropped.
+            By default, the passed categories are kept and the remaining ones are dropped.
         ''',
         action = 'append',
         required = True,
     )
-    filter_parser_required.add_argument(
-        '-t', '--ann_type',
-        type = str,
-        help = '''
-            Annotation type.
-        ''',
-        choices = ['COCO', 'PVOC'],
-        required=True,
-    )
 
     # optional
     filter_parser_optional = filter_parser.add_argument_group('optional arguments')
+    filter_parser_optional.add_argument(
+        '-t', '--ann_type',
+        type = str,
+        help = '''
+            Annotation type. If "auto", will be inferred.
+        ''',
+        choices = ['auto', 'COCO', 'PVOC'],
+        default = 'auto',
+    )
     filter_parser_optional.add_argument(
         '-d', '--drop',
         action = 'store_true',
@@ -1430,23 +1429,6 @@ def _setup_utils_parser(subparsers):
         required=True,
     )
     visualize_parser_required.add_argument(
-        '-i', '--img_dir',
-        type = str,
-        help = '''
-            Directory containing (potentially a subset) of the annotated images.
-        ''',
-        required=True,
-    )
-    visualize_parser_required.add_argument(
-        '-t', '--ann_type',
-        type = str,
-        help = '''
-            Annotation type. Either "COCO" or "PVOC".
-        ''',
-        choices = ['COCO', 'PVOC'],
-        required=True,
-    )
-    visualize_parser_required.add_argument(
         '-v', '--vis_type',
         type = str,
         help = '''
@@ -1455,6 +1437,26 @@ def _setup_utils_parser(subparsers):
         ''',
         choices = ['segmentation', 'bbox'],
         required=True,
+    )
+
+    visualize_parser_optional = visualize_parser.add_argument_group('optional arguments')
+    visualize_parser_optional.add_argument(
+        '-i', '--img_dir',
+        type = str,
+        help = '''
+            Directory containing (potentially a subset) of the annotated images.
+            By default, will be inferred.
+        ''',
+        default = None,
+    )
+    visualize_parser_optional.add_argument(
+        '-t', '--ann_type',
+        type = str,
+        help = '''
+            Annotation type. If "auto", will be inferred.
+        ''',
+        choices = ['auto', 'COCO', 'PVOC'],
+        default = 'auto'
     )
 
     # == count

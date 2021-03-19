@@ -109,7 +109,6 @@ def ginjinn_split(args):
 
     if ann_type == 'auto':
         ann_type = get_anntype(ann_path)
-        print(ann_type)
 
     p_val = args.validation_fraction
     p_test = args.test_fraction
