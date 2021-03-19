@@ -264,8 +264,8 @@ def crop_seg_from_coco(
         Raised for unsupported segmentation format.
     """
 
-    os.makedirs(os.path.join(outdir, "images_cropped"), exist_ok=True)
-    for path in glob.iglob(os.path.join(outdir, "images_cropped", "*")):
+    os.makedirs(os.path.join(outdir, "images"), exist_ok=True)
+    for path in glob.iglob(os.path.join(outdir, "images", "*")):
         os.remove(path)
 
     info = {
@@ -337,7 +337,7 @@ def crop_seg_from_coco(
 
             outpath = os.path.join(
                 outdir,
-                "images_cropped",
+                "images",
                 "img_{}.jpg".format(i_ann)
             )
             cv2.imwrite(outpath, image_cropped)
@@ -370,7 +370,7 @@ def crop_seg_from_coco(
             i_ann += 1
 
     # write COCO json file
-    json_new = os.path.join(outdir, "annotations_cropped.json")
+    json_new = os.path.join(outdir, "annotations.json")
     with open(json_new, 'w') as json_file:
         json.dump({
             'info': info,
