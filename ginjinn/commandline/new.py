@@ -120,9 +120,11 @@ def ginjinn_new(args):
                         )
                         sys.exit()
 
+                    ann_path_rel = os.path.relpath(annotations_path, project_dir)
+                    img_path_rel = os.path.relpath(images_path, project_dir)
                     config_str = re.sub(
                         RE_MAP[ds_name],
-                        f'\\1\\2{annotations_path}\\3\\4{images_path}\\5',
+                        f'\\1\\2{ann_path_rel}\\3\\4{img_path_rel}\\5',
                         config_str
                     )
                     print(f'\tFound COCO dataset and initialized it as {ds_name} data.')
@@ -141,9 +143,11 @@ def ginjinn_new(args):
                         )
                         sys.exit()
 
+                    ann_path_rel = os.path.relpath(annotations_path, project_dir)
+                    img_path_rel = os.path.relpath(images_path, project_dir)
                     config_str = re.sub(
                         RE_MAP[ds_name],
-                        f'\\1\\2{annotations_path}\\3\\4{images_path}\\5',
+                        f'\\1\\2{ann_path_rel}\\3\\4{img_path_rel}\\5',
                         config_str
                     )
                     print(f'\tFound PVOC dataset and initialized it as {ds_name} data.')
@@ -175,10 +179,13 @@ def ginjinn_new(args):
                     )
                     sys.exit()
 
+
+                ann_path_rel = os.path.relpath(annotations_path, project_dir)
+                img_path_rel = os.path.relpath(images_path, project_dir)
                 config_str = re.sub(TYPE_RE, r'\1COCO\2', config_str)
                 config_str = re.sub(
                     TRAINING_RE,
-                    f'\\1\\2{annotations_path}\\3\\4{images_path}\\5',
+                    f'\\1\\2{ann_path_rel}\\3\\4{img_path_rel}\\5',
                     config_str
                 )
                 print('Found COCO dataset and initialized it as training data.')
@@ -196,10 +203,12 @@ def ginjinn_new(args):
                     )
                     sys.exit()
 
+                ann_path_rel = os.path.relpath(annotations_path, project_dir)
+                img_path_rel = os.path.relpath(images_path, project_dir)
                 config_str = re.sub(TYPE_RE, r'\1PVOC\2', config_str)
                 config_str = re.sub(
                     TRAINING_RE,
-                    f'\\1\\2{annotations_path}\\3\\4{images_path}\\5',
+                    f'\\1\\2{ann_path_rel}\\3\\4{img_path_rel}\\5',
                     config_str
                 )
                 print('Found PVOC dataset and initialized it as training data.')
