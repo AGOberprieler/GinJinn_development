@@ -187,6 +187,17 @@ def _setup_evaluate_parser(subparsers):
         '''
     )
 
+    optional = parser.add_argument_group('optional arguments')
+    optional.add_argument(
+        '-c', '--checkpoint',
+        type = str,
+        help = '''
+            Checkpoint file name. By default the most recent checkpoint
+            (model_final.pth) will be used.
+        ''',
+        default = "model_final.pth",
+    )
+
     return parser
 
 def _setup_predict_parser(subparsers):

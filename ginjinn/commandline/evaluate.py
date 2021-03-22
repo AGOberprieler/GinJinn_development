@@ -80,11 +80,23 @@ def ginjinn_evaluate(args):
     from ginjinn.evaluation import evaluate
     from ginjinn.data_reader.load_datasets import load_test_set
 
+    # checkpoint
+    checkpoint_name = args.checkpoint
+    checkpoint_file = os.path.join(
+        config.project_dir, 'outputs', checkpoint_name
+    )
+    if not os.path.isfile(checkpoint_file):
+        print(
+            f'\nERROR: Checkpoint "{checkpoint_name}" (expected location: {checkpoint_file}) ' +\
+            'does not exist. Please pass a valid checkpoint name.'
+        )
+        sys.exit(1)
+
     # register data set globally
     load_test_set(config)
 
     # evaluate
-    res = evaluate(config)
+    res = evaluate(config, checkpoint_name=checkpoint_name)
 
     # write evaluation results
     eval_res_file = os.path.join(config.project_dir, 'evaluation.csv')
