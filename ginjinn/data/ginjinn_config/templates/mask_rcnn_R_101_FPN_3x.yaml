@@ -32,6 +32,23 @@ augmentation:
       probability: 0.25
   - vertical_flip:
       probability: 0.25
+  # - brightness:
+  #     brightness_min: 0.8
+  #     brightness_max: 1.2
+  #     probability: 0.25
+  # - contrast:
+  #     contrast_min: 0.8
+  #     contrast_max: 1.2
+  #     probability: 0.25
+  # - saturation:
+  #     saturation_min: 0.8
+  #     saturation_max: 1.2
+  #     probability: 0.25
+  # - rotation_range:
+  #     angle_min: -30
+  #     angle_max: 30
+  #     expand: True
+  #     probability: 0.25
 
 # Additional options
 options:
