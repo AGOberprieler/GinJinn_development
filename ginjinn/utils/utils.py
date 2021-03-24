@@ -590,10 +590,17 @@ def get_pvoc_size(
         Image size as Tuple (width, height, depth)
     '''
     size_node = ann.find('size')
+
+    # necessary to deal with PVOC exported by CVAT
+    try:
+        depth = int(size_node.find('depth').text)
+    except TypeError:
+        depth = 3
+
     return [
         int(size_node.find('width').text),
         int(size_node.find('height').text),
-        int(size_node.find('depth').text),
+        depth,
     ]
 
 def set_pvoc_size(
@@ -671,7 +678,7 @@ def drop_pvoc_objects(
 
 def get_pvoc_obj_bbox(
     obj: xml.etree.ElementTree.ElementTree,
-) -> Sequence[int]:
+) -> Sequence[float]:
     '''get_pvoc_obj_bbox
 
     Get bounding-box from PVOC object.
@@ -683,15 +690,15 @@ def get_pvoc_obj_bbox(
 
     Returns
     -------
-    Sequence[int]
+    Sequence[float]
         Bounding-box in x0y0x1y1 format.
     '''
     bbox_node = obj.find('bndbox')
     bbox = [
-        int(bbox_node.find('xmin').text),
-        int(bbox_node.find('ymin').text),
-        int(bbox_node.find('xmax').text),
-        int(bbox_node.find('ymax').text),
+        float(bbox_node.find('xmin').text),
+        float(bbox_node.find('ymin').text),
+        float(bbox_node.find('xmax').text),
+        float(bbox_node.find('ymax').text),
     ]
     return bbox
 
@@ -717,7 +724,7 @@ def get_pvoc_obj_name(
 
 def set_pvoc_obj_bbox(
     obj: xml.etree.ElementTree.ElementTree,
-    bbox: Sequence[int],
+    bbox: Sequence[float],
 ):
     '''set_pvoc_obj_bbox
 

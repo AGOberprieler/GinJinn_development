@@ -628,8 +628,8 @@ def sliding_window_crop_coco(
 
 def crop_pvoc_obj(
     obj: xml.etree.ElementTree.ElementTree,
-    cropping_range: Sequence[int],
-    min_size: Sequence[int] = [10, 10],
+    cropping_range: Sequence[float],
+    min_size: Sequence[float] = [10, 10],
     keep_incomplete: bool = True,
 ) -> Optional[xml.etree.ElementTree.ElementTree]:
     '''crop_pvoc_obj
@@ -640,9 +640,9 @@ def crop_pvoc_obj(
     ----------
     obj : xml.etree.ElementTree.ElementTree
         PVOC object as ElementTree
-    cropping_range : Sequence[int]
+    cropping_range : Sequence[float]
         Cropping range in x0x1y0y1 format.
-    min_size : Sequence[int], optional
+    min_size : Sequence[float], optional
         Minimum cropped bounding-box size (width, height),
         by default [10, 10].
     keep_incomplete : bool
@@ -657,9 +657,9 @@ def crop_pvoc_obj(
     cropped_obj = copy.deepcopy(obj)
 
     bbox = get_pvoc_obj_bbox(obj)
-    w_orig, h_orig = bbox_size([int(x) for x in bbox])
+    w_orig, h_orig = bbox_size(bbox)
 
-    bbox_cropped = [int(x) for x in crop_bbox(bbox, cropping_range)]
+    bbox_cropped = crop_bbox(bbox, cropping_range)
     w, h = bbox_size(bbox_cropped)
 
     if not keep_incomplete:
@@ -675,8 +675,8 @@ def crop_pvoc_obj(
 
 def crop_pvoc_ann(
     ann: xml.etree.ElementTree.ElementTree,
-    cropping_range: Sequence[int],
-    min_size: Sequence[int] = [10, 10],
+    cropping_range: Sequence[float],
+    min_size: Sequence[float] = [10, 10],
     rename: bool = True,
     keep_incomplete: bool = True,
 ) -> xml.etree.ElementTree.ElementTree:
@@ -688,9 +688,9 @@ def crop_pvoc_ann(
     ----------
     ann : xml.etree.ElementTree.ElementTree
         PVOC annotation as ElementTree
-    cropping_range : Sequence[int]
+    cropping_range : Sequence[float]
         Cropping range in x0x1y0y1 format.
-    min_size : Sequence[int], optional
+    min_size : Sequence[float], optional
         Minimum cropped bounding-box size (width, height),
         by default [10, 10].
     rename : bool, optional
