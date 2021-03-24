@@ -7,7 +7,6 @@ import os
 from typing import List
 import xml.etree.ElementTree as ET
 from detectron2.structures import BoxMode
-from detectron2.data.datasets import load_coco_json
 from pycocotools.coco import COCO
 from .data_error import IncompatibleDatasetsError
 
@@ -199,6 +198,11 @@ def get_dicts_pvoc(ann_dir: str, img_dir: str, class_names: List[str]) -> List[d
     class_names : list of str
         required to assign category IDs
 
+    Notes
+    -----
+    Bounding boxes contained in the input annotations are assumed to represent zero-based,
+    half open intervals (xmax and ymax don't belong to the object).
+
     Returns
     -------
     dict_list : list of dict
@@ -226,8 +230,8 @@ def get_dicts_pvoc(ann_dir: str, img_dir: str, class_names: List[str]) -> List[d
 
         for obj in root.findall("object"):
             bbox = obj.find("bndbox")
-            xmin = float(bbox.findtext("xmin")) - 1.0
-            ymin = float(bbox.findtext("ymin")) - 1.0
+            xmin = float(bbox.findtext("xmin"))
+            ymin = float(bbox.findtext("ymin"))
             xmax = float(bbox.findtext("xmax"))
             ymax = float(bbox.findtext("ymax"))
             name = obj.findtext("name")
