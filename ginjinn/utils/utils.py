@@ -2,6 +2,7 @@
 Module for generic helper functions.
 """
 
+from collections import defaultdict
 import sys
 import json
 import glob
@@ -694,6 +695,26 @@ def get_pvoc_obj_bbox(
     ]
     return bbox
 
+def get_pvoc_obj_name(
+    obj: xml.etree.ElementTree.ElementTree,
+) -> str:
+    '''get_pvoc_obj_name
+
+    Get name from PVOC object.
+
+    Parameters
+    ----------
+    obj : xml.etree.ElementTree.ElementTree
+        PVOC object as ElementTree
+
+    Returns
+    -------
+    str
+        Name of the PVOC object.
+    '''
+
+    return obj.find('name').text
+
 def set_pvoc_obj_bbox(
     obj: xml.etree.ElementTree.ElementTree,
     bbox: Sequence[int],
@@ -904,6 +925,11 @@ def count_categories(
     ----------
     ann_path: str
         Path to COCO JSON annotation file.
+
+    Returns
+    -------
+    "pandas.DataFrame"
+        Count dataframe.
     '''
     import pandas as pd
 
@@ -935,6 +961,45 @@ def count_categories(
     count_df.index.set_names(['image'])
 
     return count_df
+
+def count_categories_pvoc(
+    ann_path: str,
+) -> "pandas.DataFrame":
+    '''count_categories_pvoc
+
+    Parameters
+    ----------
+    ann_path: str
+        Path to PVOC annotation folder.
+
+    Returns
+    -------
+    "pandas.DataFrame"
+        Count dataframe.
+    '''
+
+    import pandas as pd
+    from glob import glob
+    ann_files = glob(os.path.join(ann_path, '*.xml'))
+
+    index = []
+    rows = []
+    for ann_file in ann_files:
+        ann = load_pvoc_annotation(ann_file)
+        img_name = get_pvoc_filename(ann)
+        objs = get_pvoc_objects(ann)
+        counts = defaultdict(int)
+        for obj in objs:
+            obj_name = get_pvoc_obj_name(obj)
+            counts[obj_name] += 1
+        rows.append(counts)
+        index.append(img_name)
+
+    count_df = pd.DataFrame(rows, index, dtype='Int64').fillna(0)
+    count_df.index.set_names(['image'])
+
+    return count_df
+
 
 class InvalidAnnotationPath(Exception):
     pass
