@@ -22,6 +22,7 @@ from .utils import get_pvoc_obj_bbox, bbox_from_mask,\
     drop_pvoc_objects, get_pvoc_filename, set_pvoc_filename,\
     get_pvoc_objects, add_pvoc_object, set_pvoc_size, get_pvoc_size,\
     load_pvoc_annotation, write_pvoc_annotation, coco_seg_to_mask
+from .sliding_window_merging import xywh_to_xyxy
 
 
 def sw_coords_1d(length: int, win_length: int, overlap: int) -> Generator[Tuple[int], None, None]:
@@ -327,8 +328,8 @@ def crop_seg_from_coco(
 
             # apply padding, clip values
             x1, y1, x2, y2 = (round(coord) for coord in bbox)
-            x1, x2 = np.clip((x1 - padding, x2 + padding), 0, width - 1).tolist()
-            y1, y2 = np.clip((y1 - padding, y2 + padding), 0, height - 1).tolist()
+            x1, x2 = np.clip((x1 - padding, x2 + padding), 0, width).tolist()
+            y1, y2 = np.clip((y1 - padding, y2 + padding), 0, height).tolist()
 
             # crop image
             image_cropped = image[y1:y2, x1:x2]
@@ -362,6 +363,133 @@ def crop_seg_from_coco(
                 "bbox": bbox_coco,
                 "segmentation": polygons_cropped,
                 "iscrowd": 0,
+                "image_id": i_ann,
+                "id": i_ann,
+                "category_id": annotation["category_id"]
+            })
+
+            i_ann += 1
+
+    # write COCO json file
+    json_new = os.path.join(outdir, "annotations.json")
+    with open(json_new, 'w') as json_file:
+        json.dump({
+            'info': info,
+            'licenses': licenses,
+            'images': images,
+            'annotations': annotations,
+            'categories': categories
+            },
+            json_file,
+            indent = 2,
+            sort_keys = True
+        )
+
+def crop_bbox_from_coco(
+    ann_file: str,
+    img_dir: str,
+    outdir: str,
+    padding: int = 0
+):
+    """
+    This function reads annotations in COCO format and crops each contained bounding box from
+    the corresponding image file. In addition, a new COCO json file is written, which annotates
+    the cropped images. If no padding is applied, the output boxes cover the complete cropped
+    images.
+
+    Parameters
+    ----------
+    ann_file : str
+        COCO json file
+    img_dir : str
+        Directory containing JPG images
+    outdir : str
+        Directory to which the output is written
+    padding : int
+        This option allows to increase the cropping range beyond the borders of the original
+        bounding box. If possible, each side of the latter is shifted by the same number of
+        pixels.
+
+    Raises
+    ------
+    TypeError
+        Raised for unsupported segmentation format.
+    """
+
+    os.makedirs(os.path.join(outdir, "images"), exist_ok=True)
+    for path in glob.iglob(os.path.join(outdir, "images", "*")):
+        os.remove(path)
+
+    info = {
+        "contributor" : "",
+        "date_created" : datetime.datetime.now().strftime("%Y/%m/%d"),
+        "description" : "",
+        "version" : "",
+        "url" : "",
+        "year" : ""
+    }
+
+    # image id -> COCO dict of uncropped image
+    dict_images = dict()
+
+    annotations = []
+    images = []
+
+    with open(ann_file, "rb") as f:
+        ann = json.load(f)
+
+        categories = ann.get("categories")
+        licenses = ann.get("licenses")
+
+        for image in ann.get("images"):
+            dict_images[image["id"]] = image
+
+        i_ann = 1
+        for annotation in ann.get("annotations"):
+            img_coco = dict_images[annotation["image_id"]]
+
+            # read image
+            img_name = os.path.split(img_coco["file_name"])[1]
+            image = cv2.imread(os.path.join(img_dir, img_name))
+            # original size
+            height = image.shape[0]
+            width = image.shape[1]
+
+            bbox = annotation.get("bbox")
+            if not bbox:
+                continue
+
+            # apply padding, clip values
+            x1, y1, x2, y2 = (round(coord) for coord in xywh_to_xyxy(bbox))
+            x1, x2 = np.clip((x1 - padding, x2 + padding), 0, width).tolist()
+            y1, y2 = np.clip((y1 - padding, y2 + padding), 0, height).tolist()
+
+            # crop image
+            image_cropped = image[y1:y2, x1:x2]
+            if image_cropped.size == 0:
+                continue
+
+            outpath = os.path.join(
+                outdir,
+                "images",
+                "img_{}.jpg".format(i_ann)
+            )
+            cv2.imwrite(outpath, image_cropped)
+
+            images.append({
+                "id": i_ann,
+                "file_name": "img_{}.jpg".format(i_ann),
+                "height": y2 - y1,
+                "width": x2 - x1,
+                "license": img_coco.get("license")
+            })
+
+            # map bbox to new coordinate system
+            bbox_cropped = [bbox[0] - x1, bbox[1] - y1, bbox[2], bbox[3]]
+
+            annotations.append({
+                "area": bbox_cropped[2] * bbox_cropped[3],
+                "bbox": bbox_cropped,
                 "image_id": i_ann,
                 "id": i_ann,
                 "category_id": annotation["category_id"]
