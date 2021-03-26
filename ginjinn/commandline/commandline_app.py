@@ -2,14 +2,6 @@
 '''
 
 from .argument_parser import GinjinnArgumentParser
-from .splitter import ginjinn_split
-from .simulate import ginjinn_simulate
-from .new import ginjinn_new
-from .train import ginjinn_train
-from .utils import ginjinn_utils
-from .evaluate import ginjinn_evaluate
-from .predict import ginjinn_predict
-from .info import ginjinn_info
 
 class GinjinnCommandlineApplication():
     '''GinjinnCommandlineApplication
@@ -55,54 +47,54 @@ class GinjinnCommandlineApplication():
         '''_run_split
         Run the GinJinn split command.
         '''
-
+        from .splitter import ginjinn_split
         ginjinn_split(self.args)
 
     def _run_simulate(self):
         '''_run_simulate
         Run the GinJinn simulate command.
         '''
-
+        from .simulate import ginjinn_simulate
         ginjinn_simulate(self.args)
 
     def _run_new(self):
         '''_run_new
         Run the GinJinn new command.
         '''
-
+        from .new import ginjinn_new
         ginjinn_new(self.args)
 
     def _run_train(self):
         '''_run_train
         Run the GinJinn train command.
         '''
-
+        from .train import ginjinn_train
         ginjinn_train(self.args)
 
     def _run_utils(self):
         '''_run_utils
         Run the GinJinn utils command.
         '''
-
+        from .utils import ginjinn_utils
         ginjinn_utils(self.args)
 
     def _run_evaluate(self):
         '''_run_evaluate
         Run the GinJinn evaluate command.
         '''
-
+        from .evaluate import ginjinn_evaluate
         ginjinn_evaluate(self.args)
 
     def _run_predict(self):
         '''_run_predict
         Run the GinJinn predict command.
         '''
-
+        from .predict import ginjinn_predict
         ginjinn_predict(self.args)
 
     def _run_info(self):
         '''_run_info
         Run the GinJinn info command.
         '''
-
+        from .info import ginjinn_info
         ginjinn_info(self.args)
