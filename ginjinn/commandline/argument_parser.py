@@ -923,6 +923,16 @@ def _setup_utils_parser(subparsers):
         ''',
         default=5,
     )
+    crop_optional.add_argument(
+        '-t', '--type',
+        type=str,
+        help='''
+            Cropping type. When "segmentation" (default) is selected,
+            only bboxes with a corresponding segmentation will be cropped.
+        ''',
+        choices=['segmentation', 'bbox'],
+        default='segmentation'
+    )
 
     # == sliding_window
     sliding_window_parser = utils_parsers.add_parser(

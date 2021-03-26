@@ -174,6 +174,7 @@ def utils_crop(args):
     '''
 
     from ginjinn.utils import crop_seg_from_coco
+    from ginjinn.utils import crop_bbox_from_coco
     from ginjinn.utils.utils import find_img_dir, ImageDirNotFound
 
     img_dir = args.img_dir
@@ -190,12 +191,20 @@ def utils_crop(args):
             )
             sys.exit()
 
-    crop_seg_from_coco(
-        ann_file=ann_path,
-        img_dir=img_dir,
-        outdir=args.out_dir,
-        padding=args.padding,
-    )
+    if args.type == 'segmentation':
+        crop_seg_from_coco(
+            ann_file=ann_path,
+            img_dir=img_dir,
+            outdir=args.out_dir,
+            padding=args.padding,
+        )
+    else:
+        crop_bbox_from_coco(
+            ann_file=ann_path,
+            img_dir=img_dir,
+            outdir=args.out_dir,
+            padding=args.padding,
+        )
 
     print(
         f'Cropped dataset written to "{args.out_dir}".'

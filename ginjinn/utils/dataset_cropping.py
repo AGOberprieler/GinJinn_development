@@ -22,7 +22,6 @@ from .utils import get_pvoc_obj_bbox, bbox_from_mask,\
     drop_pvoc_objects, get_pvoc_filename, set_pvoc_filename,\
     get_pvoc_objects, add_pvoc_object, set_pvoc_size, get_pvoc_size,\
     load_pvoc_annotation, write_pvoc_annotation, coco_seg_to_mask
-from .sliding_window_merging import xywh_to_xyxy
 
 
 def sw_coords_1d(length: int, win_length: int, overlap: int) -> Generator[Tuple[int], None, None]:
@@ -415,6 +414,7 @@ def crop_bbox_from_coco(
     TypeError
         Raised for unsupported segmentation format.
     """
+    from .sliding_window_merging import xywh_to_xyxy
 
     os.makedirs(os.path.join(outdir, "images"), exist_ok=True)
     for path in glob.iglob(os.path.join(outdir, "images", "*")):
