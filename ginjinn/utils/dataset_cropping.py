@@ -968,3 +968,61 @@ def sliding_window_crop_pvoc(
             )
             img_filepath = os.path.join(img_dir_out, f'{filename}{ext}')
             cv2.imwrite(img_filepath, cropped_img)
+
+def sliding_window_crop_images(
+    img_dir: str,
+    img_dir_out: str,
+    win_width: int,
+    win_height: int,
+    hor_overlap: int,
+    vert_overlap: int,
+):
+    '''sliding_window_crop_images
+
+    Sliding-window crop images.
+
+    Parameters
+    ----------
+    img_dir : str
+        Path to image directory
+    img_dir_out : str
+        Path to output image directory
+    win_width: int
+        Window width (px)
+    win_height: int
+        Window height (px)
+    hor_overlap: int
+        Horizontal overlap of neighboring windows (px)
+    vert_overlap: int
+        Vertical overlap of neighboring windows (px)
+    '''
+    from .utils import get_image_files
+    img_files = get_image_files(img_dir=img_dir)
+
+    for img_f in img_files:
+        img = cv2.imread(img_f)
+
+        xxyy = sliding_window_grid_2d(
+            img.shape[1],
+            img.shape[0],
+            win_width,
+            win_height,
+            hor_overlap,
+            vert_overlap
+        ).astype(int)
+
+        # print(get_pvoc_filename(ann))
+
+        img_name, ext = os.path.splitext(os.path.basename(img_f))
+        img_width = img.shape[1]
+        img_height = img.shape[0]
+
+        for cropping_range in xxyy:
+            cropped_img = crop_img_padded(img, cropping_range)
+
+            xmn, xmx, ymn, ymx = cropping_range
+
+            cropped_img_name = f'{img_name}_{img_width}x{img_height}_{xmn}-{xmx}_{ymn}-{ymx}{ext}'
+
+            img_filepath = os.path.join(img_dir_out, f'{cropped_img_name}')
+            cv2.imwrite(img_filepath, cropped_img)
