@@ -2,6 +2,7 @@
 Module for generating datasets with cropped object instances.
 """
 
+from collections import defaultdict
 import datetime
 import glob
 import json
@@ -279,6 +280,8 @@ def crop_seg_from_coco(
 
     # image id -> COCO dict of uncropped image
     dict_images = dict()
+    # count cropped objects for each image
+    obj_counter = defaultdict(int)
 
     annotations = []
     images = []
@@ -335,16 +338,21 @@ def crop_seg_from_coco(
             if image_cropped.size == 0:
                 continue
 
+            img_name_new = "{}_{}.jpg".format(
+                os.path.splitext(img_name)[0],
+                obj_counter[annotation["image_id"]]
+            )
+
             outpath = os.path.join(
                 outdir,
                 "images",
-                "img_{}.jpg".format(i_ann)
+                img_name_new
             )
             cv2.imwrite(outpath, image_cropped)
 
             images.append({
                 "id": i_ann,
-                "file_name": "img_{}.jpg".format(i_ann),
+                "file_name": img_name_new,
                 "height": y2 - y1,
                 "width": x2 - x1,
                 "license": img_coco.get("license")
@@ -367,6 +375,7 @@ def crop_seg_from_coco(
                 "category_id": annotation["category_id"]
             })
 
+            obj_counter[annotation["image_id"]] += 1
             i_ann += 1
 
     # write COCO json file
@@ -431,6 +440,8 @@ def crop_bbox_from_coco(
 
     # image id -> COCO dict of uncropped image
     dict_images = dict()
+    # count cropped objects for each image
+    obj_counter = defaultdict(int)
 
     annotations = []
     images = []
@@ -469,16 +480,21 @@ def crop_bbox_from_coco(
             if image_cropped.size == 0:
                 continue
 
+            img_name_new = "{}_{}.jpg".format(
+                os.path.splitext(img_name)[0],
+                obj_counter[annotation["image_id"]]
+            )
+
             outpath = os.path.join(
                 outdir,
                 "images",
-                "img_{}.jpg".format(i_ann)
+                img_name_new
             )
             cv2.imwrite(outpath, image_cropped)
 
             images.append({
                 "id": i_ann,
-                "file_name": "img_{}.jpg".format(i_ann),
+                "file_name": img_name_new,
                 "height": y2 - y1,
                 "width": x2 - x1,
                 "license": img_coco.get("license")
@@ -495,6 +511,7 @@ def crop_bbox_from_coco(
                 "category_id": annotation["category_id"]
             })
 
+            obj_counter[annotation["image_id"]] += 1
             i_ann += 1
 
     # write COCO json file
