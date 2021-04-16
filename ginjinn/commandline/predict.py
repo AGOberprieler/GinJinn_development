@@ -90,6 +90,7 @@ def ginjinn_predict(args):
     padding = args.padding
     seg_refinement = args.seg_refinement
     refinement_method = args.refinement_method
+    device = args.device
 
     output_options = args.output_types
     output_options = list({x if not isinstance(x, list) else x[0] for x in output_options})
@@ -106,7 +107,7 @@ def ginjinn_predict(args):
         output_options=output_options,
         padding=padding,
         seg_refinement=seg_refinement,
-        refinement_device='cuda:0',
+        refinement_device=device,
         refinement_method=refinement_method,
         threshold=threshold,
     )

@@ -33,19 +33,19 @@ setup(
     description=DESCRIPTION,
     packages=find_packages(),
     install_requires=install_requires(),
-   entry_points={
-       'console_scripts': [
-           'ginjinn = ginjinn.commandline.main:main',
-       ]
-   },
-   package_data={
-       'ginjinn': [
-           'data/ginjinn_config/template_config.yaml',
-           'data/example_data.txt',
-           'data/ginjinn_config/example_config_0.yaml',
-           'data/ginjinn_config/example_config_1.yaml',
-           'data/ginjinn_config/templates',
-           'data/ginjinn_config/templates/*'
-       ],
-   }
+    entry_points={
+        'console_scripts': [
+            'ginjinn = ginjinn.commandline.main:main',
+        ]
+    },
+    package_data={
+        'ginjinn': [
+            'data/ginjinn_config/template_config.yaml',
+            'data/example_data.txt',
+            'data/ginjinn_config/example_config_0.yaml',
+            'data/ginjinn_config/example_config_1.yaml',
+            'data/ginjinn_config/templates',
+            'data/ginjinn_config/templates/*'
+        ],
+    }
 )

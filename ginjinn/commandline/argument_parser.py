@@ -317,6 +317,15 @@ def _setup_predict_parser(subparsers):
         default='full',
     )
 
+    optional.add_argument(
+        '-d', '--device',
+        help = '''
+            Refinement device.
+        ''',
+        type=str,
+        default='cuda:0',
+    )
+
     return parser
 
 def _setup_split_parser(subparsers):
