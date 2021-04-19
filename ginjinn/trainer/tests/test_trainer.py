@@ -110,5 +110,10 @@ def test_trainer(example_config):
             Warning(str(err))
         else:
             raise err
+    except RuntimeError as err:
+        if 'NVIDIA driver' in str(err):
+            Warning(str(err))
+        else:
+            raise err
     except Exception as err:
         raise err
