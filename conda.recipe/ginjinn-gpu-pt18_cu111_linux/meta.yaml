@@ -1,0 +1,44 @@
+package:
+  name: ginjinn-gpu_development
+#  version: {{ GIT_DESCRIBE_TAG }}_pt15_cu101
+  version: pt18_cu111
+
+source:
+#   git_rev:
+  git_url: https://github.com/AGOberprieler/GinJinn_development
+
+requirements:
+  build:
+    - python {{ python }}
+    - setuptools
+    - pytorch==1.8.0
+    - torchvision==0.9.0
+    - cudatoolkit=11.1
+    - pip
+
+  run:
+    - python {{ python }}
+    - pytorch==1.8.0
+    - torchvision==0.9.0
+    - cudatoolkit=11.1
+    - opencv
+    - scikit-image
+    - pandas
+    - pycocotools
+    - mock
+    - imantics
+    - scikit-learn
+
+build:
+  skip: true # [not linux]
+entry_points:
+   - ginjinn = ginjinn.commandline.main:main
+
+# test:
+#   imports:
+#     -
+
+about:
+  home: https://github.com/AGOberprieler/GinJinn_development
+  license: MIT
+  summary: Object detection pipeline for the extraction of structures from digitized herbarium specimens
