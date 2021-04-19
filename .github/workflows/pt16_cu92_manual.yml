@@ -8,11 +8,7 @@ on:
         required: true
         default: 'warning'
       tags:
-        description: 'Build conda package'
-  push:
-    branches: [ master, development ]
-  pull_request:
-    branches: [ master, development ]
+        description: 'Test pytorch1.6 cuda9.2 build'
 
 jobs:
   build:
@@ -21,7 +17,7 @@ jobs:
       matrix:
         os: [ubuntu-latest]
         python-version: [3.6, 3.7, 3.8]
-        ginjinn-distribution: [ginjinn-gpu-pt15_cu101_linux]
+        ginjinn-distribution: [ginjinn-gpu-pt16_cu92_linux]
     env:
       OS: ${{ matrix.os }}
       PYTHON: ${{ matrix.python-version }}
