@@ -1,7 +1,7 @@
 package:
   name: ginjinn-gpu_development
 #  version: {{ GIT_DESCRIBE_TAG }}_pt15_cu101
-  version: pt16_cu92
+  version: pt17_cu92
 
 source:
 #   git_rev:
@@ -11,15 +11,15 @@ requirements:
   build:
     - python {{ python }}
     - setuptools
-    - pytorch==1.6.0
-    - torchvision==0.7.0
+    - pytorch==1.7.0
+    - torchvision==0.8.0
     - cudatoolkit=9.2
     - pip
 
   run:
     - python {{ python }}
-    - pytorch==1.6.0
-    - torchvision==0.7.0
+    - pytorch==1.7.0
+    - torchvision==0.8.0
     - cudatoolkit=9.2
     - opencv
     - scikit-image
