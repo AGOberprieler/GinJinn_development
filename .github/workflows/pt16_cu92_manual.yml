@@ -1,4 +1,4 @@
-name: Nightly Build
+name: Manual Build pytorch1.6 cuda9.2
 
 on: 
   workflow_dispatch:
