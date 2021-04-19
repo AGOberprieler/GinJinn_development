@@ -9,7 +9,10 @@ on:
         default: 'warning'
       tags:
         description: 'Test pytorch1.7 cuda9.2 build'
-
+  workflow_run:
+    workflows: ['Trigger Builds']
+    types:
+      - completed
 jobs:
   build:
     runs-on: ${{ matrix.os }}
