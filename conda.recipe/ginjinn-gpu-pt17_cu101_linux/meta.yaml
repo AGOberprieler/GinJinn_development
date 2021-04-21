@@ -39,5 +39,5 @@ entry_points:
 
 about:
   home: https://github.com/AGOberprieler/GinJinn_development
-  license: MIT
-  summary: Object detection pipeline for the extraction of structures from digitized herbarium specimens
+  license: Apache-2.0
+  summary: An object detection framework for biologists.
