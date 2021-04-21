@@ -1,7 +1,6 @@
 package:
   name: ginjinn-gpu_development
-#  version: {{ GIT_DESCRIBE_TAG }}_pt15_cu101
-  version: pt18_cu102
+  version: {{ environ.get('GIT_DESCRIBE_TAG', 'default').lstrip('v') }}_pt18_cu102
 
 source:
 #   git_rev:
